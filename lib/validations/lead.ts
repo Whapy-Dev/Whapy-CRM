@@ -1,0 +1,14 @@
+import { z } from 'zod';
+
+/**
+ * Schema de validación para crear/editar Lead
+ */
+export const leadSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
+  company: z.string().optional().or(z.literal('')),
+  notes: z.string().optional().or(z.literal('')),
+});
+
+export type LeadFormData = z.infer<typeof leadSchema>;
