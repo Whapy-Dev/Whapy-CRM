@@ -1,0 +1,93 @@
+import Link from "next/link";
+import { FileText, Calendar, LogOut, Home } from "lucide-react";
+
+export default function PortalLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xl">W</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Whapy LLC</h1>
+                <p className="text-xs text-gray-500">Portal del Cliente</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">Juan Pérez</p>
+                <p className="text-xs text-gray-500">Tech Solutions</p>
+              </div>
+              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Navigation */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1">
+            <Link
+              href="/portal"
+              className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            >
+              <Home className="w-4 h-4" />
+              Inicio
+            </Link>
+
+            <Link
+              href="/portal/meetings"
+              className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            >
+              <Calendar className="w-4 h-4" />
+              Mis Reuniones
+            </Link>
+
+            <Link
+              href="/portal/budgets"
+              className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Presupuestos
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center text-sm text-gray-500">
+            <p>© 2025 Whapy LLC. Todos los derechos reservados.</p>
+            <p className="mt-1">
+              ¿Necesitas ayuda? Contactanos en{" "}
+              <a
+                href="mailto:contacto@whapy.com"
+                className="text-blue-600 hover:text-blue-700"
+              >
+                contacto@whapy.com
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

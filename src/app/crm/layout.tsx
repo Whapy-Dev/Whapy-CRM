@@ -1,58 +1,165 @@
-import Link from 'next/link';
-import { LayoutDashboard, Users, FileText, Calendar } from 'lucide-react';
+"use client";
 
-export default function CRMLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Calendar,
+  Bell,
+  Settings,
+  LogOut,
+  ChevronDown,
+} from "lucide-react";
+import { useState } from "react";
+
+export default function CRMLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const navigation = [
+    {
+      name: "Dashboard",
+      href: "/crm",
+      icon: LayoutDashboard,
+      current: pathname === "/crm",
+    },
+    {
+      name: "Leads",
+      href: "/crm/leads",
+      icon: Users,
+      current: pathname === "/crm/leads",
+    },
+    {
+      name: "Presupuestos",
+      href: "/crm/budgets",
+      icon: FileText,
+      current: pathname === "/crm/budgets",
+    },
+    {
+      name: "Reuniones",
+      href: "/crm/meetings",
+      icon: Calendar,
+      current: pathname === "/crm/meetings",
+    },
+  ];
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold">Whapy CRM</h1>
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Logo */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">W</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Whapy CRM</h1>
+              <p className="text-xs text-gray-500">Admin Panel</p>
+            </div>
+          </div>
         </div>
-        
-        <nav className="px-4 space-y-1">
-          <Link
-            href="/crm"
-            className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100"
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            Dashboard
-          </Link>
-          
-          <Link
-            href="/crm/leads"
-            className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100"
-          >
-            <Users className="w-5 h-5" />
-            Leads
-          </Link>
-          
-          <Link
-            href="/crm/budgets"
-            className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100"
-          >
-            <FileText className="w-5 h-5" />
-            Presupuestos
-          </Link>
-          
-          <Link
-            href="/crm/meetings"
-            className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100"
-          >
-            <Calendar className="w-5 h-5" />
-            Reuniones
-          </Link>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 space-y-1">
+          {navigation.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                  ${
+                    item.current
+                      ? "bg-blue-50 text-blue-600 font-medium"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }
+                `}
+              >
+                <Icon className="w-5 h-5" />
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
+
+        {/* User Section */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                DY
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-gray-900">
+                  Dylan Agostini
+                </p>
+                <p className="text-xs text-gray-500">Admin</p>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-400 transition-transform ${
+                  showUserMenu ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* User Menu Dropdown */}
+            {showUserMenu && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <Settings className="w-4 h-4" />
+                  Configuración
+                </button>
+                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                  <LogOut className="w-4 h-4" />
+                  Cerrar Sesión
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8">
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {navigation.find((item) => item.current)?.name || "Dashboard"}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Notifications */}
+            <button className="relative p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            {/* Quick Stats */}
+            <div className="flex items-center gap-4 pl-4 border-l border-gray-200">
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Leads Activos</p>
+                <p className="text-sm font-semibold text-gray-900">24</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Conversión</p>
+                <p className="text-sm font-semibold text-green-600">34%</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto">{children}</main>
+      </div>
     </div>
   );
 }
