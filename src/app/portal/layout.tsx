@@ -1,11 +1,38 @@
+"use client";
+
 import Link from "next/link";
-import { FileText, Calendar, LogOut, Home } from "lucide-react";
+import { usePathname } from "next/navigation";
+import {
+  FileText,
+  Calendar,
+  LogOut,
+  Home,
+  FolderOpen,
+  User,
+} from "lucide-react";
 
 export default function PortalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  const isActive = (path: string) => {
+    if (path === "/portal") {
+      return pathname === path;
+    }
+    return pathname?.startsWith(path);
+  };
+
+  const navLinkClass = (path: string) => {
+    return `flex items-center gap-2 px-4 py-3 transition-colors ${
+      isActive(path)
+        ? "text-blue-600 bg-blue-50 border-b-2 border-blue-600"
+        : "text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-b-2 border-transparent hover:border-blue-600"
+    }`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -39,28 +66,33 @@ export default function PortalLayout({
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1">
-            <Link
-              href="/portal"
-              className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-b-2 border-transparent hover:border-blue-600 transition-colors"
-            >
+            <Link href="/portal" className={navLinkClass("/portal")}>
               <Home className="w-4 h-4" />
               Inicio
             </Link>
 
             <Link
-              href="/portal/meetings"
-              className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+              href="/portal/projects"
+              className={navLinkClass("/portal/projects")}
             >
-              <Calendar className="w-4 h-4" />
-              Mis Reuniones
+              <FolderOpen className="w-4 h-4" />
+              Mis Proyectos
             </Link>
 
             <Link
               href="/portal/budgets"
-              className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+              className={navLinkClass("/portal/budgets")}
             >
               <FileText className="w-4 h-4" />
               Presupuestos
+            </Link>
+
+            <Link
+              href="/portal/profile"
+              className={navLinkClass("/portal/profile")}
+            >
+              <User className="w-4 h-4" />
+              Mi Perfil
             </Link>
           </div>
         </div>
