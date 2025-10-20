@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -44,6 +45,17 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       current: pathname === "/crm/meetings",
     },
   ];
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Error al cerrar sesión:", error.message);
+      return;
+    }
+    location.reload();
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -116,7 +128,11 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
                   <Settings className="w-4 h-4" />
                   Configuración
                 </button>
-                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
+                >
                   <LogOut className="w-4 h-4" />
                   Cerrar Sesión
                 </button>
