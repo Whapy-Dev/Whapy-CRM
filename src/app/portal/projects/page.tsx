@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { useState } from "react";
@@ -9,12 +10,23 @@ import {
   CheckCircle,
   ArrowRight,
 } from "lucide-react";
+=======
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { FolderOpen, Calendar, Clock, CheckCircle, ArrowRight } from 'lucide-react';
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
 
 type Project = {
   id: string;
   name: string;
   description: string;
+<<<<<<< HEAD
   status: "en_progreso" | "completado" | "pendiente";
+=======
+  status: 'en_progreso' | 'completado' | 'pendiente';
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
   progress: number;
   start_date: string;
   meetings_count: number;
@@ -25,6 +37,7 @@ type Project = {
 export default function ProjectsPage() {
   const [projects] = useState<Project[]>([
     {
+<<<<<<< HEAD
       id: "1",
       name: "Desarrollo Web Corporativo",
       description: "Sitio web institucional con panel de administración y blog",
@@ -70,6 +83,53 @@ export default function ProjectsPage() {
     if (progress < 30) return "bg-red-600";
     if (progress < 70) return "bg-yellow-600";
     return "bg-green-600";
+=======
+      id: '1',
+      name: 'Desarrollo Web Corporativo',
+      description: 'Sitio web institucional con panel de administración y blog',
+      status: 'en_progreso',
+      progress: 65,
+      start_date: '2025-09-15',
+      meetings_count: 4,
+      documents_count: 3,
+      has_figma: true
+    },
+    {
+      id: '2',
+      name: 'App Mobile Inventario',
+      description: 'Aplicación móvil para gestión de inventario en tiempo real',
+      status: 'en_progreso',
+      progress: 30,
+      start_date: '2025-10-01',
+      meetings_count: 2,
+      documents_count: 2,
+      has_figma: true
+    }
+  ]);
+
+  const statusConfig = {
+    en_progreso: { 
+      color: 'bg-blue-100 text-blue-800', 
+      label: 'En Progreso',
+      dotColor: 'bg-blue-600'
+    },
+    completado: { 
+      color: 'bg-green-100 text-green-800', 
+      label: 'Completado',
+      dotColor: 'bg-green-600'
+    },
+    pendiente: { 
+      color: 'bg-yellow-100 text-yellow-800', 
+      label: 'Pendiente',
+      dotColor: 'bg-yellow-600'
+    }
+  };
+
+  const getProgressColor = (progress: number) => {
+    if (progress < 30) return 'bg-red-600';
+    if (progress < 70) return 'bg-yellow-600';
+    return 'bg-green-600';
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
   };
 
   return (
@@ -113,10 +173,14 @@ export default function ProjectsPage() {
             </div>
           </div>
           <p className="text-2xl font-bold text-gray-900">
+<<<<<<< HEAD
             {Math.round(
               projects.reduce((sum, p) => sum + p.progress, 0) / projects.length
             )}
             %
+=======
+            {Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)}%
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
           </p>
           <p className="text-sm text-gray-600">Progreso Promedio</p>
         </div>
@@ -125,15 +189,20 @@ export default function ProjectsPage() {
       {/* Projects List */}
       <div className="space-y-4">
         {projects.map((project) => (
+<<<<<<< HEAD
           <div
             key={project.id}
             className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
           >
+=======
+          <div key={project.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
             {/* Project Header */}
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
+<<<<<<< HEAD
                     <h2 className="text-xl font-bold text-gray-900">
                       {project.name}
                     </h2>
@@ -147,6 +216,11 @@ export default function ProjectsPage() {
                           statusConfig[project.status].dotColor
                         }`}
                       ></span>
+=======
+                    <h2 className="text-xl font-bold text-gray-900">{project.name}</h2>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[project.status].color}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusConfig[project.status].dotColor}`}></span>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                       {statusConfig[project.status].label}
                     </span>
                   </div>
@@ -154,8 +228,12 @@ export default function ProjectsPage() {
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
+<<<<<<< HEAD
                       Inicio:{" "}
                       {new Date(project.start_date).toLocaleDateString("es-AR")}
+=======
+                      Inicio: {new Date(project.start_date).toLocaleDateString('es-AR')}
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
@@ -168,6 +246,7 @@ export default function ProjectsPage() {
               {/* Progress Bar */}
               <div>
                 <div className="flex items-center justify-between mb-2">
+<<<<<<< HEAD
                   <span className="text-sm font-medium text-gray-700">
                     Progreso del Proyecto
                   </span>
@@ -180,6 +259,14 @@ export default function ProjectsPage() {
                     className={`h-2.5 rounded-full transition-all duration-300 ${getProgressColor(
                       project.progress
                     )}`}
+=======
+                  <span className="text-sm font-medium text-gray-700">Progreso del Proyecto</span>
+                  <span className="text-sm font-bold text-gray-900">{project.progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className={`h-2.5 rounded-full transition-all duration-300 ${getProgressColor(project.progress)}`}
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                     style={{ width: `${project.progress}%` }}
                   ></div>
                 </div>
@@ -198,9 +285,13 @@ export default function ProjectsPage() {
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">Reuniones</h3>
+<<<<<<< HEAD
                     <p className="text-sm text-gray-500">
                       {project.meetings_count} reuniones
                     </p>
+=======
+                    <p className="text-sm text-gray-500">{project.meetings_count} reuniones</p>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                   </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
@@ -216,9 +307,13 @@ export default function ProjectsPage() {
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">Documentos</h3>
+<<<<<<< HEAD
                     <p className="text-sm text-gray-500">
                       {project.documents_count} archivos
                     </p>
+=======
+                    <p className="text-sm text-gray-500">{project.documents_count} archivos</p>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                   </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
@@ -231,12 +326,17 @@ export default function ProjectsPage() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+<<<<<<< HEAD
                       <svg
                         className="w-5 h-5 text-green-600"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
                         <path d="M8 2C6.895 2 6 2.895 6 4v16c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm8 0c-1.105 0-2 .895-2 2v8c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm0 12c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zM8 10c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2z" />
+=======
+                      <svg className="w-5 h-5 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 2C6.895 2 6 2.895 6 4v16c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm8 0c-1.105 0-2 .895-2 2v8c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm0 12c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zM8 10c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2z"/>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                       </svg>
                     </div>
                     <div>
@@ -250,12 +350,17 @@ export default function ProjectsPage() {
                 <div className="flex items-center justify-between p-4 bg-gray-100 border border-gray-200 rounded-lg opacity-50 cursor-not-allowed">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-gray-200 rounded-lg">
+<<<<<<< HEAD
                       <svg
                         className="w-5 h-5 text-gray-400"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
                         <path d="M8 2C6.895 2 6 2.895 6 4v16c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm8 0c-1.105 0-2 .895-2 2v8c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm0 12c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zM8 10c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2z" />
+=======
+                      <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 2C6.895 2 6 2.895 6 4v16c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm8 0c-1.105 0-2 .895-2 2v8c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm0 12c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zM8 10c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2z"/>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                       </svg>
                     </div>
                     <div>
@@ -277,11 +382,19 @@ export default function ProjectsPage() {
             No tienes proyectos activos
           </h3>
           <p className="text-gray-600">
+<<<<<<< HEAD
             Los proyectos aparecerán aquí una vez que comiences a trabajar con
             nosotros
+=======
+            Los proyectos aparecerán aquí una vez que comiences a trabajar con nosotros
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
           </p>
         </div>
       )}
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371

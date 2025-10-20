@@ -1,20 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import {
-  Plus,
-  Search,
-  FileText,
-  DollarSign,
-  Calendar,
-  Eye,
-} from "lucide-react";
+import { useState } from 'react';
+import { Plus, Search, FileText, DollarSign, Calendar, Eye } from 'lucide-react';
 
 type Budget = {
   id: string;
   lead_name: string;
   amount: number;
-  status: "borrador" | "presentado" | "aceptado" | "rechazado" | "en_revision";
+  status: 'borrador' | 'presentado' | 'aceptado' | 'rechazado' | 'en_revision';
   version: number;
   created_at: string;
   presented_at?: string;
@@ -23,61 +16,58 @@ type Budget = {
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<Budget[]>([
     {
-      id: "1",
-      lead_name: "Juan Pérez - Tech Solutions",
+      id: '1',
+      lead_name: 'Juan Pérez - Tech Solutions',
       amount: 150000,
-      status: "presentado",
+      status: 'presentado',
       version: 1,
-      created_at: "2025-10-15T10:30:00Z",
-      presented_at: "2025-10-16T15:00:00Z",
+      created_at: '2025-10-15T10:30:00Z',
+      presented_at: '2025-10-16T15:00:00Z'
     },
     {
-      id: "2",
-      lead_name: "María González - Marketing Plus",
+      id: '2',
+      lead_name: 'María González - Marketing Plus',
       amount: 89000,
-      status: "borrador",
+      status: 'borrador',
       version: 2,
-      created_at: "2025-10-17T09:00:00Z",
+      created_at: '2025-10-17T09:00:00Z'
     },
     {
-      id: "3",
-      lead_name: "Carlos Rodríguez - Innovate SA",
+      id: '3',
+      lead_name: 'Carlos Rodríguez - Innovate SA',
       amount: 220000,
-      status: "aceptado",
+      status: 'aceptado',
       version: 1,
-      created_at: "2025-10-10T11:20:00Z",
-      presented_at: "2025-10-12T10:00:00Z",
-    },
+      created_at: '2025-10-10T11:20:00Z',
+      presented_at: '2025-10-12T10:00:00Z'
+    }
   ]);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   const statusConfig = {
-    borrador: { color: "bg-gray-100 text-gray-800", label: "Borrador" },
-    presentado: { color: "bg-blue-100 text-blue-800", label: "Presentado" },
-    aceptado: { color: "bg-green-100 text-green-800", label: "Aceptado" },
-    rechazado: { color: "bg-red-100 text-red-800", label: "Rechazado" },
-    en_revision: {
-      color: "bg-yellow-100 text-yellow-800",
-      label: "En Revisión",
-    },
+    borrador: { color: 'bg-gray-100 text-gray-800', label: 'Borrador' },
+    presentado: { color: 'bg-blue-100 text-blue-800', label: 'Presentado' },
+    aceptado: { color: 'bg-green-100 text-green-800', label: 'Aceptado' },
+    rechazado: { color: 'bg-red-100 text-red-800', label: 'Rechazado' },
+    en_revision: { color: 'bg-yellow-100 text-yellow-800', label: 'En Revisión' }
   };
 
-  const filteredBudgets = budgets.filter((budget) =>
+  const filteredBudgets = budgets.filter(budget =>
     budget.lead_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 0,
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0
     }).format(amount);
   };
 
-  const totalByStatus = (status: Budget["status"]) => {
+  const totalByStatus = (status: Budget['status']) => {
     return budgets
-      .filter((b) => b.status === status)
+      .filter(b => b.status === status)
       .reduce((sum, b) => sum + b.amount, 0);
   };
 
@@ -98,7 +88,7 @@ export default function BudgetsPage() {
             <div>
               <p className="text-sm text-gray-600">Total Presentado</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {formatCurrency(totalByStatus("presentado"))}
+                {formatCurrency(totalByStatus('presentado'))}
               </p>
             </div>
             <div className="p-3 bg-blue-100 rounded-lg">
@@ -112,7 +102,7 @@ export default function BudgetsPage() {
             <div>
               <p className="text-sm text-gray-600">Aceptado</p>
               <p className="text-2xl font-bold text-green-600 mt-1">
-                {formatCurrency(totalByStatus("aceptado"))}
+                {formatCurrency(totalByStatus('aceptado'))}
               </p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
@@ -126,7 +116,7 @@ export default function BudgetsPage() {
             <div>
               <p className="text-sm text-gray-600">En Revisión</p>
               <p className="text-2xl font-bold text-yellow-600 mt-1">
-                {formatCurrency(totalByStatus("en_revision"))}
+                {formatCurrency(totalByStatus('en_revision'))}
               </p>
             </div>
             <div className="p-3 bg-yellow-100 rounded-lg">
@@ -140,7 +130,7 @@ export default function BudgetsPage() {
             <div>
               <p className="text-sm text-gray-600">Borradores</p>
               <p className="text-2xl font-bold text-gray-600 mt-1">
-                {budgets.filter((b) => b.status === "borrador").length}
+                {budgets.filter(b => b.status === 'borrador').length}
               </p>
             </div>
             <div className="p-3 bg-gray-100 rounded-lg">
@@ -201,9 +191,7 @@ export default function BudgetsPage() {
             {filteredBudgets.map((budget) => (
               <tr key={budget.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
-                  <div className="font-medium text-gray-900">
-                    {budget.lead_name}
-                  </div>
+                  <div className="font-medium text-gray-900">{budget.lead_name}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-lg font-semibold text-gray-900">
@@ -211,11 +199,7 @@ export default function BudgetsPage() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      statusConfig[budget.status].color
-                    }`}
-                  >
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusConfig[budget.status].color}`}>
                     {statusConfig[budget.status].label}
                   </span>
                 </td>
@@ -223,12 +207,13 @@ export default function BudgetsPage() {
                   v{budget.version}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {new Date(budget.created_at).toLocaleDateString("es-AR")}
+                  {new Date(budget.created_at).toLocaleDateString('es-AR')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {budget.presented_at
-                    ? new Date(budget.presented_at).toLocaleDateString("es-AR")
-                    : "-"}
+                  {budget.presented_at 
+                    ? new Date(budget.presented_at).toLocaleDateString('es-AR')
+                    : '-'
+                  }
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   <button className="inline-flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded">

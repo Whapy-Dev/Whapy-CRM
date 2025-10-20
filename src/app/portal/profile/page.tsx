@@ -1,17 +1,33 @@
+<<<<<<< HEAD
 "use client";
 
 import { useState } from "react";
 import { User, Mail, Phone, Building2, Camera, Save, X } from "lucide-react";
+=======
+'use client';
+
+import { useState } from 'react';
+import { User, Mail, Phone, Building2, Camera, Save, X } from 'lucide-react';
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
+<<<<<<< HEAD
     name: "Juan Pérez",
     email: "juan.perez@techsolutions.com",
     phone: "+54 9 11 1234-5678",
     company: "Tech Solutions",
     position: "CEO",
     avatar: null as string | null,
+=======
+    name: 'Juan Pérez',
+    email: 'juan.perez@techsolutions.com',
+    phone: '+54 9 11 1234-5678',
+    company: 'Tech Solutions',
+    position: 'CEO',
+    avatar: null as string | null
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
   });
 
   const [editForm, setEditForm] = useState({ ...profile });
@@ -116,9 +132,13 @@ export default function ProfilePage() {
           <div className="space-y-6">
             {/* Personal Info Section */}
             <div>
+<<<<<<< HEAD
               <h2 className="text-lg font-bold text-gray-900 mb-4">
                 Información Personal
               </h2>
+=======
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Información Personal</h2>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Name */}
                 <div>
@@ -130,6 +150,7 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       value={editForm.name}
+<<<<<<< HEAD
                       onChange={(e) =>
                         setEditForm({ ...editForm, name: e.target.value })
                       }
@@ -139,6 +160,13 @@ export default function ProfilePage() {
                     <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                       {profile.name}
                     </p>
+=======
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">{profile.name}</p>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                   )}
                 </div>
 
@@ -152,6 +180,7 @@ export default function ProfilePage() {
                     <input
                       type="email"
                       value={editForm.email}
+<<<<<<< HEAD
                       onChange={(e) =>
                         setEditForm({ ...editForm, email: e.target.value })
                       }
@@ -161,6 +190,13 @@ export default function ProfilePage() {
                     <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                       {profile.email}
                     </p>
+=======
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">{profile.email}</p>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                   )}
                 </div>
 
@@ -174,6 +210,7 @@ export default function ProfilePage() {
                     <input
                       type="tel"
                       value={editForm.phone}
+<<<<<<< HEAD
                       onChange={(e) =>
                         setEditForm({ ...editForm, phone: e.target.value })
                       }
@@ -183,6 +220,13 @@ export default function ProfilePage() {
                     <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                       {profile.phone}
                     </p>
+=======
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">{profile.phone}</p>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                   )}
                 </div>
 
@@ -196,6 +240,7 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       value={editForm.position}
+<<<<<<< HEAD
                       onChange={(e) =>
                         setEditForm({ ...editForm, position: e.target.value })
                       }
@@ -205,6 +250,13 @@ export default function ProfilePage() {
                     <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                       {profile.position}
                     </p>
+=======
+                      onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">{profile.position}</p>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                   )}
                 </div>
               </div>
@@ -212,9 +264,13 @@ export default function ProfilePage() {
 
             {/* Company Info Section */}
             <div className="pt-6 border-t border-gray-200">
+<<<<<<< HEAD
               <h2 className="text-lg font-bold text-gray-900 mb-4">
                 Información de la Empresa
               </h2>
+=======
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Información de la Empresa</h2>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Company */}
                 <div>
@@ -226,6 +282,7 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       value={editForm.company}
+<<<<<<< HEAD
                       onChange={(e) =>
                         setEditForm({ ...editForm, company: e.target.value })
                       }
@@ -235,6 +292,13 @@ export default function ProfilePage() {
                     <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                       {profile.company}
                     </p>
+=======
+                      onChange={(e) => setEditForm({ ...editForm, company: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">{profile.company}</p>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
                   )}
                 </div>
               </div>
@@ -250,9 +314,13 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
               <h3 className="font-medium text-gray-900">Contraseña</h3>
+<<<<<<< HEAD
               <p className="text-sm text-gray-600">
                 Última actualización hace 3 meses
               </p>
+=======
+              <p className="text-sm text-gray-600">Última actualización hace 3 meses</p>
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
             </div>
             <button className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium">
               Cambiar
@@ -262,4 +330,8 @@ export default function ProfilePage() {
       </div>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9b76bd05c20a1d822c2362b9fdfca42b57216371
