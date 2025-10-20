@@ -1,124 +1,104 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import {
-  Plus,
-  Search,
-  Calendar,
-  Video,
-  Clock,
-  MapPin,
-  User,
-} from "lucide-react";
+import { useState } from 'react';
+import { Plus, Search, Calendar, Video, Clock, MapPin, User } from 'lucide-react';
 
 type Meeting = {
   id: string;
-  type: "lead" | "presupuesto" | "seguimiento";
+  type: 'lead' | 'presupuesto' | 'seguimiento';
   lead_name: string;
   title: string;
   start_at: string;
   end_at: string;
-  location: "meet" | "zoom" | "teléfono" | "presencial";
+  location: 'meet' | 'zoom' | 'teléfono' | 'presencial';
   meet_url?: string;
-  status: "programada" | "completada" | "cancelada";
+  status: 'programada' | 'completada' | 'cancelada';
 };
 
 export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([
     {
-      id: "1",
-      type: "lead",
-      lead_name: "Juan Pérez",
-      title: "Primera reunión - Descubrimiento",
-      start_at: "2025-10-20T10:00:00Z",
-      end_at: "2025-10-20T11:00:00Z",
-      location: "meet",
-      meet_url: "https://meet.google.com/abc-defg-hij",
-      status: "programada",
+      id: '1',
+      type: 'lead',
+      lead_name: 'Juan Pérez',
+      title: 'Primera reunión - Descubrimiento',
+      start_at: '2025-10-20T10:00:00Z',
+      end_at: '2025-10-20T11:00:00Z',
+      location: 'meet',
+      meet_url: 'https://meet.google.com/abc-defg-hij',
+      status: 'programada'
     },
     {
-      id: "2",
-      type: "presupuesto",
-      lead_name: "María González",
-      title: "Presentación de Presupuesto",
-      start_at: "2025-10-21T15:00:00Z",
-      end_at: "2025-10-21T16:00:00Z",
-      location: "zoom",
-      meet_url: "https://zoom.us/j/123456789",
-      status: "programada",
+      id: '2',
+      type: 'presupuesto',
+      lead_name: 'María González',
+      title: 'Presentación de Presupuesto',
+      start_at: '2025-10-21T15:00:00Z',
+      end_at: '2025-10-21T16:00:00Z',
+      location: 'zoom',
+      meet_url: 'https://zoom.us/j/123456789',
+      status: 'programada'
     },
     {
-      id: "3",
-      type: "seguimiento",
-      lead_name: "Carlos Rodríguez",
-      title: "Seguimiento - Dudas sobre presupuesto",
-      start_at: "2025-10-18T14:00:00Z",
-      end_at: "2025-10-18T14:30:00Z",
-      location: "teléfono",
-      status: "completada",
-    },
+      id: '3',
+      type: 'seguimiento',
+      lead_name: 'Carlos Rodríguez',
+      title: 'Seguimiento - Dudas sobre presupuesto',
+      start_at: '2025-10-18T14:00:00Z',
+      end_at: '2025-10-18T14:30:00Z',
+      location: 'teléfono',
+      status: 'completada'
+    }
   ]);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<"lista" | "calendario">("lista");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'lista' | 'calendario'>('lista');
 
   const typeConfig = {
-    lead: { color: "bg-blue-100 text-blue-800", label: "Lead" },
-    presupuesto: {
-      color: "bg-purple-100 text-purple-800",
-      label: "Presupuesto",
-    },
-    seguimiento: { color: "bg-green-100 text-green-800", label: "Seguimiento" },
+    lead: { color: 'bg-blue-100 text-blue-800', label: 'Lead' },
+    presupuesto: { color: 'bg-purple-100 text-purple-800', label: 'Presupuesto' },
+    seguimiento: { color: 'bg-green-100 text-green-800', label: 'Seguimiento' }
   };
 
   const statusConfig = {
-    programada: { color: "bg-yellow-100 text-yellow-800", label: "Programada" },
-    completada: { color: "bg-green-100 text-green-800", label: "Completada" },
-    cancelada: { color: "bg-red-100 text-red-800", label: "Cancelada" },
+    programada: { color: 'bg-yellow-100 text-yellow-800', label: 'Programada' },
+    completada: { color: 'bg-green-100 text-green-800', label: 'Completada' },
+    cancelada: { color: 'bg-red-100 text-red-800', label: 'Cancelada' }
   };
 
   const locationIcons = {
     meet: <Video className="w-4 h-4" />,
     zoom: <Video className="w-4 h-4" />,
     teléfono: <Clock className="w-4 h-4" />,
-    presencial: <MapPin className="w-4 h-4" />,
+    presencial: <MapPin className="w-4 h-4" />
   };
 
-  const filteredMeetings = meetings.filter(
-    (meeting) =>
-      meeting.lead_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      meeting.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMeetings = meetings.filter(meeting =>
+    meeting.lead_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    meeting.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const upcomingMeetings = filteredMeetings
-    .filter(
-      (m) => m.status === "programada" && new Date(m.start_at) > new Date()
-    )
-    .sort(
-      (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
-    );
+    .filter(m => m.status === 'programada' && new Date(m.start_at) > new Date())
+    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
 
   const pastMeetings = filteredMeetings
-    .filter(
-      (m) => m.status === "completada" || new Date(m.start_at) < new Date()
-    )
-    .sort(
-      (a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime()
-    );
+    .filter(m => m.status === 'completada' || new Date(m.start_at) < new Date())
+    .sort((a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime());
 
   const formatDateTime = (date: string) => {
     const d = new Date(date);
     return {
-      date: d.toLocaleDateString("es-AR", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
+      date: d.toLocaleDateString('es-AR', { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
       }),
-      time: d.toLocaleTimeString("es-AR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: d.toLocaleTimeString('es-AR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
     };
   };
 
@@ -200,9 +180,7 @@ export default function MeetingsPage() {
 
       {/* Próximas reuniones */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Próximas Reuniones
-        </h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Próximas Reuniones</h2>
         <div className="space-y-3">
           {upcomingMeetings.length === 0 ? (
             <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
@@ -212,25 +190,14 @@ export default function MeetingsPage() {
             upcomingMeetings.map((meeting) => {
               const { date, time } = formatDateTime(meeting.start_at);
               return (
-                <div
-                  key={meeting.id}
-                  className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
-                >
+                <div key={meeting.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            typeConfig[meeting.type].color
-                          }`}
-                        >
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${typeConfig[meeting.type].color}`}>
                           {typeConfig[meeting.type].label}
                         </span>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            statusConfig[meeting.status].color
-                          }`}
-                        >
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusConfig[meeting.status].color}`}>
                           {statusConfig[meeting.status].label}
                         </span>
                       </div>
@@ -256,7 +223,7 @@ export default function MeetingsPage() {
                         </div>
                       </div>
                       {meeting.meet_url && (
-                        <a
+                        <a 
                           href={meeting.meet_url}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -277,9 +244,7 @@ export default function MeetingsPage() {
 
       {/* Reuniones pasadas */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Reuniones Completadas
-        </h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Reuniones Completadas</h2>
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -307,19 +272,13 @@ export default function MeetingsPage() {
                 return (
                   <tr key={meeting.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">
-                        {meeting.title}
-                      </div>
+                      <div className="font-medium text-gray-900">{meeting.title}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {meeting.lead_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          typeConfig[meeting.type].color
-                        }`}
-                      >
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${typeConfig[meeting.type].color}`}>
                         {typeConfig[meeting.type].label}
                       </span>
                     </td>
