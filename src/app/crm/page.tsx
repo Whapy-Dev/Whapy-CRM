@@ -1,5 +1,6 @@
 "use client";
 
+import { useLeads } from "@/hooks/useLeads";
 import {
   Users,
   FileText,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 export default function CRMDashboard() {
+  const { data: leads = [], isLoading, isError, error } = useLeads();
   const stats = {
     totalLeads: 24,
     leadsChange: 12,

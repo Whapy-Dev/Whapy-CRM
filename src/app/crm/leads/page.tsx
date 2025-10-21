@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useLeads } from "@/hooks/useLeads";
 
 // Tipos
 type Lead = {
@@ -31,7 +32,7 @@ type Lead = {
 };
 
 export default function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([
+  const [lead, setLeads] = useState<Lead[]>([
     {
       id: "1",
       name: "Juan Pérez",
@@ -53,6 +54,7 @@ export default function LeadsPage() {
       created_at: "2025-10-16T14:20:00Z",
     },
   ]);
+  const { data: leads = [], isLoading, isError, error } = useLeads();
 
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,24 +68,29 @@ export default function LeadsPage() {
     convertido: "bg-green-100 text-green-800",
   };
 
-  const filteredLeads = leads.filter(
-    (lead) =>
-      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLeads = leads.filter((lead) => {
+    const name = lead.name?.toLowerCase() || "";
+    const email = lead.email?.toLowerCase() || "";
+    const company = lead.company?.toLowerCase() || "";
+
+    const term = searchTerm.toLowerCase();
+
+    return (
+      name.includes(term) || email.includes(term) || company.includes(term)
+    );
+  });
 
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
   const [empresa, setEmpresa] = useState("");
-  const [error, setError] = useState("");
+  const [errorForm, setErrorForm] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const handleNewTarea = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setErrorForm("");
     setLoading(true);
     setSuccess(false);
     try {
@@ -96,12 +103,12 @@ export default function LeadsPage() {
 
       if (userError) {
         console.log(userError);
-        setError("Error al obtener usuario");
+        setErrorForm("Error al obtener usuario");
         return;
       }
 
       if (!user) {
-        setError("No hay usuario logeado");
+        setErrorForm("No hay usuario logeado");
         return;
       }
 
@@ -116,7 +123,7 @@ export default function LeadsPage() {
 
       if (error) {
         console.log(error);
-        setError("Error al crear lead");
+        setErrorForm("Error al crear lead");
         return;
       }
 
@@ -124,7 +131,9 @@ export default function LeadsPage() {
       setSuccess(true);
     } catch (err) {
       console.error("Error al crear nuevo Lead:", err);
-      setError("Ocurrió un error inesperado. Por favor, intenta nuevamente.");
+      setErrorForm(
+        "Ocurrió un error inesperado. Por favor, intenta nuevamente."
+      );
       setLoading(false);
     }
   };
@@ -214,7 +223,7 @@ export default function LeadsPage() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {lead.company}
+                  Tech Solutions
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
@@ -254,17 +263,21 @@ export default function LeadsPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Nuevo Lead</h2>
             <form onSubmit={handleNewTarea} className="space-y-4">
-              {error && (
+              {errorForm && (
                 <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-800">{error}</p>
+                  <p className="text-sm text-red-800">{errorForm}</p>
                 </div>
               )}
+
               {success && (
-                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-green-800">{error}</p>
+                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800">
+                    Lead creado con exito
+                  </p>
                 </div>
               )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nombre completo
