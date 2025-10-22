@@ -11,6 +11,7 @@ import {
   User,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDatosUser } from "@/hooks/user/datosUser";
 
 export default function PortalLayout({
   children,
@@ -19,7 +20,11 @@ export default function PortalLayout({
 }) {
   const pathname = usePathname();
   const { user, role, loading, signOut } = useAuth();
-
+  const {
+    data: userData = [],
+    isLoading: isLoadingUserData,
+    error: errorUserData,
+  } = useDatosUser();
   const isActive = (path: string) => {
     if (path === "/portal") {
       return pathname === path;
@@ -69,15 +74,13 @@ export default function PortalLayout({
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
-                  {user?.email || "Usuario"}
+                  {userData?.email || "Usuario"}
                 </p>
-                <p className="text-xs text-gray-500 capitalize">
-                  {role || "Sin rol"}
-                </p>
+                <p className="text-xs text-gray-500 capitalize">{role}</p>
               </div>
               <button
                 onClick={signOut}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                 title="Cerrar sesión"
               >
                 <LogOut className="w-5 h-5" />
@@ -90,7 +93,7 @@ export default function PortalLayout({
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             <Link href="/portal" className={navLinkClass("/portal")}>
               <Home className="w-4 h-4" />
               Inicio
@@ -109,7 +112,7 @@ export default function PortalLayout({
               className={navLinkClass("/portal/budgets")}
             >
               <FileText className="w-4 h-4" />
-              Presupuestos
+              Documentos
             </Link>
 
             <Link

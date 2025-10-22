@@ -11,7 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useLeads } from "@/hooks/useLeads";
+import { useLeads } from "@/hooks/admin/useLeads";
 
 // Tipos
 type Lead = {
@@ -71,7 +71,7 @@ export default function LeadsPage() {
       } = await supabase.auth.getUser();
 
       if (userError) {
-        console.log(userError);
+        console.error(userError);
         setErrorForm("Error al obtener usuario");
         return;
       }
@@ -93,7 +93,7 @@ export default function LeadsPage() {
       ]);
 
       if (error) {
-        console.log(error);
+        console.error(error);
         setErrorForm("Error al crear lead");
         return;
       }

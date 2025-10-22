@@ -197,11 +197,11 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
               <h3 className="font-medium text-gray-900">Contraseña</h3>
-              <p className="text-sm text-gray-600">
-                Última actualización hace 3 meses
-              </p>
             </div>
-            <button className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium">
+            <button
+              type="button"
+              className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium cursor-pointer"
+            >
               Cambiar
             </button>
           </div>

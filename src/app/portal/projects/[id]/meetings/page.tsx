@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,6 +11,11 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
+import { useMeetings } from "@/hooks/admin/useMeetings";
+import {
+  useMeetingsByProjectUser,
+  useMeetingsUser,
+} from "@/hooks/user/useMeetings";
 
 type Meeting = {
   id: string;
@@ -25,52 +30,16 @@ type Meeting = {
 export default function ProjectMeetingsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const [meetings] = useState<Meeting[]>([
-    {
-      id: "1",
-      title: "Kickoff - Inicio del Proyecto",
-      date: "2025-09-15T10:00:00Z",
-      duration: "1h 30min",
-      recording_url: "https://drive.google.com/file/d/example123",
-      summary_pdf_url: "/documents/meeting-1-summary.pdf",
-      notes:
-        "Definimos los objetivos principales del proyecto, alcance y cronograma inicial. Se acordó la metodología de trabajo y los entregables principales.",
-    },
-    {
-      id: "2",
-      title: "Revisión de Wireframes",
-      date: "2025-09-22T15:00:00Z",
-      duration: "45min",
-      recording_url: "https://drive.google.com/file/d/example456",
-      summary_pdf_url: "/documents/meeting-2-summary.pdf",
-      notes:
-        "Presentación y validación de wireframes iniciales. Se realizaron ajustes en la navegación principal y la estructura de las secciones.",
-    },
-    {
-      id: "3",
-      title: "Sprint Review #1",
-      date: "2025-10-01T11:00:00Z",
-      duration: "1h",
-      recording_url: "https://drive.google.com/file/d/example789",
-      summary_pdf_url: "/documents/meeting-3-summary.pdf",
-      notes:
-        "Demostración del progreso del primer sprint. Se validaron las funcionalidades del home y el sistema de navegación.",
-    },
-    {
-      id: "4",
-      title: "Revisión de Diseño UI",
-      date: "2025-10-08T14:00:00Z",
-      duration: "1h 15min",
-      recording_url: "https://drive.google.com/file/d/example101",
-      summary_pdf_url: "/documents/meeting-4-summary.pdf",
-      notes:
-        "Aprobación final del diseño visual. Se definieron paleta de colores, tipografías y componentes principales de la UI.",
-    },
-  ]);
+  const { id: projectId } = use(params);
+  const {
+    data: meetings = [],
+    isLoading: isLoadingMeetings,
+    error: errorMeetings,
+  } = useMeetingsByProjectUser(projectId);
 
-  const projectName = "Desarrollo Web Corporativo";
+  const projectName = meetings[0]?.projects?.title || "Proyecto";
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -101,7 +70,15 @@ export default function ProjectMeetingsPage({
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">{projectName}</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">{projectName}</h1>
+          <a
+            href=""
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Crear nueva reunión
+          </a>
+        </div>
         <p className="mt-2 text-gray-600">
           Reuniones y grabaciones del proyecto
         </p>
@@ -126,7 +103,7 @@ export default function ProjectMeetingsPage({
             </div>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            {meetings.filter((m) => m.recording_url).length}
+            {meetings.filter((m) => m.meet_url).length}
           </p>
           <p className="text-sm text-gray-600">Grabaciones Disponibles</p>
         </div>
@@ -147,7 +124,7 @@ export default function ProjectMeetingsPage({
       {/* Meetings Timeline */}
       <div className="space-y-4">
         {meetings.map((meeting, index) => {
-          const { full, time } = formatDate(meeting.date);
+          const { full } = formatDate(meeting.start_at);
           return (
             <div
               key={meeting.id}
@@ -170,12 +147,8 @@ export default function ProjectMeetingsPage({
                         <Calendar className="w-4 h-4" />
                         <span className="capitalize">{full}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {time} • {meeting.duration}
-                      </div>
                     </div>
-                    <p className="text-gray-700">{meeting.notes}</p>
+                    <p className="text-gray-700">{meeting.summary_md}</p>
                   </div>
                 </div>
               </div>
@@ -187,9 +160,9 @@ export default function ProjectMeetingsPage({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Recording */}
-                  {meeting.recording_url ? (
+                  {meeting.meet_url ? (
                     <a
-                      href={meeting.recording_url}
+                      href={meeting.meet_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:border-purple-500 hover:shadow-sm transition-all group"

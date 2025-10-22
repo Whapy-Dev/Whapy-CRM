@@ -1,5 +1,6 @@
 "use client";
 
+import { useBudgetsUser } from "@/hooks/user/budgetsUser";
 import {
   Download,
   Eye,
@@ -22,7 +23,14 @@ type Budget = {
 };
 
 export default function PortalBudgetsPage() {
-  const [budgets] = useState<Budget[]>([
+  const {
+    data: dataBudgetsUser,
+    isLoading: isLoadingBudgetsUser,
+    error: errorBudgetsUser,
+  } = useBudgetsUser();
+  const budgets = dataBudgetsUser || [];
+
+  const [budget] = useState<Budget[]>([
     {
       id: "1",
       title: "Propuesta Comercial - Desarrollo Web",
@@ -56,7 +64,7 @@ export default function PortalBudgetsPage() {
       label: "Presentado",
       description: "Hemos enviado el presupuesto para tu revisión",
     },
-    en_revision: {
+    "en revision": {
       color: "bg-yellow-100 text-yellow-800",
       icon: <Clock className="w-5 h-5" />,
       label: "En Revisión",
@@ -94,6 +102,8 @@ export default function PortalBudgetsPage() {
     setShowModal(false);
     setSelectedBudget(null);
   };
+  if (isLoadingBudgetsUser) return <p>Cargando proyectos...</p>;
+  if (errorBudgetsUser) return <p>Error: {errorBudgetsUser.message}</p>;
 
   return (
     <div className="space-y-6">
@@ -120,19 +130,19 @@ export default function PortalBudgetsPage() {
                     <h2 className="text-xl font-bold text-gray-900">
                       {budget.title}
                     </h2>
-                    <span className="text-sm text-gray-500">
-                      v{budget.version}
-                    </span>
                   </div>
                   <p className="text-gray-600 mb-3">{budget.description}</p>
                   <div className="flex items-center gap-4">
                     <span
                       className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
-                        statusConfig[budget.status].color
+                        statusConfig[budget.status as keyof typeof statusConfig]
+                          ?.color || "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {statusConfig[budget.status].icon}
-                      {statusConfig[budget.status].label}
+                      {statusConfig[budget.status as keyof typeof statusConfig]
+                        ?.icon || null}
+                      {statusConfig[budget.status as keyof typeof statusConfig]
+                        ?.label || "Desconocido"}
                     </span>
                     <span className="text-sm text-gray-500">
                       Enviado el{" "}
@@ -147,18 +157,18 @@ export default function PortalBudgetsPage() {
                 <div className="text-right">
                   <p className="text-sm text-gray-600 mb-1">Monto Total</p>
                   <p className="text-3xl font-bold text-gray-900">
-                    {formatCurrency(budget.amount)}
+                    {formatCurrency(budget.amount_total)}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Info del estado */}
-            <div className="px-6 py-4 bg-gray-50">
+            {/* <div className="px-6 py-4 bg-gray-50">
               <p className="text-sm text-gray-600">
                 {statusConfig[budget.status].description}
               </p>
-            </div>
+            </div> */}
 
             {/* Acciones */}
             <div className="p-6 flex flex-wrap gap-3">
@@ -177,7 +187,7 @@ export default function PortalBudgetsPage() {
               </button>
 
               {(budget.status === "presentado" ||
-                budget.status === "en_revision") && (
+                budget.status === "en revision") && (
                 <a
                   href=""
                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors ml-auto"

@@ -11,8 +11,8 @@ import {
   AlertCircle,
   Currency,
 } from "lucide-react";
-import { useBudgets } from "@/hooks/useBudgets";
-import { useLeads } from "@/hooks/useLeads";
+import { useBudgets } from "@/hooks/admin/useBudgets";
+import { useLeads } from "@/hooks/admin/useLeads";
 import { createClient } from "@/lib/supabase/client";
 
 type Budget = {

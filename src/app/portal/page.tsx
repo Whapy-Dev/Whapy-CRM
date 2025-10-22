@@ -11,45 +11,30 @@ import {
   User,
   Video,
 } from "lucide-react";
+import { useDatosUser } from "@/hooks/user/datosUser";
+import { useProjectsUser } from "@/hooks/user/projectsUser";
+import { useMeetingsUser } from "@/hooks/user/useMeetings";
 
 export default function PortalDashboard() {
-  const clientData = {
-    name: "Juan",
-    company: "Tech Solutions",
-    activeProjects: 2,
-    nextMeeting: {
-      title: "Sprint Review #2",
-      date: "2025-10-21T15:00:00Z",
-      project: "Desarrollo Web Corporativo",
-      meet_url: "https://meet.google.com/abc-defg-hij",
-    },
-    recentActivity: [
-      {
-        id: "1",
-        type: "document",
-        title: "Nuevo resumen de reunión disponible",
-        project: "Desarrollo Web Corporativo",
-        date: "2025-10-18",
-        url: "#",
-      },
-      {
-        id: "2",
-        type: "design",
-        title: "Diseño actualizado a v2.0",
-        project: "Desarrollo Web Corporativo",
-        date: "2025-10-15",
-        url: "/portal/projects/1/design",
-      },
-      {
-        id: "3",
-        type: "meeting",
-        title: "Reunión completada: Revisión de Wireframes",
-        project: "App Mobile Inventario",
-        date: "2025-10-14",
-        url: "/portal/projects/2/meetings",
-      },
-    ],
-  };
+  const {
+    data: userData = [],
+    isLoading: isLoadingUserData,
+    error: errorUserData,
+  } = useDatosUser();
+  const {
+    data: projectsData = [],
+    isLoading: isLoadingProjectsData,
+    error: errorProjectsData,
+  } = useProjectsUser();
+  const {
+    data: meetingsData = [],
+    isLoading: isLoadingMeetingsData,
+    error: errorMeetingsData,
+  } = useMeetingsUser();
+
+  const activeProjects = projectsData.filter(
+    (project) => project.status !== "pausado" && project.status !== "cancelado"
+  ).length;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -67,7 +52,7 @@ export default function PortalDashboard() {
     };
   };
 
-  const nextMeeting = formatDate(clientData.nextMeeting.date);
+  // const nextMeeting = formatDate(clientData.nextMeeting.date);
 
   const activityIcons = {
     document: <FileText className="w-5 h-5 text-blue-600" />,
@@ -81,12 +66,32 @@ export default function PortalDashboard() {
     meeting: "bg-green-100",
   };
 
+  const fechaLimite = new Date();
+  fechaLimite.setDate(fechaLimite.getDate() - 30);
+
+  const proyectosUltimos30Dias = projectsData.filter((project) => {
+    const createdAt = new Date(project.created_at);
+    return createdAt >= fechaLimite;
+  });
+
+  const meetingsUltimos30Dias = meetingsData?.filter((meeting) => {
+    const startAt = new Date(meeting.start_at);
+    return startAt >= fechaLimite;
+  });
+
+  const totalProyectos30Dias = proyectosUltimos30Dias.length;
+  const totalMeetings30Dias = meetingsUltimos30Dias?.length;
+  const totalActividad30Dias = totalProyectos30Dias + totalMeetings30Dias;
+
+  if (isLoadingMeetingsData) return <p>Cargando proyectos...</p>;
+  if (errorMeetingsData) return <p>Error: {errorMeetingsData.message}</p>;
+
   return (
     <div className="space-y-6">
       {/* Bienvenida */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-8 text-white">
         <h1 className="text-3xl font-bold mb-2">
-          ¡Hola, {clientData.name}! 👋
+          ¡Hola, {userData.nombre}! 👋
         </h1>
         <p className="text-blue-100 text-lg">
           Bienvenido a tu portal personalizado de Whapy LLC
@@ -107,9 +112,7 @@ export default function PortalDashboard() {
           <h3 className="text-sm font-medium text-gray-600 mb-1">
             Proyectos Activos
           </h3>
-          <p className="text-3xl font-bold text-gray-900">
-            {clientData.activeProjects}
-          </p>
+          <p className="text-3xl font-bold text-gray-900">{activeProjects}</p>
           <p className="text-sm text-blue-600 mt-2 flex items-center gap-1">
             Ver proyectos <ArrowRight className="w-4 h-4" />
           </p>
@@ -140,7 +143,7 @@ export default function PortalDashboard() {
             Actividad Reciente
           </h3>
           <p className="text-3xl font-bold text-gray-900">
-            {clientData.recentActivity.length}
+            {totalActividad30Dias}
           </p>
           <p className="text-sm text-gray-500 mt-2">
             Actualizaciones esta semana
@@ -200,7 +203,7 @@ export default function PortalDashboard() {
                 Asistir a la próxima reunión
               </h3>
               <p className="text-sm text-gray-600">
-                {nextMeeting.date} a las {nextMeeting.time}
+                {} a las {}
               </p>
             </div>
           </div>

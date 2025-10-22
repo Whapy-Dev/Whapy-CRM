@@ -86,7 +86,7 @@ export function useAuth() {
   const signOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/portal/login");
+    router.push("/login");
   };
 
   return {

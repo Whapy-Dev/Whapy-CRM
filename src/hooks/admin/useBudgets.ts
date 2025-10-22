@@ -55,7 +55,7 @@ export function useBudgetsActive() {
       const { data, error } = await supabase
         .from("budgets")
         .select("*")
-        .neq("status", "draft")
+        .neq("status", "en revision")
         .neq("status", "rechazado");
 
       if (error) throw error;

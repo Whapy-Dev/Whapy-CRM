@@ -1,15 +1,15 @@
 "use client";
 
-import { useBudgets, useBudgetsActive } from "@/hooks/useBudgets";
+import { useBudgets, useBudgetsActive } from "@/hooks/admin/useBudgets";
 import {
   useLeads,
   useLeadsRecent,
   useLeadsUltimateMonth,
-} from "@/hooks/useLeads";
+} from "@/hooks/admin/useLeads";
 import {
   useMeetingsFromToday,
   useMeetingsUltimateWeek,
-} from "@/hooks/useMeetings";
+} from "@/hooks/admin/useMeetings";
 import {
   Users,
   FileText,
