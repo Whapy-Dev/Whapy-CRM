@@ -1,10 +1,11 @@
-import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
 /**
  * Middleware helper para manejar sesión de Supabase
  * Este helper refresca la sesión automáticamente
  */
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -34,35 +35,37 @@ export async function updateSession(request: NextRequest) {
   );
 
   // Refrescar sesión si existe
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Proteger rutas del CRM - solo staff
-  if (request.nextUrl.pathname.startsWith('/crm')) {
+  if (request.nextUrl.pathname.startsWith("/crm")) {
     if (!user) {
       const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      url.searchParams.set('redirectTo', request.nextUrl.pathname);
+      url.pathname = "/login";
+      url.searchParams.set("redirectTo", request.nextUrl.pathname);
       return NextResponse.redirect(url);
     }
 
     // Verificar que sea staff
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
       .single();
 
-    if (!profile || !['admin', 'ventas', 'pm'].includes(profile.role)) {
-      return NextResponse.redirect(new URL('/portal', request.url));
+    if (!profile || !["admin", "ventas", "pm"].includes(profile.role)) {
+      return NextResponse.redirect(new URL("/portal", request.url));
     }
   }
 
   // Proteger rutas del portal - solo clientes autenticados
-  if (request.nextUrl.pathname.startsWith('/portal')) {
+  if (request.nextUrl.pathname.startsWith("/portal")) {
     if (!user) {
       const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      url.searchParams.set('redirectTo', request.nextUrl.pathname);
+      url.pathname = "/login";
+      url.searchParams.set("redirectTo", request.nextUrl.pathname);
       return NextResponse.redirect(url);
     }
   }
