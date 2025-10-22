@@ -1,77 +1,80 @@
 "use client";
 
-import { useLeads } from "@/hooks/useLeads";
+import { useBudgets, useBudgetsActive } from "@/hooks/useBudgets";
+import {
+  useLeads,
+  useLeadsRecent,
+  useLeadsUltimateMonth,
+} from "@/hooks/useLeads";
+import {
+  useMeetingsFromToday,
+  useMeetingsUltimateWeek,
+} from "@/hooks/useMeetings";
 import {
   Users,
   FileText,
   Calendar,
   TrendingUp,
-  DollarSign,
   Clock,
-  CheckCircle,
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
 
 export default function CRMDashboard() {
   const { data: leads = [], isLoading, isError, error } = useLeads();
+  const { data: leadsUltimateMonth = [] } = useLeadsUltimateMonth();
+  const { data: leadsRecent = [] } = useLeadsRecent();
+  const { data: meetingsUltimateWeek = [] } = useMeetingsUltimateWeek();
+  const { data: budgetsActive = [] } = useBudgetsActive();
+  const { data: meetingFromToday = [] } = useMeetingsFromToday();
+  const { data: budgets = [] } = useBudgets();
+  const draft = budgets.filter((b) => b.status === "draft");
+  const presentado = budgets.filter((b) => b.status === "presentado");
+  const aceptado = budgets.filter((b) => b.status === "aceptado");
+  const rechazado = budgets.filter((b) => b.status === "rechazado");
+
+  const budgetsPipeline = [
+    {
+      status: "Draft",
+      count: draft.length,
+      amount: draft.reduce((sum: number, b) => sum + (b.amount_total || 0), 0),
+    },
+    {
+      status: "Presentado",
+      count: presentado.length,
+      amount: presentado.reduce(
+        (sum: number, b) => sum + (b.amount_total || 0),
+        0
+      ),
+    },
+    {
+      status: "Rechazado",
+      count: rechazado.length,
+      amount: rechazado.reduce(
+        (sum: number, b) => sum + (b.amount_total || 0),
+        0
+      ),
+    },
+    {
+      status: "Aceptado",
+      count: aceptado.length,
+      amount: aceptado.reduce(
+        (sum: number, b) => sum + (b.amount_total || 0),
+        0
+      ),
+    },
+  ];
+
   const stats = {
-    totalLeads: 24,
+    totalLeads: leadsUltimateMonth.length,
     leadsChange: 12,
-    activeBudgets: 8,
+    activeBudgets: budgetsActive.length,
     budgetsChange: -3,
-    upcomingMeetings: 5,
+    upcomingMeetings: meetingsUltimateWeek.length,
     meetingsChange: 2,
     conversionRate: 34,
     rateChange: 5,
   };
-
-  const recentLeads = [
-    {
-      id: "1",
-      name: "Juan Pérez",
-      company: "Tech Solutions",
-      status: "nuevo",
-      date: "2025-10-18",
-    },
-    {
-      id: "2",
-      name: "María González",
-      company: "Marketing Plus",
-      status: "contactado",
-      date: "2025-10-17",
-    },
-    {
-      id: "3",
-      name: "Carlos Rodríguez",
-      company: "Innovate SA",
-      status: "agendado",
-      date: "2025-10-16",
-    },
-  ];
-
-  const upcomingMeetings = [
-    { id: "1", lead: "Juan Pérez", type: "lead", date: "2025-10-20T10:00:00Z" },
-    {
-      id: "2",
-      lead: "María González",
-      type: "presupuesto",
-      date: "2025-10-21T15:00:00Z",
-    },
-    {
-      id: "3",
-      lead: "Ana Martínez",
-      type: "seguimiento",
-      date: "2025-10-22T11:30:00Z",
-    },
-  ];
-
-  const budgetsPipeline = [
-    { status: "Borrador", count: 3, amount: 145000 },
-    { status: "Presentado", count: 2, amount: 230000 },
-    { status: "En Revisión", count: 2, amount: 180000 },
-    { status: "Aceptado", count: 1, amount: 150000 },
-  ];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-AR", {
@@ -251,7 +254,7 @@ export default function CRMDashboard() {
             </a>
           </div>
           <div className="divide-y divide-gray-200">
-            {recentLeads.map((lead) => (
+            {leadsRecent.map((lead) => (
               <div
                 key={lead.id}
                 className="p-6 hover:bg-gray-50 transition-colors"
@@ -261,7 +264,7 @@ export default function CRMDashboard() {
                     <h3 className="font-medium text-gray-900 mb-1">
                       {lead.name}
                     </h3>
-                    <p className="text-sm text-gray-600">{lead.company}</p>
+                    <p className="text-sm text-gray-600">{lead.empresa}</p>
                   </div>
                   <div className="text-right">
                     <span
@@ -276,7 +279,7 @@ export default function CRMDashboard() {
                       {lead.status}
                     </span>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(lead.date).toLocaleDateString("es-AR")}
+                      {new Date(lead.created_at).toLocaleDateString("es-AR")}
                     </p>
                   </div>
                 </div>
@@ -299,8 +302,8 @@ export default function CRMDashboard() {
             </a>
           </div>
           <div className="divide-y divide-gray-200">
-            {upcomingMeetings.map((meeting) => {
-              const date = new Date(meeting.date);
+            {meetingFromToday.map((meeting) => {
+              const date = new Date(meeting.start_at);
               return (
                 <div
                   key={meeting.id}
@@ -313,10 +316,10 @@ export default function CRMDashboard() {
                       </div>
                       <div>
                         <h3 className="font-medium text-gray-900 mb-1">
-                          {meeting.lead}
+                          {meeting.leads?.name}
                         </h3>
                         <p className="text-sm text-gray-600 mb-2">
-                          Reunión de {meeting.type}
+                          Reunión de {meeting.summary_md}
                         </p>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <Clock className="w-3 h-3" />
@@ -338,45 +341,6 @@ export default function CRMDashboard() {
               );
             })}
           </div>
-        </div>
-      </div>
-
-      {/* Acciones Rápidas */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold text-white mb-4">Acciones Rápidas</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a
-            href="/crm/leads"
-            className="flex items-center gap-3 p-4 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg text-white transition-all"
-          >
-            <Users className="w-6 h-6" />
-            <div>
-              <div className="font-medium">Nuevo Lead</div>
-              <div className="text-sm text-blue-100">Agregar prospecto</div>
-            </div>
-          </a>
-
-          <a
-            href="/crm/meetings"
-            className="flex items-center gap-3 p-4 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg text-white transition-all"
-          >
-            <Calendar className="w-6 h-6" />
-            <div>
-              <div className="font-medium">Agendar Reunión</div>
-              <div className="text-sm text-blue-100">Programar cita</div>
-            </div>
-          </a>
-
-          <a
-            href="/crm/budgets"
-            className="flex items-center gap-3 p-4 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg text-white transition-all"
-          >
-            <FileText className="w-6 h-6" />
-            <div>
-              <div className="font-medium">Crear Presupuesto</div>
-              <div className="text-sm text-blue-100">Nueva propuesta</div>
-            </div>
-          </a>
         </div>
       </div>
     </div>

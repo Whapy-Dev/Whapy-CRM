@@ -184,58 +184,6 @@ export default function ProfilePage() {
                     </p>
                   )}
                 </div>
-
-                {/* Position */}
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <User className="w-4 h-4" />
-                    Cargo
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editForm.position}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, position: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                      {profile.position}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Company Info Section */}
-            <div className="pt-6 border-t border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Información de la Empresa
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Company */}
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <Building2 className="w-4 h-4" />
-                    Empresa
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editForm.company}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, company: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                      {profile.company}
-                    </p>
-                  )}
-                </div>
               </div>
             </div>
           </div>

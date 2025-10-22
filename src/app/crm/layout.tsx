@@ -103,7 +103,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
                 DY
@@ -158,18 +158,6 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
               <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
-
-            {/* Quick Stats */}
-            <div className="flex items-center gap-4 pl-4 border-l border-gray-200">
-              <div className="text-right">
-                <p className="text-xs text-gray-500">Leads Activos</p>
-                <p className="text-sm font-semibold text-gray-900">24</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-gray-500">Conversión</p>
-                <p className="text-sm font-semibold text-green-600">34%</p>
-              </div>
-            </div>
           </div>
         </header>
 

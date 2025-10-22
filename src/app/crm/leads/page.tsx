@@ -19,7 +19,7 @@ type Lead = {
   name: string;
   email: string;
   phone: string;
-  company: string;
+  empresa: string;
   status:
     | "nuevo"
     | "contactado"
@@ -32,41 +32,10 @@ type Lead = {
 };
 
 export default function LeadsPage() {
-  const [lead, setLeads] = useState<Lead[]>([
-    {
-      id: "1",
-      name: "Juan Pérez",
-      email: "juan@example.com",
-      phone: "+54 9 11 1234-5678",
-      company: "Tech Solutions",
-      status: "nuevo",
-      source: "meta",
-      created_at: "2025-10-15T10:30:00Z",
-    },
-    {
-      id: "2",
-      name: "María González",
-      email: "maria@empresa.com",
-      phone: "+54 9 11 8765-4321",
-      company: "Marketing Plus",
-      status: "contactado",
-      source: "web",
-      created_at: "2025-10-16T14:20:00Z",
-    },
-  ]);
-  const { data: leads = [], isLoading, isError, error } = useLeads();
+  const { data: leads = [], isLoading, isError, error, refetch } = useLeads();
 
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const statusColors = {
-    nuevo: "bg-blue-100 text-blue-800",
-    contactado: "bg-yellow-100 text-yellow-800",
-    agendado: "bg-purple-100 text-purple-800",
-    no_calificado: "bg-gray-100 text-gray-800",
-    perdido: "bg-red-100 text-red-800",
-    convertido: "bg-green-100 text-green-800",
-  };
 
   const filteredLeads = leads.filter((lead) => {
     const name = lead.name?.toLowerCase() || "";
@@ -116,7 +85,9 @@ export default function LeadsPage() {
         {
           name: nombre,
           email: email,
+          empresa: empresa,
           phone: telefono,
+          status: "nuevo",
           created_by: user.id,
         },
       ]);
@@ -167,8 +138,14 @@ export default function LeadsPage() {
             Filtrar
           </button>
           <button
+            onClick={() => refetch()}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+          >
+            Actualizar Leads
+          </button>
+          <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Nuevo Lead
@@ -178,83 +155,7 @@ export default function LeadsPage() {
 
       {/* Tabla de Leads */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nombre
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Contacto
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Empresa
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Estado
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fuente
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fecha
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredLeads.map((lead) => (
-              <tr key={lead.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="font-medium text-gray-900">{lead.name}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Mail className="w-4 h-4" />
-                      {lead.email}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Phone className="w-4 h-4" />
-                      {lead.phone}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  Tech Solutions
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      statusColors[lead.status]
-                    }`}
-                  >
-                    {lead.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {lead.source}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {new Date(lead.created_at).toLocaleDateString("es-AR")}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {filteredLeads.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            No se encontraron leads
-          </div>
-        )}
+        <LeadsTable filteredLeads={filteredLeads} />
       </div>
 
       {/* Modal Nuevo Lead */}
@@ -330,7 +231,7 @@ export default function LeadsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -348,5 +249,182 @@ export default function LeadsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function LeadsTable({ filteredLeads }: { filteredLeads: Lead[] }) {
+  const [viewModal, setViewModal] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorForm, setErrorForm] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const supabase = createClient();
+
+  // Abrir modal
+  const handleView = (lead: Lead) => {
+    setSelectedLead(lead);
+    setStatus(lead.status);
+    setViewModal(true);
+  };
+
+  // Actualizar estado del lead
+  const handleUpdateStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLead) return;
+
+    setLoading(true);
+    setErrorForm("");
+    setSuccess(false);
+
+    const { error } = await supabase
+      .from("leads")
+      .update({ status })
+      .eq("id", selectedLead.id);
+
+    if (error) {
+      console.error(error);
+      setErrorForm("Error al actualizar el estado");
+    } else {
+      setSuccess(true);
+    }
+
+    setLoading(false);
+  };
+
+  const statusColors = {
+    nuevo: "bg-blue-100 text-blue-800",
+    contactado: "bg-yellow-100 text-yellow-800",
+    agendado: "bg-purple-100 text-purple-800",
+    no_calificado: "bg-gray-100 text-gray-800",
+    perdido: "bg-red-100 text-red-800",
+    convertido: "bg-green-100 text-green-800",
+  };
+  return (
+    <>
+      <table className="w-full">
+        <thead className="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Nombre
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Contacto
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Empresa
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Estado
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Fecha
+            </th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {filteredLeads.map((lead) => (
+            <tr key={lead.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="font-medium text-gray-900">{lead.name}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Mail className="w-4 h-4" />
+                    {lead.email}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Phone className="w-4 h-4" />
+                    {lead.phone}
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {lead.empresa}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    statusColors[lead.status]
+                  }`}
+                >
+                  {lead.status}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                {new Date(lead.created_at).toLocaleDateString("es-AR")}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                <button
+                  onClick={() => handleView(lead)}
+                  className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {filteredLeads.length === 0 && (
+        <div className="text-center py-12 text-gray-500">
+          No se encontraron leads
+        </div>
+      )}
+      {viewModal && selectedLead && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md space-y-6">
+            <h2 className="text-xl font-bold">Editar Lead</h2>
+
+            {errorForm && (
+              <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{errorForm}</p>
+              </div>
+            )}
+            {success && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+                Cambios guardados correctamente
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateStatus} className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Estado
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="nuevo">nuevo</option>
+                <option value="contactado">contactado</option>
+                <option value="agendado">agendado</option>
+              </select>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
+              >
+                {loading ? "Actualizando..." : "Actualizar Estado"}
+              </button>
+            </form>
+
+            <button
+              onClick={() => setViewModal(false)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

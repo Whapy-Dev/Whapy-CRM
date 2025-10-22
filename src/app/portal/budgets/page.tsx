@@ -1,14 +1,21 @@
-'use client';
+"use client";
 
-import { Download, Eye, CheckCircle, Clock, FileText, ThumbsUp } from 'lucide-react';
-import { useState } from 'react';
+import {
+  Download,
+  Eye,
+  CheckCircle,
+  Clock,
+  FileText,
+  ThumbsUp,
+} from "lucide-react";
+import { useState } from "react";
 
 type Budget = {
   id: string;
   title: string;
   version: number;
   amount: number;
-  status: 'presentado' | 'en_revision' | 'aceptado' | 'rechazado';
+  status: "presentado" | "en_revision" | "aceptado" | "rechazado";
   created_at: string;
   pdf_url: string;
   description: string;
@@ -17,62 +24,63 @@ type Budget = {
 export default function PortalBudgetsPage() {
   const [budgets] = useState<Budget[]>([
     {
-      id: '1',
-      title: 'Propuesta Comercial - Desarrollo Web',
+      id: "1",
+      title: "Propuesta Comercial - Desarrollo Web",
       version: 1,
       amount: 150000,
-      status: 'presentado',
-      created_at: '2025-10-16T10:00:00Z',
-      pdf_url: '#',
-      description: 'Desarrollo de sitio web corporativo con panel de administración'
+      status: "presentado",
+      created_at: "2025-10-16T10:00:00Z",
+      pdf_url: "#",
+      description:
+        "Desarrollo de sitio web corporativo con panel de administración",
     },
     {
-      id: '2',
-      title: 'Propuesta Comercial - App Mobile',
+      id: "2",
+      title: "Propuesta Comercial - App Mobile",
       version: 2,
       amount: 220000,
-      status: 'en_revision',
-      created_at: '2025-10-10T14:30:00Z',
-      pdf_url: '#',
-      description: 'Aplicación móvil iOS y Android para gestión de inventario'
-    }
+      status: "en_revision",
+      created_at: "2025-10-10T14:30:00Z",
+      pdf_url: "#",
+      description: "Aplicación móvil iOS y Android para gestión de inventario",
+    },
   ]);
 
   const [showModal, setShowModal] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
 
   const statusConfig = {
-    presentado: { 
-      color: 'bg-blue-100 text-blue-800',
+    presentado: {
+      color: "bg-blue-100 text-blue-800",
       icon: <FileText className="w-5 h-5" />,
-      label: 'Presentado',
-      description: 'Hemos enviado el presupuesto para tu revisión'
+      label: "Presentado",
+      description: "Hemos enviado el presupuesto para tu revisión",
     },
-    en_revision: { 
-      color: 'bg-yellow-100 text-yellow-800',
+    en_revision: {
+      color: "bg-yellow-100 text-yellow-800",
       icon: <Clock className="w-5 h-5" />,
-      label: 'En Revisión',
-      description: 'Estamos esperando tu feedback'
+      label: "En Revisión",
+      description: "Estamos esperando tu feedback",
     },
-    aceptado: { 
-      color: 'bg-green-100 text-green-800',
+    aceptado: {
+      color: "bg-green-100 text-green-800",
       icon: <CheckCircle className="w-5 h-5" />,
-      label: 'Aceptado',
-      description: '¡Genial! Comenzaremos el proyecto pronto'
+      label: "Aceptado",
+      description: "¡Genial! Comenzaremos el proyecto pronto",
     },
-    rechazado: { 
-      color: 'bg-red-100 text-red-800',
+    rechazado: {
+      color: "bg-red-100 text-red-800",
       icon: <FileText className="w-5 h-5" />,
-      label: 'Rechazado',
-      description: 'No hubo acuerdo en esta oportunidad'
-    }
+      label: "Rechazado",
+      description: "No hubo acuerdo en esta oportunidad",
+    },
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0
+    return new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -82,7 +90,7 @@ export default function PortalBudgetsPage() {
   };
 
   const confirmAccept = () => {
-    console.log('Presupuesto aceptado:', selectedBudget?.id);
+    console.log("Presupuesto aceptado:", selectedBudget?.id);
     setShowModal(false);
     setSelectedBudget(null);
   };
@@ -100,7 +108,10 @@ export default function PortalBudgetsPage() {
       {/* Presupuestos List */}
       <div className="space-y-6">
         {budgets.map((budget) => (
-          <div key={budget.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div
+            key={budget.id}
+            className="bg-white rounded-lg shadow-md overflow-hidden"
+          >
             {/* Header del presupuesto */}
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-start justify-between">
@@ -109,19 +120,26 @@ export default function PortalBudgetsPage() {
                     <h2 className="text-xl font-bold text-gray-900">
                       {budget.title}
                     </h2>
-                    <span className="text-sm text-gray-500">v{budget.version}</span>
+                    <span className="text-sm text-gray-500">
+                      v{budget.version}
+                    </span>
                   </div>
                   <p className="text-gray-600 mb-3">{budget.description}</p>
                   <div className="flex items-center gap-4">
-                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusConfig[budget.status].color}`}>
+                    <span
+                      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                        statusConfig[budget.status].color
+                      }`}
+                    >
                       {statusConfig[budget.status].icon}
                       {statusConfig[budget.status].label}
                     </span>
                     <span className="text-sm text-gray-500">
-                      Enviado el {new Date(budget.created_at).toLocaleDateString('es-AR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
+                      Enviado el{" "}
+                      {new Date(budget.created_at).toLocaleDateString("es-AR", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
                       })}
                     </span>
                   </div>
@@ -152,27 +170,30 @@ export default function PortalBudgetsPage() {
                 <Download className="w-4 h-4" />
                 Descargar PDF
               </a>
-              
+
               <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 <Eye className="w-4 h-4" />
                 Ver en línea
               </button>
 
-              {(budget.status === 'presentado' || budget.status === 'en_revision') && (
-                <button 
-                  onClick={() => handleAccept(budget)}
+              {(budget.status === "presentado" ||
+                budget.status === "en_revision") && (
+                <a
+                  href=""
                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors ml-auto"
                 >
                   <ThumbsUp className="w-4 h-4" />
                   Quiero Avanzar
-                </button>
+                </a>
               )}
             </div>
 
             {/* Detalles adicionales */}
             <div className="px-6 pb-6">
               <div className="border-t border-gray-200 pt-4">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Detalles del Presupuesto</h3>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">
+                  Detalles del Presupuesto
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
                     <p className="text-gray-600">Duración estimada</p>
@@ -181,10 +202,6 @@ export default function PortalBudgetsPage() {
                   <div>
                     <p className="text-gray-600">Modalidad de pago</p>
                     <p className="font-medium text-gray-900">3 cuotas</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Garantía</p>
-                    <p className="font-medium text-gray-900">6 meses</p>
                   </div>
                 </div>
               </div>
@@ -199,7 +216,8 @@ export default function PortalBudgetsPage() {
               No hay presupuestos disponibles
             </h3>
             <p className="text-gray-600">
-              Los presupuestos aparecerán aquí una vez que sean enviados por nuestro equipo
+              Los presupuestos aparecerán aquí una vez que sean enviados por
+              nuestro equipo
             </p>
           </div>
         )}
@@ -243,7 +261,8 @@ export default function PortalBudgetsPage() {
                 ¡Excelente decisión!
               </h2>
               <p className="text-gray-600">
-                ¿Confirmas que deseas avanzar con el presupuesto "{selectedBudget.title}"?
+                ¿Confirmas que deseas avanzar con el presupuesto "
+                {selectedBudget.title}"?
               </p>
             </div>
 
@@ -255,7 +274,8 @@ export default function PortalBudgetsPage() {
                 </span>
               </div>
               <p className="text-xs text-gray-500">
-                Nuestro equipo se pondrá en contacto contigo en las próximas 24 horas para coordinar los próximos pasos.
+                Nuestro equipo se pondrá en contacto contigo en las próximas 24
+                horas para coordinar los próximos pasos.
               </p>
             </div>
 
