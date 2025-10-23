@@ -23,6 +23,7 @@ type Document = {
 };
 
 export default function ProjectDocumentsPage({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   params,
 }: {
   params: { id: string };

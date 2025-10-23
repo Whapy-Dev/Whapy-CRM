@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -9,14 +9,11 @@ import {
   Download,
   Play,
   Calendar,
-  Clock,
 } from "lucide-react";
-import { useMeetings } from "@/hooks/admin/useMeetings";
-import {
-  useMeetingsByProjectUser,
-  useMeetingsUser,
-} from "@/hooks/user/useMeetings";
 
+import { useMeetingsByProjectUser } from "@/hooks/user/useMeetings";
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type Meeting = {
   id: string;
   title: string;
@@ -33,11 +30,7 @@ export default function ProjectMeetingsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id: projectId } = use(params);
-  const {
-    data: meetings = [],
-    isLoading: isLoadingMeetings,
-    error: errorMeetings,
-  } = useMeetingsByProjectUser(projectId);
+  const { data: meetings = [] } = useMeetingsByProjectUser(projectId);
 
   const projectName = meetings[0]?.projects?.title || "Proyecto";
 

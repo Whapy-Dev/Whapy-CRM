@@ -9,7 +9,6 @@ import {
   Calendar,
   Eye,
   AlertCircle,
-  Currency,
 } from "lucide-react";
 import { useBudgets } from "@/hooks/admin/useBudgets";
 import { useLeads } from "@/hooks/admin/useLeads";
@@ -28,6 +27,7 @@ type Budget = {
     created_at: string;
   };
 };
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-AR", {
     style: "currency",
@@ -39,9 +39,7 @@ const formatCurrency = (amount: number) => {
 export default function BudgetsPage() {
   const {
     data: budgets = [],
-    isLoading,
-    isError,
-    error,
+
     refetch,
   } = useBudgets();
   const { data: leads = [] } = useLeads();
@@ -85,7 +83,7 @@ export default function BudgetsPage() {
         return;
       }
 
-      const { data, error } = await supabase.from("budgets").insert([
+      const { error } = await supabase.from("budgets").insert([
         {
           lead_id: idLead,
           title: title,
@@ -389,6 +387,7 @@ export default function BudgetsPage() {
     };
 
     // 👉 Actualizar URL del PDF
+
     const handleUpdatePDF = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!selectedBudget) return;
@@ -412,6 +411,7 @@ export default function BudgetsPage() {
     };
 
     // 👉 Actualizar estado
+
     const handleUpdateStatus = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!selectedBudget) return;

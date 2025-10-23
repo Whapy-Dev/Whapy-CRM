@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { User, Mail, Phone, Building2, Camera, Save, X } from "lucide-react";
+import { User, Mail, Phone, Camera, Save, X } from "lucide-react";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -57,7 +58,7 @@ export default function ProfilePage() {
             <div className="relative inline-block">
               <div className="w-32 h-32 bg-white rounded-full p-2 shadow-lg">
                 {(isEditing ? editForm.avatar : profile.avatar) ? (
-                  <img
+                  <Image
                     src={isEditing ? editForm.avatar! : profile.avatar!}
                     alt="Avatar"
                     className="w-full h-full rounded-full object-cover"

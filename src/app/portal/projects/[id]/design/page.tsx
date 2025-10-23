@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, ExternalLink, Maximize2, Clock } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, ExternalLink, Maximize2, Clock } from "lucide-react";
 
 type DesignVersion = {
   id: string;
@@ -14,48 +14,55 @@ type DesignVersion = {
   is_current: boolean;
 };
 
-export default function ProjectDesignPage({ params }: { params: { id: string } }) {
+export default function ProjectDesignPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id } = params;
   const [versions] = useState<DesignVersion[]>([
     {
-      id: '1',
-      version: 'v2.0',
-      title: 'Diseño Final Aprobado',
-      figma_url: 'https://www.figma.com/file/example123',
-      updated_at: '2025-10-15T14:30:00Z',
-      description: 'Versión final con todos los ajustes aprobados en la última reunión',
-      is_current: true
+      id: "1",
+      version: "v2.0",
+      title: "Diseño Final Aprobado",
+      figma_url: "https://www.figma.com/file/example123",
+      updated_at: "2025-10-15T14:30:00Z",
+      description:
+        "Versión final con todos los ajustes aprobados en la última reunión",
+      is_current: true,
     },
     {
-      id: '2',
-      version: 'v1.5',
-      title: 'Revisión con Feedback',
-      figma_url: 'https://www.figma.com/file/example456',
-      updated_at: '2025-10-08T10:00:00Z',
-      description: 'Segunda iteración incorporando feedback del cliente',
-      is_current: false
+      id: "2",
+      version: "v1.5",
+      title: "Revisión con Feedback",
+      figma_url: "https://www.figma.com/file/example456",
+      updated_at: "2025-10-08T10:00:00Z",
+      description: "Segunda iteración incorporando feedback del cliente",
+      is_current: false,
     },
     {
-      id: '3',
-      version: 'v1.0',
-      title: 'Propuesta Inicial',
-      figma_url: 'https://www.figma.com/file/example789',
-      updated_at: '2025-09-25T16:00:00Z',
-      description: 'Primera propuesta de diseño presentada',
-      is_current: false
-    }
+      id: "3",
+      version: "v1.0",
+      title: "Propuesta Inicial",
+      figma_url: "https://www.figma.com/file/example789",
+      updated_at: "2025-09-25T16:00:00Z",
+      description: "Primera propuesta de diseño presentada",
+      is_current: false,
+    },
   ]);
 
   const [selectedVersion, setSelectedVersion] = useState(versions[0]);
-  const projectName = 'Desarrollo Web Corporativo';
+  const projectName = "Desarrollo Web Corporativo";
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-AR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("es-AR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -73,9 +80,7 @@ export default function ProjectDesignPage({ params }: { params: { id: string } }
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">{projectName}</h1>
-        <p className="mt-2 text-gray-600">
-          Diseños y prototipos del proyecto
-        </p>
+        <p className="mt-2 text-gray-600">Diseños y prototipos del proyecto</p>
       </div>
 
       {/* Current Version Banner */}
@@ -86,7 +91,9 @@ export default function ProjectDesignPage({ params }: { params: { id: string } }
               <span className="px-2 py-1 bg-white bg-opacity-20 rounded text-sm font-medium">
                 Versión Actual
               </span>
-              <span className="text-xl font-bold">{selectedVersion.version}</span>
+              <span className="text-xl font-bold">
+                {selectedVersion.version}
+              </span>
             </div>
             <h2 className="text-2xl font-bold mb-2">{selectedVersion.title}</h2>
             <p className="text-green-100">{selectedVersion.description}</p>
@@ -110,12 +117,20 @@ export default function ProjectDesignPage({ params }: { params: { id: string } }
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <svg className="w-6 h-6 text-gray-700" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 2C6.895 2 6 2.895 6 4v16c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm8 0c-1.105 0-2 .895-2 2v8c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm0 12c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zM8 10c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2z"/>
+            <svg
+              className="w-6 h-6 text-gray-700"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M8 2C6.895 2 6 2.895 6 4v16c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm8 0c-1.105 0-2 .895-2 2v8c0 1.105.895 2 2 2s2-.895 2-2V4c0-1.105-.895-2-2-2zm0 12c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zM8 10c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2z" />
             </svg>
             <div>
-              <h3 className="font-medium text-gray-900">Vista Previa del Diseño</h3>
-              <p className="text-sm text-gray-500">Interactúa con el prototipo directamente</p>
+              <h3 className="font-medium text-gray-900">
+                Vista Previa del Diseño
+              </h3>
+              <p className="text-sm text-gray-500">
+                Interactúa con el prototipo directamente
+              </p>
             </div>
           </div>
           <a
@@ -128,17 +143,20 @@ export default function ProjectDesignPage({ params }: { params: { id: string } }
             Ver pantalla completa
           </a>
         </div>
-        
+
         {/* Figma iframe */}
-        <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+        <div
+          className="relative"
+          style={{ paddingBottom: "56.25%", height: 0 }}
+        >
           <iframe
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
-              width: '100%',
-              height: '100%',
-              border: 'none'
+              width: "100%",
+              height: "100%",
+              border: "none",
             }}
             src={`${selectedVersion.figma_url}/embed`}
             allowFullScreen
@@ -149,12 +167,14 @@ export default function ProjectDesignPage({ params }: { params: { id: string } }
       {/* Version History */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Historial de Versiones</h2>
+          <h2 className="text-xl font-bold text-gray-900">
+            Historial de Versiones
+          </h2>
           <p className="text-sm text-gray-600 mt-1">
             Todas las iteraciones del diseño
           </p>
         </div>
-        
+
         <div className="divide-y divide-gray-200">
           {versions.map((version) => (
             <div
@@ -162,18 +182,20 @@ export default function ProjectDesignPage({ params }: { params: { id: string } }
               onClick={() => setSelectedVersion(version)}
               className={`p-6 cursor-pointer transition-colors ${
                 selectedVersion.id === version.id
-                  ? 'bg-blue-50 border-l-4 border-blue-600'
-                  : 'hover:bg-gray-50'
+                  ? "bg-blue-50 border-l-4 border-blue-600"
+                  : "hover:bg-gray-50"
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                      version.is_current
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-bold ${
+                        version.is_current
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
                       {version.version}
                     </span>
                     {version.is_current && (
@@ -191,7 +213,7 @@ export default function ProjectDesignPage({ params }: { params: { id: string } }
                     {formatDate(version.updated_at)}
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2">
                   {selectedVersion.id === version.id && (
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">
@@ -223,15 +245,24 @@ export default function ProjectDesignPage({ params }: { params: { id: string } }
         <ul className="space-y-2 text-gray-700">
           <li className="flex items-start gap-2">
             <span className="text-blue-600 font-bold">•</span>
-            <span>Haz clic en los elementos interactivos para navegar por el prototipo</span>
+            <span>
+              Haz clic en los elementos interactivos para navegar por el
+              prototipo
+            </span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-600 font-bold">•</span>
-            <span>Usa el botón "Ver pantalla completa" para una mejor experiencia</span>
+            <span>
+              Usa el botón &quot;Ver pantalla completa&quot; para una mejor
+              experiencia
+            </span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-600 font-bold">•</span>
-            <span>Puedes dejar comentarios directamente en Figma si tienes una cuenta</span>
+            <span>
+              Puedes dejar comentarios directamente en Figma si tienes una
+              cuenta
+            </span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-600 font-bold">•</span>

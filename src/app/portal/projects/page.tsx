@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import {
   FolderOpen,
@@ -8,11 +8,10 @@ import {
   Clock,
   CheckCircle,
   ArrowRight,
-  Video,
   Play,
 } from "lucide-react";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type Project = {
   id: string;
   name: string;
@@ -30,7 +29,6 @@ export default function ProjectsPage() {
     data: projectsData,
     isLoading: isLoadingProjects,
     error: errorProjects,
-    refetch,
   } = useProjectsUser();
   const statusConfig = {
     en_progreso: {

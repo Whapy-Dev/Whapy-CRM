@@ -22,6 +22,7 @@ export function useAuth() {
 
   useEffect(() => {
     // Obtener usuario actual
+
     const getUser = async () => {
       const {
         data: { user },

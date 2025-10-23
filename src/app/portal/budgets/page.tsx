@@ -28,9 +28,11 @@ export default function PortalBudgetsPage() {
     isLoading: isLoadingBudgetsUser,
     error: errorBudgetsUser,
   } = useBudgetsUser();
+
   const budgets = dataBudgetsUser || [];
 
-  const [budget] = useState<Budget[]>([
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_budget] = useState<Budget[]>([
     {
       id: "1",
       title: "Propuesta Comercial - Desarrollo Web",
@@ -92,6 +94,7 @@ export default function PortalBudgetsPage() {
     }).format(amount);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAccept = (budget: Budget) => {
     setSelectedBudget(budget);
     setShowModal(true);
@@ -271,8 +274,8 @@ export default function PortalBudgetsPage() {
                 ¡Excelente decisión!
               </h2>
               <p className="text-gray-600">
-                ¿Confirmas que deseas avanzar con el presupuesto "
-                {selectedBudget.title}"?
+                ¿Confirmas que deseas avanzar con el presupuesto &quot;
+                {selectedBudget.title}&quot;?
               </p>
             </div>
 

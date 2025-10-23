@@ -1,15 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Plus,
-  Search,
-  Calendar,
-  Video,
-  Clock,
-  MapPin,
-  User,
-} from "lucide-react";
+import { Search, Calendar, Video, Clock, MapPin, User } from "lucide-react";
 
 type Meeting = {
   id: string;
@@ -24,6 +16,7 @@ type Meeting = {
 };
 
 export default function MeetingsPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [meetings, setMeetings] = useState<Meeting[]>([
     {
       id: "1",
@@ -60,6 +53,7 @@ export default function MeetingsPage() {
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [viewMode, setViewMode] = useState<"lista" | "calendario">("lista");
 
   const typeConfig = {

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default function CRMDashboard() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: leads = [], isLoading, isError, error } = useLeads();
   const { data: leadsUltimateMonth = [] } = useLeadsUltimateMonth();
   const { data: leadsRecent = [] } = useLeadsRecent();
@@ -28,6 +29,7 @@ export default function CRMDashboard() {
   const { data: budgetsActive = [] } = useBudgetsActive();
   const { data: meetingFromToday = [] } = useMeetingsFromToday();
   const { data: budgets = [] } = useBudgets();
+
   const draft = budgets.filter((b) => b.status === "draft");
   const presentado = budgets.filter((b) => b.status === "presentado");
   const aceptado = budgets.filter((b) => b.status === "aceptado");

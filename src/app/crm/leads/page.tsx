@@ -32,14 +32,16 @@ type Lead = {
 };
 
 export default function LeadsPage() {
-  const { data: leads = [], isLoading, isError, error, refetch } = useLeads();
+  const { data: leads = [], refetch } = useLeads();
 
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredLeads = leads.filter((lead) => {
     const name = lead.name?.toLowerCase() || "";
+
     const email = lead.email?.toLowerCase() || "";
+
     const company = lead.company?.toLowerCase() || "";
 
     const term = searchTerm.toLowerCase();
@@ -81,7 +83,7 @@ export default function LeadsPage() {
         return;
       }
 
-      const { data, error } = await supabase.from("leads").insert([
+      const { error } = await supabase.from("leads").insert([
         {
           name: nombre,
           email: email,
@@ -263,6 +265,7 @@ function LeadsTable({ filteredLeads }: { filteredLeads: Lead[] }) {
   const supabase = createClient();
 
   // Abrir modal
+
   const handleView = (lead: Lead) => {
     setSelectedLead(lead);
     setStatus(lead.status);

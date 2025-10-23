@@ -5,6 +5,7 @@ export async function POST(req: NextRequest) {
   console.log("🟢 Endpoint /api/create-client llamado");
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   console.log("🧩 Variables de entorno:", { url, hasKey: !!key });
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
     console.log("✅ Usuario creado correctamente:", data.user.id);
 
     return NextResponse.json({ user: data.user }, { status: 200 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error("💥 Error crítico:", err);
     return NextResponse.json(

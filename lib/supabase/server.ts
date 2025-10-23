@@ -1,10 +1,10 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import type { Database } from '@/types/database.types';
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import type { Database } from "@/types/database.types";
 
 /**
  * Cliente de Supabase para uso en el servidor (Server Components, Server Actions, Route Handlers)
- * 
+ *
  * Uso:
  * import { createClient } from '@/lib/supabase/server';
  * const supabase = await createClient();
@@ -25,7 +25,8 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
             });
-          } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (e) {
             // Esto puede fallar en algunos contextos de servidor
             // pero es seguro ignorarlo
           }

@@ -1,13 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Plus,
-  Search,
-  AlertCircle,
-  CheckCircle,
-  ShieldAlert,
-} from "lucide-react";
+import { Plus, Search, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function ClientsPageUnsafe() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,6 +35,7 @@ export default function ClientsPageUnsafe() {
       if (!res.ok) throw new Error(data.error || "Error desconocido");
 
       setSuccessMessage(`Usuario creado: ${data.user.email}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setErrorForm(err.message);
     } finally {

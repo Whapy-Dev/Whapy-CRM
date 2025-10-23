@@ -19,12 +19,10 @@ export default function PortalLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, role, loading, signOut } = useAuth();
-  const {
-    data: userData = [],
-    isLoading: isLoadingUserData,
-    error: errorUserData,
-  } = useDatosUser();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { user: _user, role, loading, signOut } = useAuth();
+
+  const { data: userData = [] } = useDatosUser();
   const isActive = (path: string) => {
     if (path === "/portal") {
       return pathname === path;

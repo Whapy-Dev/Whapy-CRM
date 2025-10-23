@@ -2,13 +2,10 @@
 
 import Link from "next/link";
 import {
-  Calendar,
   FileText,
-  Download,
   CheckCircle,
   ArrowRight,
   FolderOpen,
-  User,
   Video,
 } from "lucide-react";
 import { useDatosUser } from "@/hooks/user/datosUser";
@@ -16,16 +13,8 @@ import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { useMeetingsUser } from "@/hooks/user/useMeetings";
 
 export default function PortalDashboard() {
-  const {
-    data: userData = [],
-    isLoading: isLoadingUserData,
-    error: errorUserData,
-  } = useDatosUser();
-  const {
-    data: projectsData = [],
-    isLoading: isLoadingProjectsData,
-    error: errorProjectsData,
-  } = useProjectsUser();
+  const { data: userData = [] } = useDatosUser();
+  const { data: projectsData = [] } = useProjectsUser();
   const {
     data: meetingsData = [],
     isLoading: isLoadingMeetingsData,
@@ -36,6 +25,7 @@ export default function PortalDashboard() {
     (project) => project.status !== "pausado" && project.status !== "cancelado"
   ).length;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
@@ -54,12 +44,14 @@ export default function PortalDashboard() {
 
   // const nextMeeting = formatDate(clientData.nextMeeting.date);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const activityIcons = {
     document: <FileText className="w-5 h-5 text-blue-600" />,
     design: <FolderOpen className="w-5 h-5 text-purple-600" />,
     meeting: <Video className="w-5 h-5 text-green-600" />,
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const activityBgColors = {
     document: "bg-blue-100",
     design: "bg-purple-100",
