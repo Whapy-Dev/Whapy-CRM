@@ -30,16 +30,19 @@ export default function CRMDashboard() {
   const { data: meetingFromToday = [] } = useMeetingsFromToday();
   const { data: budgets = [] } = useBudgets();
 
-  const draft = budgets.filter((b) => b.status === "draft");
+  const en_revision = budgets.filter((b) => b.status === "en revision");
   const presentado = budgets.filter((b) => b.status === "presentado");
   const aceptado = budgets.filter((b) => b.status === "aceptado");
   const rechazado = budgets.filter((b) => b.status === "rechazado");
 
   const budgetsPipeline = [
     {
-      status: "Draft",
-      count: draft.length,
-      amount: draft.reduce((sum: number, b) => sum + (b.amount_total || 0), 0),
+      status: "en revision",
+      count: en_revision.length,
+      amount: en_revision.reduce(
+        (sum: number, b) => sum + (b.amount_total || 0),
+        0
+      ),
     },
     {
       status: "Presentado",

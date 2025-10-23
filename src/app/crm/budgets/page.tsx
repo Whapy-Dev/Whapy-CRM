@@ -18,14 +18,16 @@ type Budget = {
   id: string;
   title: string;
   amount_total: number;
-  status: "en revision" | "presentado" | "aceptado" | "rechazado";
+  status: "presentado" | "aceptado" | "rechazado" | "en revision";
   currency: string;
   pdf_url: string;
   created_at: string;
-  leads: {
-    name: string;
-    created_at: string;
-  };
+  leads:
+    | {
+        name: string;
+        created_at: string;
+      }[]
+    | null;
 };
 
 const formatCurrency = (amount: number) => {
@@ -464,7 +466,7 @@ export default function BudgetsPage() {
               <tr key={budget.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900">
-                    {budget.title} / {budget.leads?.name}
+                    {budget.title} / {budget.leads?.[0]?.name ?? "Sin cliente"}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -494,8 +496,8 @@ export default function BudgetsPage() {
                   {new Date(budget.created_at).toLocaleDateString("es-AR")}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {budget.leads?.created_at
-                    ? new Date(budget.leads?.created_at).toLocaleDateString(
+                  {budget.leads?.[0]?.created_at
+                    ? new Date(budget.leads[0].created_at).toLocaleDateString(
                         "es-AR"
                       )
                     : "-"}

@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { Database } from "@/types/database.types";
 
 /**
  * Cliente de Supabase para uso en el servidor (Server Components, Server Actions, Route Handlers)
@@ -12,7 +11,7 @@ import type { Database } from "@/types/database.types";
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -41,7 +40,7 @@ export async function createClient() {
  * SOLO usar en Server Actions o Route Handlers donde necesites bypass RLS
  */
 export function createAdminClient() {
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {

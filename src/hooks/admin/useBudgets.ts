@@ -9,14 +9,16 @@ export type Budget = {
   id: string;
   title: string;
   amount_total: number;
-  status: "draft" | "presentado" | "aceptado" | "rechazado" | "en_revision";
+  status: "presentado" | "aceptado" | "rechazado" | "en revision";
   currency: string;
   pdf_url: string;
   created_at: string;
-  leads: {
-    name: string;
-    created_at: string;
-  } | null;
+  leads:
+    | {
+        name: string;
+        created_at: string;
+      }[]
+    | null;
 };
 
 export function useBudgets() {

@@ -101,11 +101,14 @@ export default function ProjectsPage() {
               <CheckCircle className="w-5 h-5 text-purple-600" />
             </div>
           </div>
+
           <p className="text-2xl font-bold text-gray-900">
-            {Math.round(
-              projectsData.reduce((sum, p) => sum + p.progress, 0) /
-                projectsData.length
-            )}
+            {projectsData && projectsData.length > 0
+              ? Math.round(
+                  projectsData.reduce((sum, p) => sum + p.progress, 0) /
+                    projectsData.length
+                )
+              : 0}
             %
           </p>
           <p className="text-sm text-gray-600">Progreso Promedio</p>
@@ -114,7 +117,7 @@ export default function ProjectsPage() {
 
       {/* Projects List */}
       <div className="space-y-4">
-        {projectsData.map((project) => (
+        {projectsData?.map((project) => (
           <div
             key={project.id}
             className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
@@ -300,7 +303,7 @@ export default function ProjectsPage() {
         ))}
       </div>
 
-      {projectsData.length === 0 && (
+      {projectsData?.length === 0 && (
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">

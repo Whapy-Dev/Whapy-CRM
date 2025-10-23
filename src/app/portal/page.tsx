@@ -72,7 +72,7 @@ export default function PortalDashboard() {
   });
 
   const totalProyectos30Dias = proyectosUltimos30Dias.length;
-  const totalMeetings30Dias = meetingsUltimos30Dias?.length;
+  const totalMeetings30Dias = meetingsUltimos30Dias?.length ?? 0;
   const totalActividad30Dias = totalProyectos30Dias + totalMeetings30Dias;
 
   if (isLoadingMeetingsData) return <p>Cargando proyectos...</p>;
