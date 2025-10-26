@@ -48,10 +48,22 @@ export default function BudgetsPage() {
   const [viewCreatePresupuesto, setViewCreatePresupuesto] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterAmount, setFilterAmount] = useState("");
 
-  const filteredBudgets = budgets.filter((budget) =>
-    budget.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBudgets = budgets.filter((budget) => {
+    const titleMatch = budget.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const statusMatch = filterStatus ? budget.status === filterStatus : true;
+
+    const amountMatch = filterAmount
+      ? budget.amount_total === Number(filterAmount)
+      : true;
+
+    return titleMatch && statusMatch && amountMatch;
+  });
 
   const totalByStatus = (status: Budget["status"]) => {
     return budgets
@@ -189,16 +201,42 @@ export default function BudgetsPage() {
 
       {/* Acciones y búsqueda */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-2xl">
+          {/* Filtrar por título */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar por título..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Filtrar por estado */}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Todos los estados</option>
+            <option value="en revision">En revisión</option>
+            <option value="presentado">Presentado</option>
+            <option value="aceptado">Aceptado</option>
+            <option value="rechazado">Rechazado</option>
+          </select>
+
+          {/* Filtrar por amount_total */}
           <input
-            type="text"
-            placeholder="Buscar presupuestos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            type="number"
+            placeholder="Filtrar por monto total..."
+            value={filterAmount}
+            onChange={(e) => setFilterAmount(e.target.value)}
+            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
+
         <div className="flex gap-5">
           <button
             type="button"
@@ -218,7 +256,7 @@ export default function BudgetsPage() {
         </div>
       </div>
 
-      {/* ✅ Tabla de presupuestos */}
+      {/* Tabla de presupuestos */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <BudgetsTable filteredBudgets={filteredBudgets} />
       </div>

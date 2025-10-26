@@ -36,19 +36,25 @@ export default function LeadsPage() {
 
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterEmpresa, setFilterEmpresa] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
 
   const filteredLeads = leads.filter((lead) => {
     const name = lead.name?.toLowerCase() || "";
-
     const email = lead.email?.toLowerCase() || "";
-
     const company = lead.company?.toLowerCase() || "";
+    const status = lead.status?.toLowerCase() || "";
 
     const term = searchTerm.toLowerCase();
+    const empresaTerm = filterEmpresa.toLowerCase();
+    const estadoTerm = filterEstado.toLowerCase();
 
-    return (
-      name.includes(term) || email.includes(term) || company.includes(term)
-    );
+    // Filtrar por nombre/email/empresa, empresa adicional y estado
+    const matchesSearch = name.includes(term) || email.includes(term);
+    const matchesEmpresa = company.includes(empresaTerm);
+    const matchesEstado = estadoTerm ? status === estadoTerm : true;
+
+    return matchesSearch && matchesEmpresa && matchesEstado;
   });
 
   const [nombre, setNombre] = useState("");
@@ -123,15 +129,40 @@ export default function LeadsPage() {
 
       {/* Acciones y búsqueda */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-md">
+          {/* Buscar leads */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar leads..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Filtrar empresa */}
           <input
             type="text"
-            placeholder="Buscar leads..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Filtrar por empresa..."
+            value={filterEmpresa}
+            onChange={(e) => setFilterEmpresa(e.target.value)}
+            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+
+          {/* Filtrar estado */}
+          <select
+            value={filterEstado}
+            onChange={(e) => setFilterEstado(e.target.value)}
+            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Todos los estados</option>
+            <option value="en revision">En revisión</option>
+            <option value="presentado">Presentado</option>
+            <option value="aceptado">Aceptado</option>
+            <option value="rechazado">Rechazado</option>
+          </select>
         </div>
 
         <div className="flex gap-3">
