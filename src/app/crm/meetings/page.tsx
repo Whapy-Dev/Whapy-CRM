@@ -2,55 +2,27 @@
 
 import { useState } from "react";
 import { Search, Calendar, Video, Clock, MapPin, User } from "lucide-react";
+import { useAllMeetings } from "@/hooks/admin/useAllMeetings";
 
 type Meeting = {
-  id: string;
-  type: "lead" | "presupuesto" | "seguimiento";
-  lead_name: string;
+  meeting_id: string;
+  project_id: string;
+  lead_id: string;
+  user_id: string;
+  type_meeting: "lead" | "presupuesto" | "seguimiento";
   title: string;
   start_at: string;
-  end_at: string;
   location: "meet" | "zoom" | "teléfono" | "presencial";
   meet_url?: string;
-  status: "programada" | "completada" | "cancelada";
+  summary_md: string;
+  summary_pdf_url: string;
+  created_at: string;
+  estado: "programada" | "completada" | "cancelada";
 };
 
 export default function MeetingsPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [meetings, setMeetings] = useState<Meeting[]>([
-    {
-      id: "1",
-      type: "lead",
-      lead_name: "Juan Pérez",
-      title: "Primera reunión - Descubrimiento",
-      start_at: "2025-10-20T10:00:00Z",
-      end_at: "2025-10-20T11:00:00Z",
-      location: "meet",
-      meet_url: "https://meet.google.com/abc-defg-hij",
-      status: "programada",
-    },
-    {
-      id: "2",
-      type: "presupuesto",
-      lead_name: "María González",
-      title: "Presentación de Presupuesto",
-      start_at: "2025-10-21T15:00:00Z",
-      end_at: "2025-10-21T16:00:00Z",
-      location: "zoom",
-      meet_url: "https://zoom.us/j/123456789",
-      status: "programada",
-    },
-    {
-      id: "3",
-      type: "seguimiento",
-      lead_name: "Carlos Rodríguez",
-      title: "Seguimiento - Dudas sobre presupuesto",
-      start_at: "2025-10-18T14:00:00Z",
-      end_at: "2025-10-18T14:30:00Z",
-      location: "teléfono",
-      status: "completada",
-    },
-  ]);
+  const { data: dataAllMeetings = [] } = useAllMeetings();
+  console.log("dataAllMeetings:", dataAllMeetings);
 
   const [searchTerm, setSearchTerm] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -58,10 +30,7 @@ export default function MeetingsPage() {
 
   const typeConfig = {
     lead: { color: "bg-blue-100 text-blue-800", label: "Lead" },
-    presupuesto: {
-      color: "bg-purple-100 text-purple-800",
-      label: "Presupuesto",
-    },
+    proyecto: { color: "bg-purple-100 text-purple-800", label: "Proyecto" },
     seguimiento: { color: "bg-green-100 text-green-800", label: "Seguimiento" },
   };
 
@@ -74,19 +43,30 @@ export default function MeetingsPage() {
   const locationIcons = {
     meet: <Video className="w-4 h-4" />,
     zoom: <Video className="w-4 h-4" />,
-    teléfono: <Clock className="w-4 h-4" />,
+    telefono: <Clock className="w-4 h-4" />,
     presencial: <MapPin className="w-4 h-4" />,
   };
 
-  const filteredMeetings = meetings.filter(
-    (meeting) =>
-      meeting.lead_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      meeting.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMeetings = dataAllMeetings.filter((meeting) => {
+    const leadName = meeting.leads?.name?.toLowerCase() || "";
+    const profileName = meeting.profiles?.nombre?.toLowerCase() || "";
+    const title = meeting.title?.toLowerCase() || "";
+
+    const term = searchTerm.toLowerCase();
+
+    return (
+      leadName.includes(term) ||
+      profileName.includes(term) ||
+      title.includes(term)
+    );
+  });
 
   const upcomingMeetings = filteredMeetings
     .filter(
-      (m) => m.status === "programada" && new Date(m.start_at) > new Date()
+      (m) =>
+        m.estado === "programada" &&
+        m.start_at &&
+        new Date(m.start_at) > new Date()
     )
     .sort(
       (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
@@ -94,7 +74,10 @@ export default function MeetingsPage() {
 
   const pastMeetings = filteredMeetings
     .filter(
-      (m) => m.status === "completada" || new Date(m.start_at) < new Date()
+      (m) =>
+        m.estado === "completada" ||
+        m.estado === "cancelada" ||
+        (m.start_at && new Date(m.start_at) < new Date())
     )
     .sort(
       (a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime()
@@ -197,10 +180,13 @@ export default function MeetingsPage() {
             </div>
           ) : (
             upcomingMeetings.map((meeting) => {
-              const { date, time } = formatDateTime(meeting.start_at);
+              const { date, time } = meeting.start_at
+                ? formatDateTime(meeting.start_at)
+                : { date: "-", time: "-" };
+
               return (
                 <div
-                  key={meeting.id}
+                  key={meeting.meeting_id}
                   className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
@@ -208,26 +194,36 @@ export default function MeetingsPage() {
                       <div className="flex items-center gap-3 mb-2">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            typeConfig[meeting.type].color
+                            typeConfig[
+                              meeting.type_meeting.toLowerCase() as keyof typeof typeConfig
+                            ]?.color || "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {typeConfig[meeting.type].label}
+                          {typeConfig[
+                            meeting.type_meeting.toLowerCase() as keyof typeof typeConfig
+                          ]?.label || "Sin tipo"}
                         </span>
+
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            statusConfig[meeting.status].color
+                            statusConfig[
+                              meeting.estado as keyof typeof statusConfig
+                            ]?.color || "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {statusConfig[meeting.status].label}
+                          {statusConfig[
+                            meeting.estado as keyof typeof statusConfig
+                          ]?.label || "Sin estado"}
                         </span>
                       </div>
+
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         {meeting.title}
                       </h3>
                       <div className="flex items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <User className="w-4 h-4" />
-                          {meeting.lead_name}
+                          {meeting.leads?.name || meeting.profiles?.nombre}
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
@@ -238,7 +234,11 @@ export default function MeetingsPage() {
                           {time}
                         </div>
                         <div className="flex items-center gap-1">
-                          {locationIcons[meeting.location]}
+                          {
+                            locationIcons[
+                              meeting.location as keyof typeof locationIcons
+                            ]
+                          }
                           {meeting.location}
                         </div>
                       </div>
@@ -286,28 +286,38 @@ export default function MeetingsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ubicación
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Estado
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {pastMeetings.map((meeting) => {
-                const { date, time } = formatDateTime(meeting.start_at);
+                const { date, time } = meeting.start_at
+                  ? formatDateTime(meeting.start_at)
+                  : { date: "-", time: "-" };
+
                 return (
-                  <tr key={meeting.id} className="hover:bg-gray-50">
+                  <tr key={meeting.meeting_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">
                         {meeting.title}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {meeting.lead_name}
+                      {meeting.leads?.name || meeting.profiles?.nombre}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          typeConfig[meeting.type].color
+                          typeConfig[
+                            meeting.type_meeting.toLowerCase() as keyof typeof typeConfig
+                          ]?.color || "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {typeConfig[meeting.type].label}
+                        {typeConfig[
+                          meeting.type_meeting.toLowerCase() as keyof typeof typeConfig
+                        ]?.label || "Sin tipo"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -316,9 +326,26 @@ export default function MeetingsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       <div className="flex items-center gap-1">
-                        {locationIcons[meeting.location]}
+                        {
+                          locationIcons[
+                            meeting.location as keyof typeof locationIcons
+                          ]
+                        }
                         {meeting.location}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          statusConfig[
+                            meeting.estado as keyof typeof statusConfig
+                          ]?.color || "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {statusConfig[
+                          meeting.estado as keyof typeof statusConfig
+                        ]?.label || "Sin estado"}
+                      </span>
                     </td>
                   </tr>
                 );

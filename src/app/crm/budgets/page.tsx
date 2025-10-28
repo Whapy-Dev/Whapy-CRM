@@ -39,11 +39,7 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function BudgetsPage() {
-  const {
-    data: budgets = [],
-
-    refetch,
-  } = useBudgets();
+  const { data: budgets = [], refetch } = useBudgets();
   const { data: leads = [] } = useLeads();
   const [viewCreatePresupuesto, setViewCreatePresupuesto] = useState(false);
 
@@ -201,16 +197,16 @@ export default function BudgetsPage() {
 
       {/* Acciones y búsqueda */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-2xl">
+        <div className="flex flex-col sm:flex-row gap-2 flex-1">
           {/* Filtrar por título */}
-          <div className="relative flex-1">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Buscar por título..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -218,7 +214,7 @@ export default function BudgetsPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Todos los estados</option>
             <option value="en revision">En revisión</option>
@@ -233,7 +229,7 @@ export default function BudgetsPage() {
             placeholder="Filtrar por monto total..."
             value={filterAmount}
             onChange={(e) => setFilterAmount(e.target.value)}
-            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -331,7 +327,7 @@ export default function BudgetsPage() {
                   required
                 >
                   <option value="">Selecciona estado</option>
-                  <option value="draft">draft</option>
+                  <option value="en revision">en revision</option>
                   <option value="presentado">presentado</option>
                   <option value="aceptado">aceptado</option>
                   <option value="rechazado">rechazado</option>

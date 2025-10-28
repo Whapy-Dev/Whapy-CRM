@@ -1,25 +1,86 @@
 "use client";
 
-import { useState } from "react";
-import { User, Mail, Phone, Camera, Save, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Mail, Phone, Camera, Save, X, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ProfilePage() {
+  const supabase = createClient();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    name: "Juan Pérez",
-    email: "juan.perez@techsolutions.com",
-    phone: "+54 9 11 1234-5678",
-    company: "Tech Solutions",
-    position: "CEO",
-    avatar: null as string | null,
+    id: "",
+    nombre: "",
+    email: "",
+    telefono: "",
   });
-
   const [editForm, setEditForm] = useState({ ...profile });
+  const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
-  const handleSave = () => {
-    setProfile(editForm);
+  useEffect(() => {
+    const getUserProfile = async () => {
+      setLoading(true);
+      const user = supabase.auth.getUser();
+
+      if (!user) {
+        console.error("No hay usuario logueado");
+        setLoading(false);
+        return;
+      }
+
+      const userId = (await user).data.user?.id;
+      if (!userId) {
+        console.error("No se pudo obtener ID del usuario");
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      console.log(data);
+      if (error) {
+        console.error("Error al cargar perfil:", error.message);
+        setLoading(false);
+        return;
+      }
+
+      setProfile(data);
+      setEditForm(data);
+      setLoading(false);
+    };
+
+    getUserProfile();
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({
+        nombre: editForm.nombre,
+        email: editForm.email,
+        telefono: editForm.telefono,
+      })
+      .eq("id", profile.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error actualizando perfil:", error.message);
+      setIsSaving(false);
+      return;
+    }
+
+    setProfile(data);
     setIsEditing(false);
+    setIsSaving(false);
   };
 
   const handleCancel = () => {
@@ -27,17 +88,9 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditForm({ ...editForm, avatar: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
+  if (loading) {
+    return <div>Cargando perfil...</div>;
+  }
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -57,27 +110,21 @@ export default function ProfilePage() {
           <div className="relative -mt-16 mb-6">
             <div className="relative inline-block">
               <div className="w-32 h-32 bg-white rounded-full p-2 shadow-lg">
-                {(isEditing ? editForm.avatar : profile.avatar) ? (
+                {/* {(isEditing ? editForm.avatar : profile.avatar) && (
                   <Image
-                    src={isEditing ? editForm.avatar! : profile.avatar!}
+                    // src={isEditing ? editForm.avatar! : profile.avatar!}
                     alt="Avatar"
                     className="w-full h-full rounded-full object-cover"
                   />
-                ) : (
-                  <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
-                    <User className="w-16 h-16 text-gray-400" />
-                  </div>
-                )}
+                )} */}
+                <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
+                  <User className="w-16 h-16 text-gray-400" />
+                </div>
               </div>
               {isEditing && (
                 <label className="absolute bottom-2 right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
                   <Camera className="w-5 h-5 text-white" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
+                  <input type="file" accept="image/*" className="hidden" />
                 </label>
               )}
             </div>
@@ -129,15 +176,15 @@ export default function ProfilePage() {
                   {isEditing ? (
                     <input
                       type="text"
-                      value={editForm.name}
+                      value={editForm.nombre}
                       onChange={(e) =>
-                        setEditForm({ ...editForm, name: e.target.value })
+                        setEditForm({ ...editForm, nombre: e.target.value })
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   ) : (
                     <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                      {profile.name}
+                      {profile.nombre}
                     </p>
                   )}
                 </div>
@@ -173,15 +220,15 @@ export default function ProfilePage() {
                   {isEditing ? (
                     <input
                       type="tel"
-                      value={editForm.phone}
+                      value={editForm.telefono}
                       onChange={(e) =>
-                        setEditForm({ ...editForm, phone: e.target.value })
+                        setEditForm({ ...editForm, telefono: e.target.value })
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   ) : (
                     <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                      {profile.phone}
+                      {profile.telefono}
                     </p>
                   )}
                 </div>
@@ -201,13 +248,145 @@ export default function ProfilePage() {
             </div>
             <button
               type="button"
+              onClick={() => setShowChangePassword(!showChangePassword)}
               className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium cursor-pointer"
             >
               Cambiar
             </button>
           </div>
+          {showChangePassword && <ChangePassword />}
         </div>
       </div>
+    </div>
+  );
+}
+
+export function ChangePassword() {
+  const supabase = createClient();
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleChangePassword = async () => {
+    console.log("Click en cambiar contraseña");
+    if (!newPassword || !confirmPassword) {
+      setMessage("Completa ambos campos");
+      setSuccess(false);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setMessage("Las contraseñas no coinciden");
+      setSuccess(false);
+      return;
+    }
+
+    setLoading(true);
+
+    // Obtenemos el usuario actual
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setMessage("No hay usuario logueado");
+      setSuccess(false);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        setMessage(`Error: ${error.message}`);
+        setSuccess(false);
+      } else {
+        setTimeout(() => {
+          setMessage("✅ Contraseña actualizada correctamente");
+          setSuccess(true);
+          setNewPassword("");
+          setConfirmPassword("");
+
+          setTimeout(() => {
+            setMessage("");
+            setSuccess(false);
+          }, 3000);
+        }, 100);
+      }
+    } catch (err: any) {
+      setMessage(`Error inesperado: ${err.message}`);
+      setSuccess(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+      {/* Nueva contraseña */}
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          placeholder="Nueva contraseña"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg"
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+        >
+          {showPassword ? (
+            <EyeOff className="w-5 h-5" />
+          ) : (
+            <Eye className="w-5 h-5" />
+          )}
+        </button>
+      </div>
+
+      {/* Confirmar contraseña */}
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          placeholder="Confirmar contraseña"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg"
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+        >
+          {showPassword ? (
+            <EyeOff className="w-5 h-5" />
+          ) : (
+            <Eye className="w-5 h-5" />
+          )}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => handleChangePassword()}
+        disabled={loading}
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+      >
+        Cambiar
+      </button>
+
+      {message && (
+        <p className={`text-sm ${success ? "text-green-600" : "text-red-600"}`}>
+          {message}
+        </p>
+      )}
     </div>
   );
 }

@@ -20,13 +20,7 @@ type Lead = {
   email: string;
   phone: string;
   empresa: string;
-  status:
-    | "nuevo"
-    | "contactado"
-    | "agendado"
-    | "no_calificado"
-    | "perdido"
-    | "convertido";
+  status: "nuevo" | "contactado" | "agendado";
   source: string;
   created_at: string;
 };
@@ -38,11 +32,12 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEmpresa, setFilterEmpresa] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  console.log(leads);
 
   const filteredLeads = leads.filter((lead) => {
     const name = lead.name?.toLowerCase() || "";
     const email = lead.email?.toLowerCase() || "";
-    const company = lead.company?.toLowerCase() || "";
+    const empresa = lead.empresa?.toLowerCase() || "";
     const status = lead.status?.toLowerCase() || "";
 
     const term = searchTerm.toLowerCase();
@@ -51,7 +46,7 @@ export default function LeadsPage() {
 
     // Filtrar por nombre/email/empresa, empresa adicional y estado
     const matchesSearch = name.includes(term) || email.includes(term);
-    const matchesEmpresa = company.includes(empresaTerm);
+    const matchesEmpresa = empresa.includes(empresaTerm);
     const matchesEstado = estadoTerm ? status === estadoTerm : true;
 
     return matchesSearch && matchesEmpresa && matchesEstado;
@@ -65,7 +60,7 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleNewTarea = async (e: React.FormEvent) => {
+  const handleNewLead = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorForm("");
     setLoading(true);
@@ -86,6 +81,12 @@ export default function LeadsPage() {
 
       if (!user) {
         setErrorForm("No hay usuario logeado");
+        return;
+      }
+
+      if (!nombre || !email || !telefono || !empresa) {
+        setErrorForm("Por favor completa todos los campos");
+        setLoading(false);
         return;
       }
 
@@ -129,9 +130,9 @@ export default function LeadsPage() {
 
       {/* Acciones y búsqueda */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-md">
+        <div className="flex flex-col sm:flex-row gap-2 flex-1">
           {/* Buscar leads */}
-          <div className="relative flex-1">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
@@ -148,20 +149,19 @@ export default function LeadsPage() {
             placeholder="Filtrar por empresa..."
             value={filterEmpresa}
             onChange={(e) => setFilterEmpresa(e.target.value)}
-            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
 
           {/* Filtrar estado */}
           <select
             value={filterEstado}
             onChange={(e) => setFilterEstado(e.target.value)}
-            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Todos los estados</option>
-            <option value="en revision">En revisión</option>
-            <option value="presentado">Presentado</option>
-            <option value="aceptado">Aceptado</option>
-            <option value="rechazado">Rechazado</option>
+            <option value="Nuevo">Nuevo</option>
+            <option value="Contactado">Contactado</option>
+            <option value="Agendado">Agendado</option>
           </select>
         </div>
 
@@ -196,7 +196,7 @@ export default function LeadsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Nuevo Lead</h2>
-            <form onSubmit={handleNewTarea} className="space-y-4">
+            <form onSubmit={handleNewLead} className="space-y-4">
               {errorForm && (
                 <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -222,6 +222,7 @@ export default function LeadsPage() {
                   onChange={(e) => setNombre(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Juan Pérez"
+                  required
                 />
               </div>
               <div>
@@ -234,6 +235,7 @@ export default function LeadsPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="juan@ejemplo.com"
+                  required
                 />
               </div>
               <div>
@@ -246,6 +248,7 @@ export default function LeadsPage() {
                   onChange={(e) => setTelefono(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="+54 9 11 1234-5678"
+                  required
                 />
               </div>
               <div>
@@ -258,6 +261,7 @@ export default function LeadsPage() {
                   onChange={(e) => setEmpresa(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Tech Solutions"
+                  required
                 />
               </div>
               <div className="flex gap-3 pt-4">

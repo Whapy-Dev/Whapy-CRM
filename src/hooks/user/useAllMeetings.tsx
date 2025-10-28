@@ -6,12 +6,12 @@ import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
 
-export function useMeetingsByProjectUser(projectId: string) {
+export function useAllMeetingsByProjectUser(projectId: string) {
   return useQuery({
-    queryKey: ["meetingsByProject", projectId],
+    queryKey: ["AllMeetingsByProject", projectId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("meetings_projects")
+        .from("all_meetings")
         .select("*, projects(title)")
         .eq("project_id", projectId);
 
@@ -22,9 +22,9 @@ export function useMeetingsByProjectUser(projectId: string) {
   });
 }
 
-export function useMeetingsUser() {
+export function useAllMeetingsUser() {
   return useQuery({
-    queryKey: ["meetings"],
+    queryKey: ["AllMeetingsUser"],
     queryFn: async () => {
       const {
         data: { user },
@@ -35,7 +35,7 @@ export function useMeetingsUser() {
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from("meetings_projects")
+        .from("all_meetings")
         .select("*")
         .eq("user_id", user.id);
 

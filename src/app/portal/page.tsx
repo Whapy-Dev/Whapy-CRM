@@ -10,16 +10,16 @@ import {
 } from "lucide-react";
 import { useDatosUser } from "@/hooks/user/datosUser";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
-import { useMeetingsUser } from "@/hooks/user/useMeetings";
+import { useAllMeetingsUser } from "@/hooks/user/useAllMeetings";
 
 export default function PortalDashboard() {
   const { data: userData = [] } = useDatosUser();
   const { data: projectsData = [] } = useProjectsUser();
   const {
-    data: meetingsData = [],
-    isLoading: isLoadingMeetingsData,
-    error: errorMeetingsData,
-  } = useMeetingsUser();
+    data: allMeetingsData = [],
+    isLoading: isLoadingAllMeetingsData,
+    error: errorAllMeetingsData,
+  } = useAllMeetingsUser();
 
   const activeProjects = projectsData.filter(
     (project) => project.status !== "pausado" && project.status !== "cancelado"
@@ -66,7 +66,7 @@ export default function PortalDashboard() {
     return createdAt >= fechaLimite;
   });
 
-  const meetingsUltimos30Dias = meetingsData?.filter((meeting) => {
+  const meetingsUltimos30Dias = allMeetingsData?.filter((meeting) => {
     const startAt = new Date(meeting.start_at);
     return startAt >= fechaLimite;
   });
@@ -75,8 +75,8 @@ export default function PortalDashboard() {
   const totalMeetings30Dias = meetingsUltimos30Dias?.length ?? 0;
   const totalActividad30Dias = totalProyectos30Dias + totalMeetings30Dias;
 
-  if (isLoadingMeetingsData) return <p>Cargando proyectos...</p>;
-  if (errorMeetingsData) return <p>Error: {errorMeetingsData.message}</p>;
+  if (isLoadingAllMeetingsData) return <p>Cargando proyectos...</p>;
+  if (errorAllMeetingsData) return <p>Error: {errorAllMeetingsData.message}</p>;
 
   return (
     <div className="space-y-6">

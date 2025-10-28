@@ -12,12 +12,32 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("nombre, role")
+        .eq("id", user?.id)
+        .single();
+      setUserName(data?.nombre || "");
+      setRole(data?.role || "");
+    };
+    fetchUser();
+  }, []);
 
   const navigation = [
     {
@@ -115,10 +135,8 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
                 DY
               </div>
               <div className="flex-1 text-left">
-                <p className="text-sm font-medium text-gray-900">
-                  Dylan Agostini
-                </p>
-                <p className="text-xs text-gray-500">Admin</p>
+                <p className="text-sm font-medium text-gray-900">{userName}</p>
+                <p className="text-xs text-gray-500">{role}</p>
               </div>
               <ChevronDown
                 className={`w-4 h-4 text-gray-400 transition-transform ${
@@ -130,7 +148,10 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
             {/* User Menu Dropdown */}
             {showUserMenu && (
               <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
-                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
                   <Settings className="w-4 h-4" />
                   Configuración
                 </button>

@@ -3,22 +3,49 @@
 import { useState } from "react";
 import { Video, FileText, Play, Calendar, Clock } from "lucide-react";
 
-type Meeting = {
-  id: string;
-  title: string;
-  date: string;
-  duration: string;
-  recording_url?: string;
-  summary_pdf_url?: string;
-  notes: string;
+type Lead = {
+  name: string;
 };
 
+type Profile = {
+  nombre: string;
+};
+type Meeting = {
+  meeting_id: string;
+  project_id: string;
+  lead_id: string;
+  user_id: string;
+  type_meeting: string;
+  title: string;
+  start_at: string;
+  location: string;
+  meet_url?: string;
+  summary_md: string;
+  summary_pdf_url: string;
+  created_at: string;
+  estado: string;
+  leads?: Lead;
+  profiles?: Profile;
+  duration: string;
+};
 type Props = {
   meetings: Meeting[];
   projectId: string;
 };
 
 export default function MeetingsContent({ meetings, projectId }: Props) {
+  const meetingsWithDate = meetings.filter(
+    (m) => m.start_at && new Date(m.start_at) > new Date()
+  );
+
+  // Ordenamos por fecha ascendente
+  const sortedMeetings = meetingsWithDate.sort(
+    (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
+  );
+
+  // Tomamos la primera (próxima)
+  const nextMeeting = sortedMeetings[0];
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
@@ -45,7 +72,7 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{meetings.length}</p>
+          <p className="text-2xl font-bold text-gray-900">{meetings?.length}</p>
           <p className="text-sm text-gray-600">Total de Reuniones</p>
         </div>
 
@@ -77,10 +104,10 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
       {/* Meetings List */}
       <div className="space-y-4">
         {meetings.map((meeting, index) => {
-          const dateInfo = formatDate(meeting.date);
+          const dateInfo = formatDate(meeting.start_at);
           return (
             <div
-              key={meeting.id}
+              key={meeting.meeting_id}
               className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
             >
               <div className="p-6">
@@ -107,12 +134,12 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
                   </div>
                 </div>
 
-                <p className="text-gray-700 mb-4">{meeting.notes}</p>
+                <p className="text-gray-700 mb-4">{meeting.summary_md}</p>
 
                 <div className="flex gap-3">
-                  {meeting.recording_url && (
+                  {meeting.meet_url && (
                     <a
-                      href={meeting.recording_url}
+                      href={meeting.meet_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
@@ -140,21 +167,35 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
       </div>
 
       {/* Next Meeting Card */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white">
-        <h3 className="text-lg font-bold mb-2">📅 Próxima Reunión</h3>
-        <p className="text-blue-100 mb-4">
-          Sprint Review #2 - Lunes 21 de octubre, 15:00hs
-        </p>
-        <a
-          href="https://meet.google.com/abc-defg-hij"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
-        >
-          <Video className="w-4 h-4" />
-          Unirse a la reunión
-        </a>
-      </div>
+      {nextMeeting ? (
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white">
+          <h3 className="text-lg font-bold mb-2">📅 Próxima Reunión</h3>
+          <p className="text-blue-100 mb-4">
+            {nextMeeting.title} -{" "}
+            {new Date(nextMeeting.start_at).toLocaleString("es-AR", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+          {nextMeeting.meet_url && (
+            <a
+              href={nextMeeting.meet_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+            >
+              <Video className="w-4 h-4" />
+              Unirse a la reunión
+            </a>
+          )}
+        </div>
+      ) : (
+        <div>No hay próximas reuniones programadas.</div>
+      )}
     </>
   );
 }

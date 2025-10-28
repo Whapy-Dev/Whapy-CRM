@@ -19,9 +19,10 @@ export function useProjectsUser() {
         console.log("No hay usuario logueado");
         return [];
       }
+
       const { data, error } = await supabase
         .from("projects")
-        .select(`*, meetings_projects!left(*)`)
+        .select(`*, all_meetings!left(*)`)
         .eq("user_id", user.id);
       if (error) throw error;
       return data;

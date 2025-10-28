@@ -16,7 +16,7 @@ type Budget = {
   title: string;
   version: number;
   amount: number;
-  status: "presentado" | "en_revision" | "aceptado" | "rechazado";
+  status: "presentado" | "en revision" | "aceptado" | "rechazado";
   created_at: string;
   pdf_url: string;
   description: string;
@@ -30,31 +30,6 @@ export default function PortalBudgetsPage() {
   } = useBudgetsUser();
 
   const budgets = dataBudgetsUser || [];
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_budget] = useState<Budget[]>([
-    {
-      id: "1",
-      title: "Propuesta Comercial - Desarrollo Web",
-      version: 1,
-      amount: 150000,
-      status: "presentado",
-      created_at: "2025-10-16T10:00:00Z",
-      pdf_url: "#",
-      description:
-        "Desarrollo de sitio web corporativo con panel de administración",
-    },
-    {
-      id: "2",
-      title: "Propuesta Comercial - App Mobile",
-      version: 2,
-      amount: 220000,
-      status: "en_revision",
-      created_at: "2025-10-10T14:30:00Z",
-      pdf_url: "#",
-      description: "Aplicación móvil iOS y Android para gestión de inventario",
-    },
-  ]);
 
   const [showModal, setShowModal] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
@@ -192,7 +167,12 @@ export default function PortalBudgetsPage() {
               {(budget.status === "presentado" ||
                 budget.status === "en revision") && (
                 <a
-                  href=""
+                  href={`https://wa.me/5493442310408?text=${encodeURIComponent(
+                    "Hola, queria confirmar que deseo avanzar con el presupuesto: " +
+                      budget.title
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors ml-auto"
                 >
                   <ThumbsUp className="w-4 h-4" />

@@ -26,10 +26,11 @@ type Project = {
 
 export default function ProjectsPage() {
   const {
-    data: projectsData,
+    data: projectsData = [],
     isLoading: isLoadingProjects,
     error: errorProjects,
   } = useProjectsUser();
+
   const statusConfig = {
     en_progreso: {
       color: "bg-blue-100 text-blue-800",
@@ -54,6 +55,8 @@ export default function ProjectsPage() {
     return "bg-green-600";
   };
   if (isLoadingProjects) return <p>Cargando proyectos...</p>;
+  if (!isLoadingProjects && !errorProjects && projectsData?.length === 0)
+    return <p>No hay proyectos disponibles</p>;
   if (errorProjects) return <p>Error: {errorProjects.message}</p>;
 
   return (
@@ -88,7 +91,7 @@ export default function ProjectsPage() {
           </div>
           <p className="text-2xl font-bold text-gray-900">
             {projectsData?.reduce(
-              (sum, p) => sum + (p.meetings_projects?.length || 0),
+              (sum, p) => sum + (p.all_meetings?.length || 0),
               0
             )}
           </p>
@@ -178,13 +181,14 @@ export default function ProjectsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {project.meetings_projects.length} reuniones
+                      {project?.all_meetings?.length || 0} reuniones
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Progress Bar */}
+
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">
@@ -206,57 +210,62 @@ export default function ProjectsPage() {
             </div>
 
             {/* Project Actions */}
+
             <div className="p-6 bg-gray-50 grid grid-cols-1 md:grid-cols-4 gap-3">
-              <Link
-                href={`/portal/projects/${project.id}/meetings`}
-                className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                    <Calendar className="w-5 h-5 text-blue-600" />
+              {project?.id && (
+                <Link
+                  href={`/portal/projects/${project.id}/meetings`}
+                  className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">Reuniones</h3>
+                      <p className="text-sm text-gray-500">
+                        {project?.all_meetings?.length || 0} reuniones
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Reuniones</h3>
-                    <p className="text-sm text-gray-500">
-                      {project.meetings_projects.length} reuniones
-                    </p>
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                </Link>
+              )}
+              {project?.id && (
+                <Link
+                  href={`/portal/projects/${project.id}/documents`}
+                  className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-purple-500 hover:shadow-sm transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                      <FolderOpen className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">Documentos</h3>
+                      <p className="text-sm text-gray-500">
+                        {project?.documents_count || 0} archivos
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-              </Link>
-
-              <Link
-                href={`/portal/projects/${project.id}/documents`}
-                className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-purple-500 hover:shadow-sm transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                    <FolderOpen className="w-5 h-5 text-purple-600" />
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                </Link>
+              )}
+              {project?.id && (
+                <Link
+                  href={`/portal/projects/${project.id}/meetings`}
+                  className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                      <Play className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">Ver Looms</h3>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Documentos</h3>
-                    <p className="text-sm text-gray-500">
-                      {project.documents_count} archivos
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
-              </Link>
-              <Link
-                href={`/portal/projects/${project.id}/meetings`}
-                className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                    <Play className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Ver Looms</h3>
-                  </div>
-                </div>
-                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-              </Link>
-
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                </Link>
+              )}
               {project.has_figma ? (
                 <Link
                   href={`/portal/projects/${project.id}/design`}

@@ -1,15 +1,15 @@
 "use client";
 
+import {
+  useAllMeetingsFromToday,
+  useAllMeetingsUltimateWeek,
+} from "@/hooks/admin/useAllMeetings";
 import { useBudgets, useBudgetsActive } from "@/hooks/admin/useBudgets";
 import {
   useLeads,
   useLeadsRecent,
   useLeadsUltimateMonth,
 } from "@/hooks/admin/useLeads";
-import {
-  useMeetingsFromToday,
-  useMeetingsUltimateWeek,
-} from "@/hooks/admin/useMeetings";
 import {
   Users,
   FileText,
@@ -25,9 +25,9 @@ export default function CRMDashboard() {
   const { data: leads = [], isLoading, isError, error } = useLeads();
   const { data: leadsUltimateMonth = [] } = useLeadsUltimateMonth();
   const { data: leadsRecent = [] } = useLeadsRecent();
-  const { data: meetingsUltimateWeek = [] } = useMeetingsUltimateWeek();
+  const { data: AllMeetingsUltimateWeek = [] } = useAllMeetingsUltimateWeek();
   const { data: budgetsActive = [] } = useBudgetsActive();
-  const { data: meetingFromToday = [] } = useMeetingsFromToday();
+  const { data: AllMeetingFromToday = [] } = useAllMeetingsFromToday();
   const { data: budgets = [] } = useBudgets();
 
   const en_revision = budgets.filter((b) => b.status === "en revision");
@@ -75,7 +75,7 @@ export default function CRMDashboard() {
     leadsChange: 12,
     activeBudgets: budgetsActive.length,
     budgetsChange: -3,
-    upcomingMeetings: meetingsUltimateWeek.length,
+    upcomingMeetings: AllMeetingsUltimateWeek.length,
     meetingsChange: 2,
     conversionRate: 34,
     rateChange: 5,
@@ -307,11 +307,11 @@ export default function CRMDashboard() {
             </a>
           </div>
           <div className="divide-y divide-gray-200">
-            {meetingFromToday.map((meeting) => {
+            {AllMeetingFromToday.map((meeting) => {
               const date = new Date(meeting.start_at);
               return (
                 <div
-                  key={meeting.id}
+                  key={meeting.meeting_id}
                   className="p-6 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
@@ -321,7 +321,7 @@ export default function CRMDashboard() {
                       </div>
                       <div>
                         <h3 className="font-medium text-gray-900 mb-1">
-                          {meeting.leads?.name}
+                          {meeting.leads?.name || meeting.profiles?.nombre}
                         </h3>
                         <p className="text-sm text-gray-600 mb-2">
                           Reunión de {meeting.summary_md}
