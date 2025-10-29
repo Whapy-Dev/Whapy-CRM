@@ -1,57 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: NextRequest) {
-  console.log("🟢 Endpoint /api/create-client llamado");
+// Cliente Admin (Service Role Key solo en backend)
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  console.log("🧩 Variables de entorno:", { url, hasKey: !!key });
-
-  if (!url || !key) {
-    return NextResponse.json(
-      { error: "Faltan variables de entorno" },
-      { status: 500 }
-    );
-  }
-
-  const supabaseAdmin = createClient(url, key);
-
+export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    console.log("📩 Payload recibido:", body);
-
-    const { email, password, name } = body;
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email y contraseña son requeridos" },
-        { status: 400 }
-      );
-    }
+    const { email, password, nombre } = await req.json();
 
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      user_metadata: { nombre: name || "" },
+      email_confirm: true,
+      user_metadata: { nombre },
     });
 
     if (error) {
-      console.error("❌ Error creando usuario:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("❌ Error en createUser:", error);
+      throw error;
+    }
+    if (!data?.user) {
+      console.error("❌ No se devolvió user:", data);
+      throw new Error("No se devolvió el usuario desde Auth");
     }
 
-    console.log("✅ Usuario creado correctamente:", data.user.id);
+    // Insertar en profiles
+    const { error: insertError } = await supabaseAdmin.from("profiles").insert([
+      {
+        id: data.user.id,
+        email: email,
+        nombre: nombre,
+        role: "cliente",
+      },
+    ]);
 
-    return NextResponse.json({ user: data.user }, { status: 200 });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (insertError) throw insertError;
+
+    return NextResponse.json({ user: data.user });
   } catch (err: any) {
-    console.error("💥 Error crítico:", err);
-    return NextResponse.json(
-      { error: err.message || "Error inesperado en el servidor" },
-      { status: 500 }
-    );
+    console.error("❌ Error:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }

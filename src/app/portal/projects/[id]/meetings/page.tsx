@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import MeetingsContent from "./MeetingsContent";
-import { useAllMeetingsByProjectId } from "@/hooks/admin/useAllMeetings";
 
 type Meeting = {
   id: string;
@@ -13,9 +12,15 @@ type Meeting = {
   recording_url?: string;
   summary_pdf_url?: string;
   notes: string;
+  projects: [
+    {
+      title: string;
+    }
+  ];
 };
 
 import { use } from "react";
+import { useAllMeetingsByProjectId } from "@/hooks/user/useAllMeetings";
 
 export default function ProjectMeetingsPage({
   params,
@@ -29,7 +34,6 @@ export default function ProjectMeetingsPage({
     isLoading,
     error,
   } = useAllMeetingsByProjectId(id);
-  console.log(meetings);
 
   if (isLoading) {
     return <div>Cargando reuniones...</div>;
@@ -41,7 +45,7 @@ export default function ProjectMeetingsPage({
     return <div>No hay reuniones disponibles para este proyecto.</div>;
   }
 
-  const projectName = "Desarrollo Web Corporativo";
+  const projectName = meetings[0].projects[0]?.title;
 
   return (
     <div className="space-y-6">

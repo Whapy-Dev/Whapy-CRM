@@ -81,18 +81,3 @@ export function useAllMeetingsFromToday() {
     },
   });
 }
-
-export function useAllMeetingsByProjectId(projectId: string) {
-  return useQuery({
-    queryKey: ["allMeetingsByProjectId", projectId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("all_meetings")
-        .select("*, leads(name), profiles(nombre), projects!inner(title)")
-        .eq("project_id", projectId)
-        .order("start_at", { ascending: true });
-      if (error) throw error;
-      return data as Meeting[];
-    },
-  });
-}

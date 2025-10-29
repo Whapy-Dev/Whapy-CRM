@@ -27,7 +27,7 @@ export default function ClientsPageUnsafe() {
         body: JSON.stringify({
           email: emailInput,
           password: passwordInput,
-          name: nameInput,
+          nombre: nameInput,
         }),
       });
 
@@ -35,8 +35,11 @@ export default function ClientsPageUnsafe() {
       if (!res.ok) throw new Error(data.error || "Error desconocido");
 
       setSuccessMessage(`Usuario creado: ${data.user.email}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setEmailInput("");
+      setPasswordInput("");
+      setNameInput("");
     } catch (err: any) {
+      console.log(err);
       setErrorForm(err.message);
     } finally {
       setLoading(false);

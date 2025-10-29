@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function ProfilePage() {
   const supabase = createClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [isRealEmail, setIsRealEmail] = useState("");
   const [profile, setProfile] = useState({
     id: "",
     nombre: "",
@@ -22,15 +23,16 @@ export default function ProfilePage() {
   useEffect(() => {
     const getUserProfile = async () => {
       setLoading(true);
-      const user = supabase.auth.getUser();
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
 
-      if (!user) {
-        console.error("No hay usuario logueado");
+      if (!userData || userError) {
+        console.error("No hay usuario logueado o hubo error:", userError);
         setLoading(false);
         return;
       }
 
-      const userId = (await user).data.user?.id;
+      const userId = userData.user?.id;
       if (!userId) {
         console.error("No se pudo obtener ID del usuario");
         setLoading(false);
@@ -43,13 +45,13 @@ export default function ProfilePage() {
         .eq("id", userId)
         .single();
 
-      console.log(data);
       if (error) {
         console.error("Error al cargar perfil:", error.message);
         setLoading(false);
         return;
       }
 
+      setIsRealEmail(userData.user.email);
       setProfile(data);
       setEditForm(data);
       setLoading(false);
@@ -61,26 +63,49 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .update({
-        nombre: editForm.nombre,
-        email: editForm.email,
-        telefono: editForm.telefono,
-      })
-      .eq("id", profile.id)
-      .select()
-      .single();
+    try {
+      // 2️⃣ Solo si el email cambió, actualizamos en Auth
+      if (editForm.email !== isRealEmail) {
+        supabase.auth
+          .updateUser({
+            email: editForm.email,
+          })
+          .then(({ error }) => {
+            if (error)
+              console.error("Error actualizando email en Auth:", error.message);
+            else alert("Se envió un correo de verificación al nuevo email.");
+          });
+      }
 
-    if (error) {
-      console.error("Error actualizando perfil:", error.message);
+      // 1️⃣ Actualizamos la tabla "profiles" siempre
+      const { data: updatedProfile, error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          nombre: editForm.nombre,
+          email: editForm.email,
+          telefono: editForm.telefono,
+        })
+        .eq("id", profile.id)
+        .select()
+        .single();
+
+      if (profileError) throw profileError;
+
+      // 3️⃣ Actualizamos el estado local
+      setProfile(updatedProfile);
+      setIsEditing(false);
       setIsSaving(false);
-      return;
-    }
 
-    setProfile(data);
-    setIsEditing(false);
-    setIsSaving(false);
+      alert(
+        editForm.email !== profile.email
+          ? "Se actualizó el perfil. Verifica el nuevo correo para confirmar el cambio."
+          : "Se actualizaron los datos del perfil correctamente."
+      );
+    } catch (err: any) {
+      console.error("Error actualizando perfil:", err.message);
+      setIsSaving(false);
+      alert("Ocurrió un error al actualizar el perfil.");
+    }
   };
 
   const handleCancel = () => {
@@ -150,7 +175,7 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
                   <Save className="w-4 h-4" />
                   Guardar Cambios

@@ -30,6 +30,7 @@ export default function ProjectsPage() {
     isLoading: isLoadingProjects,
     error: errorProjects,
   } = useProjectsUser();
+  console.log(projectsData);
 
   const statusConfig = {
     en_progreso: {
@@ -243,7 +244,7 @@ export default function ProjectsPage() {
                     <div>
                       <h3 className="font-medium text-gray-900">Documentos</h3>
                       <p className="text-sm text-gray-500">
-                        {project?.documents_count || 0} archivos
+                        {project?.documents?.length || 0} archivos
                       </p>
                     </div>
                   </div>

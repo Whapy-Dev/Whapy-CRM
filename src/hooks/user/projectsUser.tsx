@@ -22,7 +22,7 @@ export function useProjectsUser() {
 
       const { data, error } = await supabase
         .from("projects")
-        .select(`*, all_meetings!left(*)`)
+        .select(`*, all_meetings!left(*), documents(*)`)
         .eq("user_id", user.id);
       if (error) throw error;
       return data;
