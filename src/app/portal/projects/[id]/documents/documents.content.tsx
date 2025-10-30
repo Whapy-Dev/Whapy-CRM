@@ -175,7 +175,7 @@ export default function DocumentsContent({ documents, projectId }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={() => setPdfUrl(doc.document_url)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 <Eye className="w-4 h-4" />
                 Ver

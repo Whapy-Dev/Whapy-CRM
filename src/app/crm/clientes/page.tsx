@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, AlertCircle, CheckCircle } from "lucide-react";
+import { Plus, Search, AlertCircle, CheckCircle, Divide } from "lucide-react";
+import { useProfiles } from "@/hooks/admin/useProfiles";
 
 export default function ClientsPageUnsafe() {
+  const {
+    data: dataProfiles = [],
+    isLoading: isLoadingProfiles,
+    error: errorProfiles,
+  } = useProfiles();
+  console.log(dataProfiles);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorForm, setErrorForm] = useState("");
@@ -45,7 +52,17 @@ export default function ClientsPageUnsafe() {
       setLoading(false);
     }
   };
+  const filteredClients = dataProfiles.filter((client) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      client.nombre?.toLowerCase().includes(term) ||
+      client.email?.toLowerCase().includes(term) ||
+      client.telefono?.toLowerCase().includes(term)
+    );
+  });
 
+  if (isLoadingProfiles) return <div>Cargando clientes...</div>;
+  if (errorProfiles) return <div>Error: {errorProfiles.message}</div>;
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -87,11 +104,58 @@ export default function ClientsPageUnsafe() {
 
       {/* Tabla de clientes */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-8 text-center text-gray-500">
-          Los clientes creados aparecerán aquí
-        </div>
+        {filteredClients.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Nombre
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Teléfono
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Fecha de creación
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredClients.map((client) => (
+                  <tr
+                    key={client.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {client.nombre || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.telefono || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {new Date(client.created_at).toLocaleDateString("es-AR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-8 text-center text-gray-500">
+            No se encontraron clientes
+          </div>
+        )}
       </div>
-
       {/* Modal Crear Cuenta */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

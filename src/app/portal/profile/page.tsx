@@ -296,7 +296,6 @@ export function ChangePassword() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChangePassword = async () => {
-    console.log("Click en cambiar contraseña");
     if (!newPassword || !confirmPassword) {
       setMessage("Completa ambos campos");
       setSuccess(false);
@@ -333,17 +332,15 @@ export function ChangePassword() {
         setMessage(`Error: ${error.message}`);
         setSuccess(false);
       } else {
-        setTimeout(() => {
-          setMessage("✅ Contraseña actualizada correctamente");
-          setSuccess(true);
-          setNewPassword("");
-          setConfirmPassword("");
+        setMessage("✅ Contraseña actualizada correctamente");
+        setSuccess(true);
+        setNewPassword("");
+        setConfirmPassword("");
 
-          setTimeout(() => {
-            setMessage("");
-            setSuccess(false);
-          }, 3000);
-        }, 100);
+        setTimeout(() => {
+          setMessage("");
+          setSuccess(false);
+        }, 3000);
       }
     } catch (err: any) {
       setMessage(`Error inesperado: ${err.message}`);

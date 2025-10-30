@@ -5,14 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 
 const supabase = createClient();
 
-export function useProfiles() {
+export function useProjects() {
   return useQuery({
-    queryKey: ["profiles"],
+    queryKey: ["projects"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("role", "cliente");
+        .from("projects")
+        .select("*, documents(*)");
 
       if (error) throw error;
       return data;

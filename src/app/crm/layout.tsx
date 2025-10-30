@@ -70,6 +70,12 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       icon: Users,
       current: pathname === "/crm/clientes",
     },
+    {
+      name: "Proyectos",
+      href: "/crm/proyectos",
+      icon: FileText,
+      current: pathname === "/crm/proyectos",
+    },
   ];
 
   const handleLogout = async () => {

@@ -195,12 +195,12 @@ export default function MeetingsPage() {
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
                             typeConfig[
-                              meeting.type_meeting.toLowerCase() as keyof typeof typeConfig
+                              meeting.type.toLowerCase() as keyof typeof typeConfig
                             ]?.color || "bg-gray-100 text-gray-800"
                           }`}
                         >
                           {typeConfig[
-                            meeting.type_meeting.toLowerCase() as keyof typeof typeConfig
+                            meeting.type.toLowerCase() as keyof typeof typeConfig
                           ]?.label || "Sin tipo"}
                         </span>
 
