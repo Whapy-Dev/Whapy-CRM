@@ -40,8 +40,14 @@ export async function POST(req: Request) {
     if (insertError) throw insertError;
 
     return NextResponse.json({ user: data.user });
-  } catch (err: any) {
-    console.error("❌ Error:", err.message);
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  } catch (err: unknown) {
+    let errorMessage = "Error desconocido";
+
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+
+    console.error("❌ Error:", errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

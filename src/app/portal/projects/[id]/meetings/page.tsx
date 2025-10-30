@@ -5,18 +5,21 @@ import { ArrowLeft } from "lucide-react";
 import MeetingsContent from "./MeetingsContent";
 
 type Meeting = {
-  id: string;
+  meeting_id: string;
+  project_id: string;
+  lead_id: string;
+  user_id: string;
+  type_meeting: string;
   title: string;
-  date: string;
+  start_at: string;
+  location: string;
+  meet_url?: string;
+  summary_md: string;
+  summary_pdf_url: string;
+  created_at: string;
+  estado: string;
   duration: string;
-  recording_url?: string;
-  summary_pdf_url?: string;
-  notes: string;
-  projects: [
-    {
-      title: string;
-    }
-  ];
+  projects: { title: string } | null;
 };
 
 import { use } from "react";
@@ -28,7 +31,6 @@ export default function ProjectMeetingsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params); // ⚡ aquí obtenemos correctamente el ID
-  console.log("Project ID:", id);
   const {
     data: meetings = [],
     isLoading,
@@ -45,7 +47,7 @@ export default function ProjectMeetingsPage({
     return <div>No hay reuniones disponibles para este proyecto.</div>;
   }
 
-  const projectName = meetings[0].projects[0]?.title;
+  const projectName = meetings[0].projects?.title ?? "Proyecto sin nombre";
 
   return (
     <div className="space-y-6">

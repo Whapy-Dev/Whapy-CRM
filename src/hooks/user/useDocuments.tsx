@@ -15,6 +15,9 @@ export type Documents = {
   category_document: string;
   type_document: string;
   created_at: string;
+  projects: {
+    title: string;
+  } | null;
 };
 
 export function useDocumentsByProjectId(projectId: string) {

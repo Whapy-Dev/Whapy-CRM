@@ -7,13 +7,10 @@ import {
   Filter,
   MoreVertical,
   Mail,
-  Phone,
   AlertCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProjects } from "@/hooks/admin/useProjects";
-import { setuid } from "process";
-import { useClientLinks } from "@/hooks/admin/useClientLinks";
 import { useProfiles } from "@/hooks/admin/useProfiles";
 
 // Tipos
@@ -46,12 +43,7 @@ export default function ProjectsPage() {
     error,
     refetch: refetchProjects,
   } = useProjects();
-  const {
-    data: clients = [],
-    isLoading: isLoadingClients,
-    error: errorClients,
-    refetch: refetchClients,
-  } = useProfiles();
+  const { data: clients = [] } = useProfiles();
   console.log(clients);
   console.log(projects);
   const [showModal, setShowModal] = useState(false);

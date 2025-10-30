@@ -28,7 +28,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
         data: { user },
       } = await supabase.auth.getUser();
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("profiles")
         .select("nombre, role")
         .eq("id", user?.id)

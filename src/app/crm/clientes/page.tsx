@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, AlertCircle, CheckCircle, Divide } from "lucide-react";
+import { Plus, Search, AlertCircle, CheckCircle } from "lucide-react";
 import { useProfiles } from "@/hooks/admin/useProfiles";
 
 export default function ClientsPageUnsafe() {
@@ -45,9 +45,14 @@ export default function ClientsPageUnsafe() {
       setEmailInput("");
       setPasswordInput("");
       setNameInput("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.log(err);
-      setErrorForm(err.message);
+
+      if (err instanceof Error) {
+        setErrorForm(err.message);
+      } else {
+        setErrorForm("Ocurrió un error desconocido");
+      }
     } finally {
       setLoading(false);
     }

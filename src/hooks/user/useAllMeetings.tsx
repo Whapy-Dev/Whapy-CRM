@@ -31,6 +31,7 @@ export type Meeting = {
   leads?: Lead;
   profiles?: Profile;
   duration: string;
+  projects: { title: string } | null;
 };
 
 export function useAllMeetingsByProjectId(projectId: string) {

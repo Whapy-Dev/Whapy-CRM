@@ -4,24 +4,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import DocumentsContent from "./documents.content";
 import { use } from "react";
-import { useDocumentsByProjectId } from "@/hooks/user/useDocuments";
+import { useDocumentsByProjectId, Documents } from "@/hooks/user/useDocuments";
 
-export type Documents = {
-  id: string;
-  project_id: string;
-  lead_id: string;
-  user_id: string;
-  title: string;
-  document_url: string;
-  category_document: string;
-  type_document: string;
-  created_at: string;
-  projects: [
-    {
-      title: string;
-    }
-  ];
-};
 export default function ProjectDocumentsPage({
   params,
 }: {
@@ -46,7 +30,7 @@ export default function ProjectDocumentsPage({
     return <div>No hay documentos disponibles para este proyecto.</div>;
   }
 
-  const projectName = documents[0]?.projects[0]?.title;
+  const projectName = documents[0]?.projects?.title;
 
   return (
     <div className="space-y-6">

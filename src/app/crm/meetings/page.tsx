@@ -4,22 +4,6 @@ import { useState } from "react";
 import { Search, Calendar, Video, Clock, MapPin, User } from "lucide-react";
 import { useAllMeetings } from "@/hooks/admin/useAllMeetings";
 
-type Meeting = {
-  meeting_id: string;
-  project_id: string;
-  lead_id: string;
-  user_id: string;
-  type_meeting: "lead" | "presupuesto" | "seguimiento";
-  title: string;
-  start_at: string;
-  location: "meet" | "zoom" | "teléfono" | "presencial";
-  meet_url?: string;
-  summary_md: string;
-  summary_pdf_url: string;
-  created_at: string;
-  estado: "programada" | "completada" | "cancelada";
-};
-
 export default function MeetingsPage() {
   const { data: dataAllMeetings = [] } = useAllMeetings();
   console.log("dataAllMeetings:", dataAllMeetings);

@@ -83,7 +83,7 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
             </div>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            {meetings.filter((m) => m.recording_url).length}
+            {meetings.filter((m) => m.meet_url).length}
           </p>
           <p className="text-sm text-gray-600">Grabaciones</p>
         </div>

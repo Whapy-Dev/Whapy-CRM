@@ -51,7 +51,7 @@ export default function ProfilePage() {
         return;
       }
 
-      setIsRealEmail(userData.user.email);
+      setIsRealEmail(userData.user.email ?? "");
       setProfile(data);
       setEditForm(data);
       setLoading(false);
@@ -64,25 +64,23 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
-      // 2️⃣ Solo si el email cambió, actualizamos en Auth
       if (editForm.email !== isRealEmail) {
-        supabase.auth
-          .updateUser({
-            email: editForm.email,
-          })
-          .then(({ error }) => {
-            if (error)
-              console.error("Error actualizando email en Auth:", error.message);
-            else alert("Se envió un correo de verificación al nuevo email.");
-          });
+        const { error: authError } = await supabase.auth.updateUser({
+          email: editForm.email,
+        });
+
+        if (authError) {
+          console.error("Error actualizando email en Auth:", authError.message);
+          alert("No se pudo actualizar el correo en Auth.");
+        } else {
+          alert("Se envió un correo de verificación al nuevo email.");
+        }
       }
 
-      // 1️⃣ Actualizamos la tabla "profiles" siempre
       const { data: updatedProfile, error: profileError } = await supabase
         .from("profiles")
         .update({
           nombre: editForm.nombre,
-          email: editForm.email,
           telefono: editForm.telefono,
         })
         .eq("id", profile.id)
@@ -91,7 +89,6 @@ export default function ProfilePage() {
 
       if (profileError) throw profileError;
 
-      // 3️⃣ Actualizamos el estado local
       setProfile(updatedProfile);
       setIsEditing(false);
       setIsSaving(false);
@@ -101,10 +98,18 @@ export default function ProfilePage() {
           ? "Se actualizó el perfil. Verifica el nuevo correo para confirmar el cambio."
           : "Se actualizaron los datos del perfil correctamente."
       );
-    } catch (err: any) {
-      console.error("Error actualizando perfil:", err.message);
+    } catch (err: unknown) {
+      let errorMessage = "Ocurrió un error al actualizar el perfil.";
+
+      if (err instanceof Error) {
+        console.error("Error actualizando perfil:", err.message);
+        errorMessage = err.message;
+      } else {
+        console.error("Error actualizando perfil:", err);
+      }
+
       setIsSaving(false);
-      alert("Ocurrió un error al actualizar el perfil.");
+      alert(errorMessage);
     }
   };
 
@@ -286,7 +291,7 @@ export default function ProfilePage() {
   );
 }
 
-export function ChangePassword() {
+function ChangePassword() {
   const supabase = createClient();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -296,61 +301,60 @@ export function ChangePassword() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChangePassword = async () => {
+    setMessage("");
+    setSuccess(false);
+
     if (!newPassword || !confirmPassword) {
-      setMessage("Completa ambos campos");
-      setSuccess(false);
+      setMessage("⚠️ Completa ambos campos");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setMessage("Las contraseñas no coinciden");
-      setSuccess(false);
+      setMessage("❌ Las contraseñas no coinciden");
       return;
     }
 
     setLoading(true);
 
-    // Obtenemos el usuario actual
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      setMessage("No hay usuario logueado");
-      setSuccess(false);
+      setMessage("⚠️ No hay usuario logueado");
       setLoading(false);
       return;
     }
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) {
-        setMessage(`Error: ${error.message}`);
-        setSuccess(false);
-      } else {
-        setMessage("✅ Contraseña actualizada correctamente");
-        setSuccess(true);
-        setNewPassword("");
-        setConfirmPassword("");
-
-        setTimeout(() => {
-          setMessage("");
-          setSuccess(false);
-        }, 3000);
-      }
-    } catch (err: any) {
-      setMessage(`Error inesperado: ${err.message}`);
-      setSuccess(false);
-    } finally {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) {
+      setMessage("Tu sesión expiró. Volvé a iniciar sesión.");
       setLoading(false);
+      return;
     }
+    console.log("Intentando actualizar contraseña...");
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    console.log("Respuesta de updateUser:", { data, error });
+
+    console.log("updateUser response:", { data, error });
+
+    if (error) {
+      setMessage(`❌ Error: ${error.message}`);
+      setSuccess(false);
+    } else {
+      setMessage("✅ Contraseña actualizada correctamente");
+      setSuccess(true);
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+
+    setLoading(false);
   };
+
   return (
-    <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+    <div className="p-4 bg-gray-50 rounded-lg space-y-3">
       {/* Nueva contraseña */}
       <div className="relative">
         <input
@@ -397,11 +401,11 @@ export function ChangePassword() {
 
       <button
         type="button"
-        onClick={() => handleChangePassword()}
+        onClick={handleChangePassword}
         disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50"
       >
-        Cambiar
+        {loading ? "Actualizando..." : "Cambiar"}
       </button>
 
       {message && (
