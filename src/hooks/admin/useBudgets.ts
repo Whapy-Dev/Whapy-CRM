@@ -13,6 +13,8 @@ export type Budget = {
   currency: string;
   pdf_url: string;
   created_at: string;
+  duracion_estimada: string;
+  modalidad_pago: string;
   profiles:
     | {
         nombre: string;

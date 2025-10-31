@@ -547,7 +547,8 @@ export default function BudgetsPage() {
               <tr key={budget.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900">
-                    {budget.title} / {budget.profiles?.nombre ?? "Sin cliente"}
+                    {budget.title} /{" "}
+                    {budget.profiles?.[0]?.nombre ?? "Sin cliente"}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
