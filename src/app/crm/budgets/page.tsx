@@ -24,10 +24,12 @@ type Budget = {
   created_at: string;
   duracion_estimada: string;
   modalidad_pago: string;
-  profiles: {
-    nombre: string;
-    created_at: string;
-  } | null;
+  profiles:
+    | {
+        nombre: string;
+        created_at: string;
+      }[]
+    | null;
 };
 
 const formatCurrency = (amount: number) => {
