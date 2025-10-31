@@ -13,9 +13,9 @@ export type Budget = {
   currency: string;
   pdf_url: string;
   created_at: string;
-  leads:
+  profiles:
     | {
-        name: string;
+        nombre: string;
         created_at: string;
       }[]
     | null;
@@ -36,8 +36,8 @@ export function useBudgets() {
           amount_total,
           pdf_url,
           created_at,
-          leads (
-            name,
+          profiles (
+            nombre,
             created_at
           )
         `

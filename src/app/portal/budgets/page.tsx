@@ -20,6 +20,8 @@ type Budget = {
   created_at: string;
   pdf_url: string;
   description: string;
+  duracion_estimada: string;
+  modalidad_pago: string;
 };
 
 export default function PortalBudgetsPage() {
@@ -190,11 +192,15 @@ export default function PortalBudgetsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
                     <p className="text-gray-600">Duración estimada</p>
-                    <p className="font-medium text-gray-900">8-12 semanas</p>
+                    <p className="font-medium text-gray-900">
+                      {budget.duracion_estimada}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600">Modalidad de pago</p>
-                    <p className="font-medium text-gray-900">3 cuotas</p>
+                    <p className="font-medium text-gray-900">
+                      {budget.modalidad_pago}
+                    </p>
                   </div>
                 </div>
               </div>

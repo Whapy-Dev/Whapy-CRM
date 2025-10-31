@@ -11,8 +11,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useBudgets } from "@/hooks/admin/useBudgets";
-import { useLeads } from "@/hooks/admin/useLeads";
 import { createClient } from "@/lib/supabase/client";
+import { useProfiles } from "@/hooks/admin/useProfiles";
 
 type Budget = {
   id: string;
@@ -22,12 +22,12 @@ type Budget = {
   currency: string;
   pdf_url: string;
   created_at: string;
-  leads:
-    | {
-        name: string;
-        created_at: string;
-      }[]
-    | null;
+  duracion_estimada: string;
+  modalidad_pago: string;
+  profiles: {
+    nombre: string;
+    created_at: string;
+  } | null;
 };
 
 const formatCurrency = (amount: number) => {
@@ -40,7 +40,8 @@ const formatCurrency = (amount: number) => {
 
 export default function BudgetsPage() {
   const { data: budgets = [], refetch } = useBudgets();
-  const { data: leads = [] } = useLeads();
+  const { data: clients = [] } = useProfiles();
+  console.log(budgets);
   const [viewCreatePresupuesto, setViewCreatePresupuesto] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,10 +68,12 @@ export default function BudgetsPage() {
       .reduce((sum, b) => sum + b.amount_total, 0);
   };
 
-  const [idLead, setIdLead] = useState("");
+  const [idClient, setIdClient] = useState("");
   const [status, setStatus] = useState("");
   const [title, setTitle] = useState("");
   const [amountTotal, setAmountTotal] = useState("");
+  const [duracionEstimada, setDuracionEstimada] = useState("");
+  const [modalidadPago, setModalidadPago] = useState("");
   const [pdfUrl, setPdfUrl] = useState("");
   const [currency, setCurrency] = useState("");
   const [errorForm, setErrorForm] = useState("");
@@ -87,7 +90,14 @@ export default function BudgetsPage() {
       const supabase = createClient();
 
       // Validaciones básicas
-      if (!idLead || !title || !amountTotal || !status) {
+      if (
+        !idClient ||
+        !title ||
+        !amountTotal ||
+        !status ||
+        !duracionEstimada ||
+        !modalidadPago
+      ) {
         setErrorForm("Por favor, completa todos los campos obligatorios.");
         setLoading(false);
         return;
@@ -95,10 +105,12 @@ export default function BudgetsPage() {
 
       const { error } = await supabase.from("budgets").insert([
         {
-          lead_id: idLead,
+          user_id: idClient,
           title: title,
           status: status,
           amount_total: Number(amountTotal),
+          duracion_estimada: duracionEstimada,
+          modadalidad_pago: modalidadPago,
           pdf_url: pdfUrl || null,
           currency: currency || "USD",
         },
@@ -114,10 +126,12 @@ export default function BudgetsPage() {
       setSuccess(true);
       setLoading(false);
 
-      setIdLead("");
+      setIdClient("");
       setStatus("");
       setTitle("");
       setAmountTotal("");
+      setDuracionEstimada("");
+      setModalidadPago("");
       setPdfUrl("");
       setCurrency("");
     } catch (err) {
@@ -280,21 +294,20 @@ export default function BudgetsPage() {
                 </div>
               )}
 
-              {/* Lead */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Lead
+                  Cliente
                 </label>
                 <select
-                  value={idLead}
-                  onChange={(e) => setIdLead(e.target.value)}
+                  value={idClient}
+                  onChange={(e) => setIdClient(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="">Selecciona un lead</option>
-                  {leads.map((lead) => (
-                    <option key={lead.id} value={lead.id}>
-                      {lead.name}
+                  <option value="">Selecciona un cliente</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.nombre}
                     </option>
                   ))}
                 </select>
@@ -344,6 +357,32 @@ export default function BudgetsPage() {
                   value={amountTotal}
                   onChange={(e) => setAmountTotal(e.target.value)}
                   placeholder="3000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Duracion Estimada
+                </label>
+                <input
+                  type="text"
+                  value={duracionEstimada}
+                  onChange={(e) => setDuracionEstimada(e.target.value)}
+                  placeholder="2-3 semanas"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Modalidad de Pago
+                </label>
+                <input
+                  type="text"
+                  value={modalidadPago}
+                  onChange={(e) => setModalidadPago(e.target.value)}
+                  placeholder="6 cuotas"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -485,6 +524,12 @@ export default function BudgetsPage() {
                 Estado
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Duracion estimada
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Modalidad de pago
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Fecha Creación
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -500,7 +545,7 @@ export default function BudgetsPage() {
               <tr key={budget.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900">
-                    {budget.title} / {budget.leads?.[0]?.name ?? "Sin cliente"}
+                    {budget.title} / {budget.profiles?.nombre ?? "Sin cliente"}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -525,15 +570,18 @@ export default function BudgetsPage() {
                     {budget.status}
                   </span>
                 </td>
-
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  {budget.duracion_estimada}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  {budget.modalidad_pago}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                   {new Date(budget.created_at).toLocaleDateString("es-AR")}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {budget.leads?.[0]?.created_at
-                    ? new Date(budget.leads[0].created_at).toLocaleDateString(
-                        "es-AR"
-                      )
+                  {budget.created_at
+                    ? new Date(budget.created_at).toLocaleDateString("es-AR")
                     : "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">

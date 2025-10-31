@@ -38,15 +38,20 @@ export default function ProjectsPage() {
       label: "en progreso",
       dotColor: "bg-blue-600",
     },
-    completado: {
-      color: "bg-green-100 text-green-800",
-      label: "completado",
-      dotColor: "bg-green-600",
+    terminado: {
+      color: "bg-emerald-100 text-emerald-800",
+      label: "terminado",
+      dotColor: "bg-emerald-600",
     },
-    pendiente: {
-      color: "bg-yellow-100 text-yellow-800",
-      label: "pendiente",
-      dotColor: "bg-yellow-600",
+    pausado: {
+      color: "bg-orange-100 text-orange-800",
+      label: "pausado",
+      dotColor: "bg-orange-600",
+    },
+    cancelado: {
+      color: "bg-red-100 text-red-800",
+      label: "cancelado",
+      dotColor: "bg-red-600",
     },
   };
 
@@ -140,10 +145,12 @@ export default function ProjectsPage() {
                         switch (status.toLowerCase()) {
                           case "en progreso":
                             return "en_progreso";
-                          case "completado":
-                            return "completado";
-                          case "pendiente":
-                            return "pendiente";
+                          case "terminado":
+                            return "terminado";
+                          case "cancelado":
+                            return "cancelado";
+                          case "pausado":
+                            return "pausado";
                           default:
                             return undefined;
                         }

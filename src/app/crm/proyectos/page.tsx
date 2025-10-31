@@ -44,8 +44,6 @@ export default function ProjectsPage() {
     refetch: refetchProjects,
   } = useProjects();
   const { data: clients = [] } = useProfiles();
-  console.log(clients);
-  console.log(projects);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");

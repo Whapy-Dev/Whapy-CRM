@@ -18,21 +18,19 @@ export function useBudgetsUser() {
       if (!user) return [];
 
       // Traemos los leads del usuario
-      const { data: dataLead, error: errorLead } = await supabase
-        .from("leads")
+      const { data: dataUsers, error: errorUsers } = await supabase
+        .from("profiles")
         .select("*")
-        .neq("status", "draft")
-        .neq("status", "rechazado")
-        .eq("email", user.email);
+        .eq("id", user.id);
 
-      if (errorLead) throw errorLead;
+      if (errorUsers) throw errorUsers;
 
-      if (!dataLead || dataLead.length === 0) return [];
+      if (!dataUsers || dataUsers.length === 0) return [];
 
       const { data: dataBudgets, error: errorBudgets } = await supabase
         .from("budgets")
         .select("*")
-        .eq("lead_id", dataLead[0].id);
+        .eq("user_id", dataUsers[0].id);
 
       if (errorBudgets) throw errorBudgets;
 
