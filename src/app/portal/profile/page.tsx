@@ -72,6 +72,7 @@ export default function ProfilePage() {
         if (authError) {
           console.error("Error actualizando email en Auth:", authError.message);
           alert("No se pudo actualizar el correo en Auth.");
+          return;
         } else {
           alert("Se envió un correo de verificación al nuevo email.");
         }
@@ -343,13 +344,19 @@ function ChangePassword() {
     if (error) {
       setMessage(`❌ Error: ${error.message}`);
       setSuccess(false);
+      return;
     } else {
       setMessage("✅ Contraseña actualizada correctamente");
       setSuccess(true);
       setNewPassword("");
       setConfirmPassword("");
-    }
+      console.log("Respuesta de updateUser:", { data, error });
 
+      console.log("updateUser response:", { data, error });
+    }
+    console.log("Respuesta de updateUser:", { data, error });
+
+    console.log("updateUser response:", { data, error });
     setLoading(false);
   };
 
