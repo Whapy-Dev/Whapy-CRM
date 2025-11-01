@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Plus, Search, AlertCircle, CheckCircle } from "lucide-react";
 import { useProfiles } from "@/hooks/admin/useProfiles";
 import { createClient } from "@/lib/supabase/client";
-type Document = {
+import { useQueryClient } from "@tanstack/react-query";
+import { useLeads } from "@/hooks/admin/useLeads";
+
+export type Document = {
   id: string;
   user_id: string;
   project_id: string;
@@ -16,7 +19,7 @@ type Document = {
   created_at: string;
 };
 
-type Meeting = {
+export type Meeting = {
   meeting_id: string;
   project_id: string;
   lead_id: string;
@@ -34,8 +37,9 @@ type Meeting = {
   type: string;
 };
 
-type Project = {
+export type Project = {
   id: string;
+  lead_id: string;
   user_id: string;
   title: string;
   descripcion: string;
@@ -46,7 +50,7 @@ type Project = {
   all_meetings: Meeting[] | null;
 };
 
-type Client = {
+export type Client = {
   id: string;
   nombre: string;
   email: string;
@@ -57,15 +61,114 @@ type Client = {
   created_at: string;
   projects: Project[] | null;
 };
+export type Lead = {
+  id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  empresa?: string | null;
+  ciudad?: string | null;
+  codigoPostal?: string | null;
+  created_at?: string;
+  status?: string;
+  notes?: string | null;
+  created_by?: string;
+  projects?: Project[];
+};
 
+type InsertData = {
+  project_id: string;
+  title: string;
+  document_url: string;
+  category_document: string;
+  type_document: string;
+  user_id?: string;
+  lead_id?: string;
+};
+type InsertMeetingData = {
+  project_id: string;
+  title: string;
+  start_at: string;
+  location: string;
+  meet_url: string;
+  summary_md: string;
+  summary_pdf_url: string;
+  type_meeting: string;
+  estado: string;
+  duration: string;
+  lead_id?: string;
+  user_id?: string;
+};
 export default function ClientsPageUnsafe() {
   const {
-    data: dataProfiles = [] as Client[],
+    data: dataProfiles = [],
     isLoading: isLoadingProfiles,
     error: errorProfiles,
+    refetch: refetchProfiles,
   } = useProfiles();
-  console.log(dataProfiles);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const {
+    data: dataLeads = [],
+    isLoading: isLoadingLeads,
+    error: errorLeads,
+    refetch: refetchLeads,
+  } = useLeads();
+
+  const normalizedLeads = dataLeads.map((lead: Lead) => {
+    const proyectos = lead.projects || [];
+
+    const isActivo = proyectos.some((p) => p.status === "En progreso");
+    const isInactivo = proyectos.some((p) => p.status === "Pausado");
+
+    let estado: "Activo" | "Inactivo" | "Sin proyectos" = "Sin proyectos";
+    if (isActivo) estado = "Activo";
+    else if (isInactivo) estado = "Inactivo";
+
+    return {
+      id: lead.id,
+      nombre: lead.name,
+      email: lead.email,
+      telefono: lead.phone,
+      empresa: lead.empresa || "—",
+      ciudad: lead.ciudad || "—",
+      codigoPostal: lead.codigoPostal || "—",
+      created_at: lead.created_at,
+      tipo: "Lead" as const,
+      projects: proyectos,
+      estado,
+    };
+  });
+
+  const normalizedClients = dataProfiles.map((client: Client) => {
+    const proyectos = client.projects || [];
+
+    const isActivo = proyectos.some((p) => p.status === "En progreso");
+    const isInactivo = proyectos.some((p) => p.status === "Pausado");
+
+    let estado: "Activo" | "Inactivo" | "Sin proyectos" = "Sin proyectos";
+    if (isActivo) estado = "Activo";
+    else if (isInactivo) estado = "Inactivo";
+
+    return {
+      ...client,
+      tipo: "Cliente" as const,
+      estado,
+    };
+  });
+
+  const allAccounts = [...normalizedClients, ...normalizedLeads];
+
+  type Account =
+    | (Client & { tipo: "Cliente" })
+    | (Lead & {
+        tipo: "Lead";
+        estado: "Activo" | "Inactivo" | "Sin proyectos";
+      });
+  const [selectedClient, setSelectedClient] = useState<Account | null>(null);
+
+  function isClient(account: Account): account is Client & { tipo: "Cliente" } {
+    return account.tipo === "Cliente";
+  }
+
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const [showDocumentModal, setShowDocumentModal] = useState(false);
@@ -126,7 +229,7 @@ export default function ClientsPageUnsafe() {
       setLoading(false);
     }
   };
-
+  const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [documentUrl, setDocumentUrl] = useState("");
   const [categoryDocument, setCategoryDocument] = useState("");
@@ -143,25 +246,34 @@ export default function ClientsPageUnsafe() {
       setLoadingDocument(false);
       return;
     }
-
     setLoadingDocument(true);
     setErrorFormDocument("");
     setSuccessDocument(false);
 
-    const { error } = await supabase.from("documents").insert({
+    const insertData: InsertData = {
       project_id: selectedProject.id,
-      user_id: selectedClient.id,
       title: title,
       document_url: documentUrl,
       category_document: categoryDocument,
       type_document: typeDocument,
-    });
+    };
 
+    if (selectedClient.tipo === "Lead") {
+      insertData.lead_id = selectedClient.id;
+    } else {
+      insertData.user_id = selectedClient.id;
+    }
+
+    const { error } = await supabase.from("documents").insert(insertData);
+    await queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    await queryClient.invalidateQueries({ queryKey: ["leads"] });
     if (error) {
       console.error(error);
-      setErrorForm("Error al asignar documento");
+      setErrorFormDocument("Error al asignar documento");
     } else {
       setSuccessDocument(true);
+      await refetchProfiles();
+      await refetchLeads();
       setTitle("");
       setDocumentUrl("");
       setCategoryDocument("");
@@ -169,11 +281,12 @@ export default function ClientsPageUnsafe() {
       setTimeout(() => {
         setShowDocumentModal(false);
         setSuccessDocument(false);
-      }, 1500);
+      }, 1000);
     }
 
     setLoadingDocument(false);
   };
+
   const [titleMeeting, setTitleMeeting] = useState("");
   const [startAtMeeting, setStartAtMeeting] = useState("");
   const [location, setLocation] = useState("");
@@ -188,7 +301,7 @@ export default function ClientsPageUnsafe() {
 
   const handleNewMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProject || !selectedClient) return; // Verificamos que exista cliente y proyecto
+    if (!selectedProject || !selectedClient) return;
 
     if (
       !titleMeeting ||
@@ -205,22 +318,9 @@ export default function ClientsPageUnsafe() {
 
     setErrorFormMeeting("");
     setSuccessMeeting(false);
-    console.log({
-      project_id: selectedProject?.id,
-      user_id: selectedClient?.id,
-      titleMeeting,
-      startAtMeeting,
-      location,
-      meetUrl,
-      summaryMd,
-      summaryPdfUrl,
-      typeMeeting,
-      estado,
-      duration,
-    });
-    const { error } = await supabase.from("all_meetings").insert({
+
+    const insertData: InsertMeetingData = {
       project_id: selectedProject.id,
-      user_id: selectedClient.id,
       title: titleMeeting,
       start_at: startAtMeeting,
       location: location,
@@ -230,13 +330,24 @@ export default function ClientsPageUnsafe() {
       type_meeting: typeMeeting,
       estado: estado,
       duration: duration,
-    });
+    };
 
+    if (selectedClient.tipo === "Lead") {
+      insertData.lead_id = selectedClient.id;
+    } else {
+      insertData.user_id = selectedClient.id;
+    }
+
+    const { error } = await supabase.from("all_meetings").insert(insertData);
+    await queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    await queryClient.invalidateQueries({ queryKey: ["leads"] });
     if (error) {
       console.error(error);
       setErrorFormMeeting("Error al asignar reunión");
     } else {
       setSuccessMeeting(true);
+      await refetchProfiles();
+      await refetchLeads();
       setTitleMeeting("");
       setStartAtMeeting("");
       setLocation("");
@@ -249,21 +360,34 @@ export default function ClientsPageUnsafe() {
       setTimeout(() => {
         setShowMeetingModal(false);
         setSuccessMeeting(false);
-      }, 1500);
+      }, 1000);
     }
   };
 
-  const filteredClients = dataProfiles.filter((client) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      client.nombre.toLowerCase().includes(term) ||
-      client.email.toLowerCase().includes(term) ||
-      client.telefono.toLowerCase().includes(term)
-    );
+  const [selectedTipo, setSelectedTipo] = useState("");
+  const [selectedEstado, setSelectedEstado] = useState("");
+  const term = searchTerm.toLowerCase();
+  const filteredAccounts = allAccounts.filter((account) => {
+    const matchesSearch =
+      (account.nombre?.toLowerCase() || "").includes(term) ||
+      (account.email?.toLowerCase() || "").includes(term) ||
+      (account.telefono?.toLowerCase() || "").includes(term);
+
+    const matchesTipo =
+      selectedTipo === "" ||
+      account.tipo.toLowerCase() === selectedTipo.toLowerCase();
+
+    const matchesEstado =
+      selectedEstado === "" ||
+      account.estado.toLowerCase() === selectedEstado.toLowerCase();
+
+    return matchesSearch && matchesTipo && matchesEstado;
   });
 
   if (isLoadingProfiles) return <div>Cargando clientes...</div>;
   if (errorProfiles) return <div>Error: {errorProfiles.message}</div>;
+  if (isLoadingLeads) return <div>Cargando leads...</div>;
+  if (errorLeads) return <div>Error: {errorLeads.message}</div>;
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -286,6 +410,26 @@ export default function ClientsPageUnsafe() {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
           />
         </div>
+        <select
+          value={selectedTipo}
+          onChange={(e) => setSelectedTipo(e.target.value)}
+          className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">Todas las cuentas</option>
+          <option value="Cliente">Cliente</option>
+          <option value="Lead">Lead</option>
+        </select>
+
+        <select
+          value={selectedEstado}
+          onChange={(e) => setSelectedEstado(e.target.value)}
+          className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">Tipo de Cliente</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+          <option value="Sin proyectos">Sin proyectos</option>
+        </select>
 
         <button
           onClick={() => {
@@ -305,7 +449,7 @@ export default function ClientsPageUnsafe() {
 
       {/* Tabla de clientes */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        {filteredClients.length > 0 ? (
+        {filteredAccounts.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-100">
@@ -320,17 +464,33 @@ export default function ClientsPageUnsafe() {
                     Teléfono
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Empresa
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Ciudad
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Codigo Postal
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Tipo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Fecha de creación
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredClients.map((client) => (
+                {filteredAccounts.map((client) => (
                   <tr
                     key={client.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => {
                       setSelectedClient(client);
+
                       setShowClientModal(true);
                     }}
                   >
@@ -343,12 +503,42 @@ export default function ClientsPageUnsafe() {
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {client.telefono || "—"}
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.empresa || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.ciudad || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.codigoPostal || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.tipo || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          client.estado === "Activo"
+                            ? "bg-green-100 text-green-700"
+                            : client.estado === "Inactivo"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {client.estado}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(client.created_at).toLocaleDateString("es-AR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
+                      {client.created_at
+                        ? new Date(client.created_at).toLocaleDateString(
+                            "es-AR",
+                            {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            }
+                          )
+                        : "—"}
                     </td>
                   </tr>
                 ))}
@@ -511,7 +701,11 @@ export default function ClientsPageUnsafe() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-3xl overflow-y-auto max-h-[90vh] shadow-2xl border border-gray-200">
             <h2 className="text-3xl font-bold mb-6 text-gray-900">
-              {selectedClient.nombre}
+              {selectedClient
+                ? "nombre" in selectedClient
+                  ? selectedClient.nombre
+                  : selectedClient.name
+                : "—"}
             </h2>
 
             {/* Card Datos Personales */}
@@ -524,7 +718,12 @@ export default function ClientsPageUnsafe() {
                   <strong>Email:</strong> {selectedClient.email}
                 </p>
                 <p>
-                  <strong>Teléfono:</strong> {selectedClient.telefono || "—"}
+                  <strong>Teléfono:</strong>{" "}
+                  {selectedClient
+                    ? "telefono" in selectedClient
+                      ? selectedClient.telefono
+                      : selectedClient.phone
+                    : "—"}
                 </p>
                 <p>
                   <strong>Empresa:</strong> {selectedClient.empresa || "—"}
@@ -793,7 +992,7 @@ export default function ClientsPageUnsafe() {
               </div>
             )}
             {errorFormMeeting && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
                 {errorFormMeeting}
               </div>
             )}

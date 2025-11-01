@@ -11,10 +11,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useLeads } from "@/hooks/admin/useLeads";
+import { useLeadsLead } from "@/hooks/admin/useLeads";
 
 // Tipos
-type Lead = {
+type LeadLead = {
   id: string;
   name: string;
   email: string;
@@ -26,7 +26,7 @@ type Lead = {
 };
 
 export default function LeadsPage() {
-  const { data: leads = [], refetch } = useLeads();
+  const { data: leads = [], refetch } = useLeadsLead();
 
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -289,9 +289,9 @@ export default function LeadsPage() {
   );
 }
 
-function LeadsTable({ filteredLeads }: { filteredLeads: Lead[] }) {
+function LeadsTable({ filteredLeads }: { filteredLeads: LeadLead[] }) {
   const [viewModal, setViewModal] = useState(false);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedLead, setSelectedLead] = useState<LeadLead | null>(null);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorForm, setErrorForm] = useState("");
@@ -301,7 +301,7 @@ function LeadsTable({ filteredLeads }: { filteredLeads: Lead[] }) {
 
   // Abrir modal
 
-  const handleView = (lead: Lead) => {
+  const handleView = (lead: LeadLead) => {
     setSelectedLead(lead);
     setStatus(lead.status);
     setViewModal(true);
