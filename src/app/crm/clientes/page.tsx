@@ -3,14 +3,75 @@
 import { useState } from "react";
 import { Plus, Search, AlertCircle, CheckCircle } from "lucide-react";
 import { useProfiles } from "@/hooks/admin/useProfiles";
+import { createClient } from "@/lib/supabase/client";
+type Document = {
+  id: string;
+  user_id: string;
+  project_id: string;
+  lead_id: string;
+  title: string;
+  document_url: string;
+  category_document: string;
+  type_document: string;
+  created_at: string;
+};
+
+type Meeting = {
+  meeting_id: string;
+  project_id: string;
+  lead_id: string;
+  user_id: string;
+  title: string;
+  start_at: string;
+  location: string;
+  meet_url: string;
+  summary_md: string;
+  summary_pdf_url: string;
+  type_meeting: string;
+  created_at: string;
+  estado: string;
+  duration: string;
+  type: string;
+};
+
+type Project = {
+  id: string;
+  user_id: string;
+  title: string;
+  descripcion: string;
+  created_at: string;
+  status: "En progreso" | "Terminado" | "Cancelado" | "Pausado";
+  progress: number;
+  documents: Document[] | null;
+  all_meetings: Meeting[] | null;
+};
+
+type Client = {
+  id: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  empresa: string;
+  ciudad: string;
+  codigoPostal: string;
+  created_at: string;
+  projects: Project[] | null;
+};
 
 export default function ClientsPageUnsafe() {
   const {
-    data: dataProfiles = [],
+    data: dataProfiles = [] as Client[],
     isLoading: isLoadingProfiles,
     error: errorProfiles,
   } = useProfiles();
   console.log(dataProfiles);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [showClientModal, setShowClientModal] = useState(false);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorForm, setErrorForm] = useState("");
@@ -20,6 +81,10 @@ export default function ClientsPageUnsafe() {
   const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [nameInput, setNameInput] = useState("");
+  const [telefonoInput, setTelefonoInput] = useState("");
+  const [empresaInput, setEmpresaInput] = useState("");
+  const [ciudadInput, setCiudadInput] = useState("");
+  const [codigoPostal, setCodigoPostal] = useState("");
 
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +100,10 @@ export default function ClientsPageUnsafe() {
           email: emailInput,
           password: passwordInput,
           nombre: nameInput,
+          telefono: telefonoInput,
+          empresa: empresaInput,
+          ciudad: ciudadInput,
+          codigoPostal: codigoPostal,
         }),
       });
 
@@ -57,12 +126,139 @@ export default function ClientsPageUnsafe() {
       setLoading(false);
     }
   };
+
+  const [title, setTitle] = useState("");
+  const [documentUrl, setDocumentUrl] = useState("");
+  const [categoryDocument, setCategoryDocument] = useState("");
+  const [typeDocument, setTypeDocument] = useState("");
+  const [loadingDocument, setLoadingDocument] = useState(false);
+  const [errorFormDocument, setErrorFormDocument] = useState("");
+  const [successDocument, setSuccessDocument] = useState(false);
+  const supabase = createClient();
+  const handleNewDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProject || !selectedClient) return;
+    if (!title || !documentUrl || !categoryDocument || !typeDocument) {
+      setErrorFormDocument("Completa todos los campos antes de guardar");
+      setLoadingDocument(false);
+      return;
+    }
+
+    setLoadingDocument(true);
+    setErrorFormDocument("");
+    setSuccessDocument(false);
+
+    const { error } = await supabase.from("documents").insert({
+      project_id: selectedProject.id,
+      user_id: selectedClient.id,
+      title: title,
+      document_url: documentUrl,
+      category_document: categoryDocument,
+      type_document: typeDocument,
+    });
+
+    if (error) {
+      console.error(error);
+      setErrorForm("Error al asignar documento");
+    } else {
+      setSuccessDocument(true);
+      setTitle("");
+      setDocumentUrl("");
+      setCategoryDocument("");
+      setTypeDocument("");
+      setTimeout(() => {
+        setShowDocumentModal(false);
+        setSuccessDocument(false);
+      }, 1500);
+    }
+
+    setLoadingDocument(false);
+  };
+  const [titleMeeting, setTitleMeeting] = useState("");
+  const [startAtMeeting, setStartAtMeeting] = useState("");
+  const [location, setLocation] = useState("");
+  const [meetUrl, setMeetUrl] = useState("");
+  const [summaryMd, setSummaryMd] = useState("");
+  const [summaryPdfUrl, setSummaryPdfUrl] = useState("");
+  const [typeMeeting, setTypeMeeting] = useState("");
+  const [estado, setEstado] = useState("");
+  const [duration, setDuration] = useState("");
+  const [errorFormMeeting, setErrorFormMeeting] = useState("");
+  const [successMeeting, setSuccessMeeting] = useState(false);
+
+  const handleNewMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProject || !selectedClient) return; // Verificamos que exista cliente y proyecto
+
+    if (
+      !titleMeeting ||
+      !location ||
+      !meetUrl ||
+      !summaryPdfUrl ||
+      !typeMeeting ||
+      !estado ||
+      !duration
+    ) {
+      setErrorFormMeeting("Completa todos los campos antes de guardar");
+      return;
+    }
+
+    setErrorFormMeeting("");
+    setSuccessMeeting(false);
+    console.log({
+      project_id: selectedProject?.id,
+      user_id: selectedClient?.id,
+      titleMeeting,
+      startAtMeeting,
+      location,
+      meetUrl,
+      summaryMd,
+      summaryPdfUrl,
+      typeMeeting,
+      estado,
+      duration,
+    });
+    const { error } = await supabase.from("all_meetings").insert({
+      project_id: selectedProject.id,
+      user_id: selectedClient.id,
+      title: titleMeeting,
+      start_at: startAtMeeting,
+      location: location,
+      meet_url: meetUrl,
+      summary_md: summaryMd,
+      summary_pdf_url: summaryPdfUrl,
+      type_meeting: typeMeeting,
+      estado: estado,
+      duration: duration,
+    });
+
+    if (error) {
+      console.error(error);
+      setErrorFormMeeting("Error al asignar reunión");
+    } else {
+      setSuccessMeeting(true);
+      setTitleMeeting("");
+      setStartAtMeeting("");
+      setLocation("");
+      setMeetUrl("");
+      setSummaryMd("");
+      setSummaryPdfUrl("");
+      setTypeMeeting("");
+      setEstado("");
+      setDuration("");
+      setTimeout(() => {
+        setShowMeetingModal(false);
+        setSuccessMeeting(false);
+      }, 1500);
+    }
+  };
+
   const filteredClients = dataProfiles.filter((client) => {
     const term = searchTerm.toLowerCase();
     return (
-      client.nombre?.toLowerCase().includes(term) ||
-      client.email?.toLowerCase().includes(term) ||
-      client.telefono?.toLowerCase().includes(term)
+      client.nombre.toLowerCase().includes(term) ||
+      client.email.toLowerCase().includes(term) ||
+      client.telefono.toLowerCase().includes(term)
     );
   });
 
@@ -133,6 +329,10 @@ export default function ClientsPageUnsafe() {
                   <tr
                     key={client.id}
                     className="hover:bg-gray-50 transition-colors"
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setShowClientModal(true);
+                    }}
                   >
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {client.nombre || "—"}
@@ -197,7 +397,58 @@ export default function ClientsPageUnsafe() {
                   disabled={loading}
                 />
               </div>
-
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Telefono
+                </label>
+                <input
+                  type="text"
+                  value={telefonoInput}
+                  onChange={(e) => setTelefonoInput(e.target.value)}
+                  placeholder="+54 9 11 23211123"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Empresa
+                </label>
+                <input
+                  type="text"
+                  value={empresaInput}
+                  onChange={(e) => setEmpresaInput(e.target.value)}
+                  placeholder="SolutionsTeam"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ciudad
+                </label>
+                <input
+                  type="text"
+                  value={ciudadInput}
+                  onChange={(e) => setCiudadInput(e.target.value)}
+                  placeholder="Jose C. Páz"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Codigo Postal
+                </label>
+                <input
+                  type="text"
+                  value={codigoPostal}
+                  onChange={(e) => setCodigoPostal(e.target.value)}
+                  placeholder="3107"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email <span className="text-red-500">*</span>
@@ -250,6 +501,446 @@ export default function ClientsPageUnsafe() {
                   }`}
                 >
                   {loading ? "Creando..." : "Crear Cuenta"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showClientModal && selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-3xl overflow-y-auto max-h-[90vh] shadow-2xl border border-gray-200">
+            <h2 className="text-3xl font-bold mb-6 text-gray-900">
+              {selectedClient.nombre}
+            </h2>
+
+            {/* Card Datos Personales */}
+            <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow-md border border-blue-200">
+              <h3 className="text-xl font-semibold mb-4 text-blue-700">
+                Datos Personales
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-800">
+                <p>
+                  <strong>Email:</strong> {selectedClient.email}
+                </p>
+                <p>
+                  <strong>Teléfono:</strong> {selectedClient.telefono || "—"}
+                </p>
+                <p>
+                  <strong>Empresa:</strong> {selectedClient.empresa || "—"}
+                </p>
+                <p>
+                  <strong>Ciudad:</strong> {selectedClient.ciudad || "—"}
+                </p>
+                <p>
+                  <strong>Código Postal:</strong>{" "}
+                  {selectedClient.codigoPostal || "—"}
+                </p>
+              </div>
+            </div>
+
+            {/* Proyectos */}
+            <h3 className="text-2xl font-semibold mb-4 text-gray-900">
+              Proyectos
+            </h3>
+            {selectedClient.projects?.length ? (
+              <div className="space-y-6">
+                {selectedClient.projects.map((project: Project) => {
+                  let statusColor = "bg-gray-100 text-gray-800";
+                  if (project.status === "En progreso")
+                    statusColor = "bg-yellow-100 text-yellow-800";
+                  if (project.status === "Terminado")
+                    statusColor = "bg-green-100 text-green-800";
+                  if (project.status === "Cancelado")
+                    statusColor = "bg-red-100 text-red-800";
+
+                  return (
+                    <div
+                      key={project.id}
+                      className="p-6 rounded-2xl shadow-md border border-gray-200 bg-gradient-to-r from-white to-gray-50"
+                    >
+                      <div
+                        className={`px-4 py-1 inline-block rounded-full mb-3 ${statusColor} font-semibold`}
+                      >
+                        {project.status}
+                      </div>
+                      <h4 className="text-lg font-semibold mb-2">
+                        {project.title}{" "}
+                        <span className="text-sm text-gray-500 font-normal">
+                          {project.progress}%
+                        </span>
+                      </h4>
+                      <p className="mb-4 text-gray-700">
+                        {project.descripcion}
+                      </p>
+
+                      {/* Documentos */}
+                      <div className="mb-4 p-4 bg-blue-50 rounded-xl shadow-inner border border-blue-100">
+                        <div className="flex justify-between items-center mb-2">
+                          <h5 className="font-semibold text-blue-700">
+                            Documentos
+                          </h5>
+                          <button
+                            onClick={() => {
+                              setSelectedProject(project);
+                              setShowDocumentModal(true);
+                            }}
+                            className="px-2 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                          >
+                            + Asignar Documento
+                          </button>
+                        </div>
+                        {project.documents?.length ? (
+                          <ul className="list-disc ml-5 space-y-1 text-blue-800">
+                            {project.documents.map((doc: Document) => (
+                              <li key={doc.id}>
+                                <a
+                                  href={doc.document_url}
+                                  target="_blank"
+                                  className="underline hover:text-blue-900"
+                                >
+                                  {doc.title} ({doc.category_document})
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-blue-600">No hay documentos</p>
+                        )}
+                      </div>
+
+                      {/* --- Reuniones --- */}
+                      <div className="p-4 bg-green-50 rounded-xl shadow-inner border border-green-100">
+                        <div className="flex justify-between items-center mb-2">
+                          <h5 className="font-semibold text-green-700">
+                            Reuniones
+                          </h5>
+                          <button
+                            onClick={() => {
+                              setSelectedProject(project);
+                              setShowMeetingModal(true);
+                            }}
+                            className="px-2 py-1 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
+                          >
+                            + Asignar Reunión
+                          </button>
+                        </div>
+                        {project.all_meetings?.length ? (
+                          <ul className="list-disc ml-5 space-y-1 text-green-800">
+                            {project.all_meetings.map((meeting: Meeting) => (
+                              <li key={meeting.meeting_id}>
+                                {meeting.title} ({meeting.type}) -{" "}
+                                <a
+                                  href={meeting.meet_url}
+                                  target="_blank"
+                                  className="underline hover:text-green-900"
+                                >
+                                  Ver reunión
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-green-600">No hay reuniones</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-500">No tiene proyectos</p>
+            )}
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowClientModal(false)}
+                className="px-6 py-2 bg-gray-300 rounded-2xl hover:bg-gray-400 font-medium cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/** Modal Asignar Documento **/}
+      {showDocumentModal && selectedProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-200">
+            <h3 className="text-xl font-bold mb-4">
+              Asignar Documento a {selectedProject.title}
+            </h3>
+            {errorFormDocument && (
+              <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{errorFormDocument}</p>
+              </div>
+            )}
+
+            {successDocument && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+                Cambios guardados correctamente
+              </div>
+            )}
+
+            <form onSubmit={handleNewDocument} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Título
+                </label>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  type="text"
+                  id="title"
+                  name="title"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
+                  placeholder="Ej: Documento principal"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="documentUrl"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  URL del Documento
+                </label>
+                <input
+                  value={documentUrl}
+                  onChange={(e) => setDocumentUrl(e.target.value)}
+                  type="text"
+                  id="documentUrl"
+                  name="documentUrl"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Categoría del Documento
+                </label>
+                <select
+                  value={categoryDocument}
+                  onChange={(e) => setCategoryDocument(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150 bg-white"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="Diseño">Diseño</option>
+                  <option value="Contractual">Contractual</option>
+                  <option value="Reuniones">Reuniones</option>
+                  <option value="Técnico">Técnico</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="typeDocument"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Tipo de Documento
+                </label>
+                <input
+                  value={typeDocument}
+                  onChange={(e) => setTypeDocument(e.target.value)}
+                  type="text"
+                  id="typeDocument"
+                  name="typeDocument"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
+                  placeholder="Ej: PDF, Imagen, Contrato..."
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDocumentModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-lg font-medium duration-150 hover:bg-gray-400 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loadingDocument}
+                  className={`w-full px-4 py-2 rounded-lg text-white font-medium transition-colors duration-150 ${
+                    loadingDocument
+                      ? "bg-blue-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                  }`}
+                >
+                  {loadingDocument ? "Actualizando..." : "Asignar Documento"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/** Modal Asignar Reunión **/}
+      {showMeetingModal && selectedProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-200">
+            <h3 className="text-xl font-bold mb-4">
+              Asignar Reunión a {selectedProject.title}
+            </h3>
+            {successMeeting && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+                Cambios guardados correctamente
+              </div>
+            )}
+            {errorFormMeeting && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+                {errorFormMeeting}
+              </div>
+            )}
+            <form className="space-y-4" onSubmit={handleNewMeeting}>
+              {/* Título */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Título
+                </label>
+                <input
+                  type="text"
+                  value={titleMeeting}
+                  onChange={(e) => setTitleMeeting(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Fecha/Hora */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha y hora
+                </label>
+                <input
+                  type="datetime-local"
+                  value={startAtMeeting}
+                  onChange={(e) => setStartAtMeeting(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Ubicación */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ubicación
+                </label>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* URL de la reunión */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL de la reunión
+                </label>
+                <input
+                  type="text"
+                  value={meetUrl}
+                  onChange={(e) => setMeetUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Resumen en Markdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Resumen (Markdown)
+                </label>
+                <textarea
+                  value={summaryMd}
+                  onChange={(e) => setSummaryMd(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Opcional"
+                />
+              </div>
+
+              {/* URL PDF */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL del resumen en PDF
+                </label>
+                <input
+                  type="text"
+                  value={summaryPdfUrl}
+                  onChange={(e) => setSummaryPdfUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Tipo de reunión */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo de reunión
+                </label>
+                <input
+                  type="text"
+                  value={typeMeeting}
+                  onChange={(e) => setTypeMeeting(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Estado */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Estado
+                </label>
+                <select
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                  required
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="programada">Programada</option>
+                  <option value="completada">Completada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+
+              {/* Duración */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Duración (minutos)
+                </label>
+                <input
+                  type="text"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Botones */}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMeetingModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-2xl hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-2xl hover:bg-green-700 cursor-pointer"
+                >
+                  Guardar
                 </button>
               </div>
             </form>

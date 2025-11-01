@@ -24,6 +24,17 @@ type DocumentItem = {
   user_id: string;
   created_at: string;
 };
+type ProfileItem = {
+  ciudad: string;
+  codigoPostal: string;
+  created_at: string;
+  email: string;
+  id: string;
+  nombre: string;
+  role: string;
+  telefono: string;
+  updated_at: string;
+};
 
 type Project = {
   id: string;
@@ -34,6 +45,11 @@ type Project = {
   user_id: string;
   created_at: string;
   documents: DocumentItem[];
+  profiles: ProfileItem[];
+};
+type Client = {
+  id: string;
+  nombre: string;
 };
 
 export default function ProjectsPage() {
@@ -44,9 +60,11 @@ export default function ProjectsPage() {
     refetch: refetchProjects,
   } = useProjects();
   const { data: clients = [] } = useProfiles();
+
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  console.log(projects);
 
   const filteredProjects = projects.filter((project) => {
     const title = project.title?.toLowerCase() || "";
@@ -65,6 +83,13 @@ export default function ProjectsPage() {
 
     return matchesSearch && matchesEstado;
   });
+  const [isOpen, setIsOpen] = useState(false);
+  const [clientQuery, setClientQuery] = useState("");
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  const filteredClients = clients.filter((c) =>
+    c.nombre.toLowerCase().includes(clientQuery.toLowerCase())
+  );
 
   const [userId, setUserId] = useState("");
   const [title, setTitle] = useState("");
@@ -219,26 +244,58 @@ export default function ProjectsPage() {
                 </div>
               )}
 
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Cliente
                 </label>
-                <select
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150 bg-white"
+
+                {/* Campo visible del "select" */}
+                <div
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 cursor-pointer bg-white focus-within:ring-2 focus-within:ring-blue-500"
+                  onClick={() => setIsOpen(!isOpen)}
                 >
-                  <option value="">Seleccionar...</option>
-                  {Array.isArray(clients) && clients.length > 0 ? (
-                    clients.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.nombre}
-                      </option>
-                    ))
-                  ) : (
-                    <option disabled>No hay clientes disponibles</option>
-                  )}
-                </select>
+                  {selectedClient
+                    ? selectedClient.nombre
+                    : "Seleccionar cliente"}
+                </div>
+
+                {/* Dropdown con buscador */}
+                {isOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                    <input
+                      type="text"
+                      placeholder="Buscar cliente..."
+                      value={clientQuery}
+                      onChange={(e) => setClientQuery(e.target.value)}
+                      className="w-full px-3 py-2 border-b border-gray-200 focus:outline-none"
+                      autoFocus
+                    />
+
+                    <ul className="max-h-48 overflow-y-auto">
+                      {filteredClients.length > 0 ? (
+                        filteredClients.map((client) => (
+                          <li
+                            key={client.id}
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setUserId(client.id); // 👈 guarda el ID del cliente
+                              setIsOpen(false);
+                              setClientQuery("");
+                            }}
+                            className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                          >
+                            {client.nombre}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="px-3 py-2 text-gray-500">
+                          Sin resultados
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
                 <label
                   htmlFor="title"
                   className="block text-sm font-medium text-gray-700 mb-1"

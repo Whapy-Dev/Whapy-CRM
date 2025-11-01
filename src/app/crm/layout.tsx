@@ -47,7 +47,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       current: pathname === "/crm",
     },
     {
-      name: "Leads",
+      name: "Leads(uncompleted)",
       href: "/crm/leads",
       icon: Users,
       current: pathname === "/crm/leads",
@@ -65,7 +65,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       current: pathname === "/crm/meetings",
     },
     {
-      name: "Clientes",
+      name: "Leads",
       href: "/crm/clientes",
       icon: Users,
       current: pathname === "/crm/clientes",

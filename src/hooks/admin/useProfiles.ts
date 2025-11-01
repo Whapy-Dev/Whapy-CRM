@@ -11,7 +11,17 @@ export function useProfiles() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select(
+          `
+          *,
+          projects:projects(
+            *,
+            documents(*),
+            all_meetings(*)
+            )
+            budgets(*)
+        `
+        )
         .eq("role", "cliente");
 
       if (error) throw error;
