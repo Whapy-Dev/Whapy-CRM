@@ -14,6 +14,11 @@ export default function ProfilePage() {
     nombre: "",
     email: "",
     telefono: "",
+    ciudad: "",
+    codigoPostal: "",
+    pais: "",
+    genero: "",
+    fechaNacimiento: "",
   });
   const [editForm, setEditForm] = useState({ ...profile });
   const [isSaving, setIsSaving] = useState(false);
@@ -51,9 +56,21 @@ export default function ProfilePage() {
         return;
       }
 
+      const safeData = {
+        id: data.id || "",
+        nombre: data.nombre || "",
+        email: data.email || "",
+        telefono: data.telefono || "",
+        ciudad: data.ciudad || "",
+        codigoPostal: data.codigoPostal || "",
+        pais: data.pais || "",
+        genero: data.genero || "",
+        fechaNacimiento: data.fechaNacimiento || "",
+      };
+
+      setProfile(safeData);
+      setEditForm(safeData);
       setIsRealEmail(userData.user.email ?? "");
-      setProfile(data);
-      setEditForm(data);
       setLoading(false);
     };
 
@@ -64,25 +81,16 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
-      if (editForm.email !== isRealEmail) {
-        const { error: authError } = await supabase.auth.updateUser({
-          email: editForm.email,
-        });
-
-        if (authError) {
-          console.error("Error actualizando email en Auth:", authError.message);
-          alert("No se pudo actualizar el correo en Auth.");
-          return;
-        } else {
-          alert("Se envió un correo de verificación al nuevo email.");
-        }
-      }
-
       const { data: updatedProfile, error: profileError } = await supabase
         .from("profiles")
         .update({
           nombre: editForm.nombre,
           telefono: editForm.telefono,
+          ciudad: editForm.ciudad,
+          codigoPostal: editForm.codigoPostal,
+          genero: editForm.genero,
+          fechaNacimiento: editForm.fechaNacimiento,
+          pais: editForm.pais,
         })
         .eq("id", profile.id)
         .select()
@@ -93,24 +101,14 @@ export default function ProfilePage() {
       setProfile(updatedProfile);
       setIsEditing(false);
       setIsSaving(false);
-
-      alert(
-        editForm.email !== profile.email
-          ? "Se actualizó el perfil. Verifica el nuevo correo para confirmar el cambio."
-          : "Se actualizaron los datos del perfil correctamente."
-      );
     } catch (err: unknown) {
-      let errorMessage = "Ocurrió un error al actualizar el perfil.";
-
       if (err instanceof Error) {
         console.error("Error actualizando perfil:", err.message);
-        errorMessage = err.message;
       } else {
         console.error("Error actualizando perfil:", err);
       }
 
       setIsSaving(false);
-      alert(errorMessage);
     }
   };
 
@@ -219,29 +217,17 @@ export default function ProfilePage() {
                     </p>
                   )}
                 </div>
-
                 {/* Email */}
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4" />
                     Email
                   </label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={editForm.email}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, email: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                      {profile.email}
-                    </p>
-                  )}
-                </div>
 
+                  <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                    {profile.email}
+                  </p>
+                </div>
                 {/* Phone */}
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
@@ -260,6 +246,121 @@ export default function ProfilePage() {
                   ) : (
                     <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                       {profile.telefono}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    <User className="w-4 h-4" />
+                    Ciudad
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editForm.ciudad}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, ciudad: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                      {profile.ciudad}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    <User className="w-4 h-4" />
+                    Codigo Postal
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editForm.codigoPostal}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          codigoPostal: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                      {profile.codigoPostal}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    <User className="w-4 h-4" />
+                    Genero
+                  </label>
+                  {isEditing ? (
+                    <select
+                      value={editForm.genero}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          genero: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Seleccione un genero</option>
+                      <option value="Masculino">Masculino</option>
+                      <option value="Femenino">Femenino</option>
+                    </select>
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                      {profile.genero}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    <User className="w-4 h-4" />
+                    Fecha de nacimiento
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editForm.fechaNacimiento}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          fechaNacimiento: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                      {profile.fechaNacimiento}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    <User className="w-4 h-4" />
+                    Pais
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editForm.pais}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          pais: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                      {profile.pais}
                     </p>
                   )}
                 </div>
