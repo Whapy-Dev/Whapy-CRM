@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -65,10 +66,10 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       current: pathname === "/crm/meetings",
     },
     {
-      name: "Leads",
-      href: "/crm/clientes",
+      name: "Usuarios",
+      href: "/crm/usuarios",
       icon: Users,
-      current: pathname === "/crm/clientes",
+      current: pathname === "/crm/usuarios",
     },
     {
       name: "Proyectos",
@@ -96,9 +97,13 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">W</span>
-            </div>
+            <Image
+              src="/favicon-32x32.png"
+              alt="Whapy Icon"
+              width={32}
+              height={32}
+            />
+
             <div>
               <h1 className="text-xl font-bold text-gray-900">Whapy CRM</h1>
               <p className="text-xs text-gray-500">Admin Panel</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Lead } from "@/app/crm/clientes/page";
+import { Lead } from "@/app/crm/usuarios/page";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 

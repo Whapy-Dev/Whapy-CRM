@@ -5,8 +5,6 @@ import { Plus, Search, AlertCircle, CheckCircle } from "lucide-react";
 import { useProfiles } from "@/hooks/admin/useProfiles";
 import { createClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLeads } from "@/hooks/admin/useLeads";
-
 export type Document = {
   id: string;
   user_id: string;
@@ -60,20 +58,11 @@ export type Client = {
   codigoPostal: string;
   created_at: string;
   projects: Project[] | null;
-};
-export type Lead = {
-  id?: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  empresa?: string | null;
-  ciudad?: string | null;
-  codigoPostal?: string | null;
-  created_at?: string;
-  status?: string;
-  notes?: string | null;
-  created_by?: string;
-  projects?: Project[];
+  type: string;
+  genero: string;
+  fechaNacimiento: string;
+  pais: string;
+  detalles: string;
 };
 
 type InsertData = {
@@ -106,68 +95,22 @@ export default function ClientsPageUnsafe() {
     error: errorProfiles,
     refetch: refetchProfiles,
   } = useProfiles();
-  const {
-    data: dataLeads = [],
-    isLoading: isLoadingLeads,
-    error: errorLeads,
-    refetch: refetchLeads,
-  } = useLeads();
 
-  const normalizedLeads = dataLeads.map((lead: Lead) => {
-    const proyectos = lead.projects || [];
-
-    const isActivo = proyectos.some((p) => p.status === "En progreso");
-    const isInactivo = proyectos.some((p) => p.status === "Pausado");
-
-    let estado: "Activo" | "Inactivo" | "Sin proyectos" = "Sin proyectos";
-    if (isActivo) estado = "Activo";
-    else if (isInactivo) estado = "Inactivo";
-
-    return {
-      id: lead.id,
-      nombre: lead.name,
-      email: lead.email,
-      telefono: lead.phone,
-      empresa: lead.empresa || "—",
-      ciudad: lead.ciudad || "—",
-      codigoPostal: lead.codigoPostal || "—",
-      created_at: lead.created_at,
-      tipo: "Lead" as const,
-      projects: proyectos,
-      estado,
-    };
-  });
-
-  const normalizedClients = dataProfiles.map((client: Client) => {
+  const normalizedProfiles = dataProfiles.map((client: Client) => {
     const proyectos = client.projects || [];
-
     const isActivo = proyectos.some((p) => p.status === "En progreso");
     const isInactivo = proyectos.some((p) => p.status === "Pausado");
 
     let estado: "Activo" | "Inactivo" | "Sin proyectos" = "Sin proyectos";
     if (isActivo) estado = "Activo";
     else if (isInactivo) estado = "Inactivo";
-
     return {
       ...client,
-      tipo: "Cliente" as const,
       estado,
     };
   });
 
-  const allAccounts = [...normalizedClients, ...normalizedLeads];
-
-  type Account =
-    | (Client & { tipo: "Cliente" })
-    | (Lead & {
-        tipo: "Lead";
-        estado: "Activo" | "Inactivo" | "Sin proyectos";
-      });
-  const [selectedClient, setSelectedClient] = useState<Account | null>(null);
-
-  function isClient(account: Account): account is Client & { tipo: "Cliente" } {
-    return account.tipo === "Cliente";
-  }
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -182,12 +125,17 @@ export default function ClientsPageUnsafe() {
   const [showModal, setShowModal] = useState(false);
 
   const [emailInput, setEmailInput] = useState("");
+  const [paisInput, setPaisInput] = useState("");
+  const [fechaInput, setFechaInput] = useState("");
+  const [generoInput, setGeneroInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [telefonoInput, setTelefonoInput] = useState("");
   const [empresaInput, setEmpresaInput] = useState("");
   const [ciudadInput, setCiudadInput] = useState("");
   const [codigoPostal, setCodigoPostal] = useState("");
+  const [typeInput, setTypeInput] = useState("");
+  const [detalleInput, setDetalleInput] = useState("");
 
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,11 +150,16 @@ export default function ClientsPageUnsafe() {
         body: JSON.stringify({
           email: emailInput,
           password: passwordInput,
+          genero: generoInput,
+          fechaNacimiento: fechaInput,
           nombre: nameInput,
           telefono: telefonoInput,
           empresa: empresaInput,
           ciudad: ciudadInput,
           codigoPostal: codigoPostal,
+          pais: paisInput,
+          type: typeInput,
+          detalle: detalleInput,
         }),
       });
 
@@ -258,7 +211,7 @@ export default function ClientsPageUnsafe() {
       type_document: typeDocument,
     };
 
-    if (selectedClient.tipo === "Lead") {
+    if (selectedClient.type === "Lead") {
       insertData.lead_id = selectedClient.id;
     } else {
       insertData.user_id = selectedClient.id;
@@ -273,7 +226,7 @@ export default function ClientsPageUnsafe() {
     } else {
       setSuccessDocument(true);
       await refetchProfiles();
-      await refetchLeads();
+
       setTitle("");
       setDocumentUrl("");
       setCategoryDocument("");
@@ -332,7 +285,7 @@ export default function ClientsPageUnsafe() {
       duration: duration,
     };
 
-    if (selectedClient.tipo === "Lead") {
+    if (selectedClient.type === "Lead") {
       insertData.lead_id = selectedClient.id;
     } else {
       insertData.user_id = selectedClient.id;
@@ -347,7 +300,7 @@ export default function ClientsPageUnsafe() {
     } else {
       setSuccessMeeting(true);
       await refetchProfiles();
-      await refetchLeads();
+
       setTitleMeeting("");
       setStartAtMeeting("");
       setLocation("");
@@ -367,32 +320,30 @@ export default function ClientsPageUnsafe() {
   const [selectedTipo, setSelectedTipo] = useState("");
   const [selectedEstado, setSelectedEstado] = useState("");
   const term = searchTerm.toLowerCase();
-  const filteredAccounts = allAccounts.filter((account) => {
+  const filteredAccounts = normalizedProfiles.filter((profile) => {
     const matchesSearch =
-      (account.nombre?.toLowerCase() || "").includes(term) ||
-      (account.email?.toLowerCase() || "").includes(term) ||
-      (account.telefono?.toLowerCase() || "").includes(term);
+      (profile.nombre?.toLowerCase() || "").includes(term) ||
+      (profile.email?.toLowerCase() || "").includes(term) ||
+      (profile.telefono?.toLowerCase() || "").includes(term);
 
     const matchesTipo =
       selectedTipo === "" ||
-      account.tipo.toLowerCase() === selectedTipo.toLowerCase();
+      profile.type?.toLowerCase() === selectedTipo.toLowerCase();
 
     const matchesEstado =
       selectedEstado === "" ||
-      account.estado.toLowerCase() === selectedEstado.toLowerCase();
+      profile.estado.toLowerCase() === selectedEstado.toLowerCase();
 
     return matchesSearch && matchesTipo && matchesEstado;
   });
 
   if (isLoadingProfiles) return <div>Cargando clientes...</div>;
   if (errorProfiles) return <div>Error: {errorProfiles.message}</div>;
-  if (isLoadingLeads) return <div>Cargando leads...</div>;
-  if (errorLeads) return <div>Error: {errorLeads.message}</div>;
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Usuarios</h1>
         <p className="mt-2 text-gray-600">
           Gestiona tus clientes y crea cuentas para acceder al portal
         </p>
@@ -404,7 +355,7 @@ export default function ClientsPageUnsafe() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar clientes..."
+            placeholder="Buscar usuarios..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
@@ -415,7 +366,7 @@ export default function ClientsPageUnsafe() {
           onChange={(e) => setSelectedTipo(e.target.value)}
           className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
-          <option value="">Todas las cuentas</option>
+          <option value="">Todas los usuarios</option>
           <option value="Cliente">Cliente</option>
           <option value="Lead">Lead</option>
         </select>
@@ -425,7 +376,7 @@ export default function ClientsPageUnsafe() {
           onChange={(e) => setSelectedEstado(e.target.value)}
           className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
-          <option value="">Tipo de Cliente</option>
+          <option value="">Tipo de usuario</option>
           <option value="Activo">Activo</option>
           <option value="Inactivo">Inactivo</option>
           <option value="Sin proyectos">Sin proyectos</option>
@@ -443,7 +394,7 @@ export default function ClientsPageUnsafe() {
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          Crear Cuenta de Cliente
+          Crear Cuenta de usuario
         </button>
       </div>
 
@@ -476,7 +427,16 @@ export default function ClientsPageUnsafe() {
                     Tipo
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Genero
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Fecha de Nacimiento
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Estado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Pais
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Fecha de creación
@@ -513,7 +473,16 @@ export default function ClientsPageUnsafe() {
                       {client.codigoPostal || "—"}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {client.tipo || "—"}
+                      {client.type || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.genero || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.fechaNacimiento || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {client.pais || "—"}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span
@@ -547,15 +516,15 @@ export default function ClientsPageUnsafe() {
           </div>
         ) : (
           <div className="p-8 text-center text-gray-500">
-            No se encontraron clientes
+            No se encontraron usuarios
           </div>
         )}
       </div>
       {/* Modal Crear Cuenta */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Crear cuenta de cliente</h2>
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Crear cuenta de usuario</h2>
 
             <form onSubmit={handleCreateAccount} className="space-y-4">
               {errorForm && (
@@ -573,16 +542,74 @@ export default function ClientsPageUnsafe() {
                   </p>
                 </div>
               )}
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre (opcional)
+                  Tipo de cliente
+                </label>
+                <select
+                  name=""
+                  id=""
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={typeInput}
+                  onChange={(e) => setTypeInput(e.target.value)}
+                >
+                  <option value="">Seleccione un tipo de cliente</option>
+                  <option value="Cliente">Cliente</option>
+                  <option value="Lead">Lead</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nombre
                 </label>
                 <input
                   type="text"
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
                   placeholder="Juan Pérez"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha de nacimiento
+                </label>
+                <input
+                  type="datetime"
+                  value={fechaInput}
+                  onChange={(e) => setFechaInput(e.target.value)}
+                  placeholder="Juan Pérez"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Genero
+                </label>
+                <select
+                  name=""
+                  id=""
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={generoInput}
+                  onChange={(e) => setGeneroInput(e.target.value)}
+                >
+                  <option value="">Seleccione un genero</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pais
+                </label>
+                <input
+                  type="datetime"
+                  value={paisInput}
+                  onChange={(e) => setPaisInput(e.target.value)}
+                  placeholder="Ej: España"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loading}
                 />
@@ -639,6 +666,20 @@ export default function ClientsPageUnsafe() {
                   disabled={loading}
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Detalle
+                </label>
+                <textarea
+                  value={detalleInput}
+                  onChange={(e) => setDetalleInput(e.target.value)}
+                  placeholder="Escribe detalles adicionales sobre el cliente..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={4}
+                  disabled={loading}
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email <span className="text-red-500">*</span>
@@ -701,11 +742,7 @@ export default function ClientsPageUnsafe() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-3xl overflow-y-auto max-h-[90vh] shadow-2xl border border-gray-200">
             <h2 className="text-3xl font-bold mb-6 text-gray-900">
-              {selectedClient
-                ? "nombre" in selectedClient
-                  ? selectedClient.nombre
-                  : selectedClient.name
-                : "—"}
+              {selectedClient?.nombre || "—"}
             </h2>
 
             {/* Card Datos Personales */}
@@ -718,12 +755,7 @@ export default function ClientsPageUnsafe() {
                   <strong>Email:</strong> {selectedClient.email}
                 </p>
                 <p>
-                  <strong>Teléfono:</strong>{" "}
-                  {selectedClient
-                    ? "telefono" in selectedClient
-                      ? selectedClient.telefono
-                      : selectedClient.phone
-                    : "—"}
+                  <strong>Teléfono:</strong> {selectedClient?.telefono || "—"}
                 </p>
                 <p>
                   <strong>Empresa:</strong> {selectedClient.empresa || "—"}
@@ -734,6 +766,22 @@ export default function ClientsPageUnsafe() {
                 <p>
                   <strong>Código Postal:</strong>{" "}
                   {selectedClient.codigoPostal || "—"}
+                </p>
+                <p>
+                  <strong>Tipo:</strong> {selectedClient.type || "—"}
+                </p>
+                <p>
+                  <strong>Genero:</strong> {selectedClient.genero || "—"}
+                </p>
+                <p>
+                  <strong>Fecha de Nacimiento:</strong>{" "}
+                  {selectedClient.fechaNacimiento || "—"}
+                </p>
+                <p>
+                  <strong>Pais:</strong> {selectedClient.pais || "—"}
+                </p>
+                <p className="text-pretty">
+                  <strong>Detalles:</strong> {selectedClient.detalles || "—"}
                 </p>
               </div>
             </div>

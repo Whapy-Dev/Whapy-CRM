@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { Feather } from "lucide-react";
 
 // Cliente Admin (Service Role Key solo en backend)
 const supabaseAdmin = createClient(
@@ -9,8 +10,20 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { email, password, nombre, empresa, telefono, ciudad, codigoPostal } =
-      await req.json();
+    const {
+      email,
+      password,
+      genero,
+      fechaNacimiento,
+      pais,
+      type,
+      nombre,
+      empresa,
+      telefono,
+      ciudad,
+      codigoPostal,
+      detalle,
+    } = await req.json();
 
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
@@ -37,7 +50,12 @@ export async function POST(req: Request) {
         empresa: empresa,
         telefono: telefono,
         ciudad: ciudad,
+        genero: genero,
+        fechaNacimiento: fechaNacimiento,
+        type: type,
+        pais: pais,
         codigoPostal: codigoPostal,
+        detalles: detalle,
         role: "cliente",
       },
     ]);
