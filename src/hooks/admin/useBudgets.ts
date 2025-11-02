@@ -15,12 +15,10 @@ export type Budget = {
   created_at: string;
   duracion_estimada: string;
   modalidad_pago: string;
-  profiles:
-    | {
-        nombre: string;
-        created_at: string;
-      }[]
-    | null;
+  profiles: {
+    nombre: string;
+    created_at: string;
+  } | null;
 };
 
 export function useBudgets() {
@@ -31,13 +29,7 @@ export function useBudgets() {
         .from("budgets")
         .select(
           `
-          id,
-          title,
-          status,
-          currency,
-          amount_total,
-          pdf_url,
-          created_at,
+          *,
           profiles (
             nombre,
             created_at
@@ -47,7 +39,7 @@ export function useBudgets() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Budget[];
+      return data;
     },
   });
 }
@@ -63,7 +55,7 @@ export function useBudgetsActive() {
         .neq("status", "rechazado");
 
       if (error) throw error;
-      return data as Budget[];
+      return data;
     },
   });
 }

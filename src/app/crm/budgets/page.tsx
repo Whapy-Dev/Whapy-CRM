@@ -24,12 +24,10 @@ type Budget = {
   created_at: string;
   duracion_estimada: string;
   modalidad_pago: string;
-  profiles:
-    | {
-        nombre: string;
-        created_at: string;
-      }[]
-    | null;
+  profiles: {
+    nombre: string;
+    created_at: string;
+  } | null;
 };
 
 const formatCurrency = (amount: number) => {
@@ -547,8 +545,7 @@ export default function BudgetsPage() {
               <tr key={budget.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900">
-                    {budget.title} /{" "}
-                    {budget.profiles?.[0]?.nombre ?? "Sin cliente"}
+                    {budget.title} / {budget.profiles?.nombre ?? "Sin cliente"}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
