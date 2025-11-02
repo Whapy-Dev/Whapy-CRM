@@ -1,13 +1,12 @@
 "use client";
 
-import { Lead } from "@/app/crm/usuarios/page";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 const supabase = createClient();
 
 export function useLeads() {
-  return useQuery<Lead[]>({
+  return useQuery({
     queryKey: ["leads"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -26,7 +25,7 @@ export function useLeads() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Lead[];
+      return data;
     },
   });
 }
