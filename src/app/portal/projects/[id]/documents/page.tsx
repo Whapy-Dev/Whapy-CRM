@@ -18,7 +18,6 @@ export default function ProjectDocumentsPage({
     isLoading,
     error,
   } = useDocumentsByProjectId(id);
-  console.log(documents);
 
   if (isLoading) {
     return <div>Cargando documentos...</div>;

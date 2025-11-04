@@ -64,7 +64,6 @@ export default function ProjectsPage() {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  console.log(projects);
 
   const filteredProjects = projects.filter((project) => {
     const title = project.title?.toLowerCase() || "";

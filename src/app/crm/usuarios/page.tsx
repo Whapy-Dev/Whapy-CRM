@@ -12,8 +12,8 @@ import { Plus, Search } from "lucide-react";
 export type Document = {
   id: string;
   user_id: string;
-  project_id: string;
-  lead_id: string;
+  project_id?: string | null;
+  lead_id?: string | null;
   title: string;
   document_url: string;
   category_document: string;
@@ -21,10 +21,24 @@ export type Document = {
   created_at: string;
 };
 
+export type Video = {
+  id: string;
+  user_id?: string | null;
+  meeting_id?: string | null;
+  project_id?: string | null;
+  vimeo_id: string;
+  vimeo_url: string;
+  title: string;
+  status: string;
+  descripcion: string;
+  duration?: string | null;
+  created_at: string;
+};
+
 export type Meeting = {
   meeting_id: string;
   project_id: string;
-  lead_id: string;
+  lead_id?: string | null;
   user_id: string;
   title: string;
   start_at: string;
@@ -35,21 +49,23 @@ export type Meeting = {
   type_meeting: string;
   created_at: string;
   estado: string;
-  duration: string;
+  duration?: string | null;
   type: string;
+  videos?: Video[] | null;
 };
 
 export type Project = {
   id: string;
-  lead_id: string;
+  lead_id?: string | null;
   user_id: string;
   title: string;
   descripcion: string;
   created_at: string;
   status: "En progreso" | "Terminado" | "Cancelado" | "Pausado";
   progress: number;
-  documents: Document[] | null;
-  all_meetings: Meeting[] | null;
+  documents?: Document[] | null;
+  all_meetings?: Meeting[] | null;
+  videos?: Video[] | null;
 };
 
 export type Client = {
@@ -61,13 +77,14 @@ export type Client = {
   ciudad: string;
   codigoPostal: string;
   created_at: string;
-  projects: Project[] | null;
+  projects?: Project[] | null;
   type: string;
   genero: string;
   fechaNacimiento: string;
   pais: string;
-  detalles: string;
+  detalles?: string | null;
   estado: string;
+  videos?: Video[] | null;
 };
 
 export type InsertData = {
@@ -197,7 +214,12 @@ export default function ClientsPageUnsafe() {
             <option value="Inactivo">Inactivo</option>
             <option value="Sin proyectos">Sin proyectos</option>
           </select>
-
+          <button
+            onClick={() => refetchProfiles()}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+          >
+            Actualizar
+          </button>
           <button
             onClick={() => {
               setShowModal(true);

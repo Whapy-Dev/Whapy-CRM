@@ -6,7 +6,6 @@ import { useAllMeetings } from "@/hooks/admin/useAllMeetings";
 
 export default function MeetingsPage() {
   const { data: dataAllMeetings = [] } = useAllMeetings();
-  console.log("dataAllMeetings:", dataAllMeetings);
 
   const [searchTerm, setSearchTerm] = useState("");
 

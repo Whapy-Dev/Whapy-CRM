@@ -41,7 +41,6 @@ const formatCurrency = (amount: number) => {
 export default function BudgetsPage() {
   const { data: budgets = [], refetch } = useBudgets();
   const { data: clients = [] } = useProfiles();
-  console.log(budgets);
   const [viewCreatePresupuesto, setViewCreatePresupuesto] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");

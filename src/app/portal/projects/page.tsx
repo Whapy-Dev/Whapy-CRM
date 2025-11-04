@@ -30,7 +30,6 @@ export default function ProjectsPage() {
     isLoading: isLoadingProjects,
     error: errorProjects,
   } = useProjectsUser();
-  console.log(projectsData);
 
   const statusConfig = {
     en_progreso: {

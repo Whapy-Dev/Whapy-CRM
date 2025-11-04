@@ -32,7 +32,6 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEmpresa, setFilterEmpresa] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  console.log(leads);
 
   const filteredLeads = leads.filter((lead) => {
     const name = lead.name?.toLowerCase() || "";

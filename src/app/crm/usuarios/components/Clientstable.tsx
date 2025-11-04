@@ -43,7 +43,7 @@ export default function ClientsTable({
               ].map((head) => (
                 <th
                   key={head}
-                  className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"
+                  className="px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   {head}
                 </th>
@@ -56,39 +56,39 @@ export default function ClientsTable({
                 key={client.id}
                 className="hover:bg-gray-50 transition-colors"
               >
-                <td className="px-6 py-4 text-sm text-gray-900">
+                <td className="px-4 py-4 text-sm text-gray-900">
                   {client.nombre || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700">
                   {client.email}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700 text-nowrap">
                   {client.telefono || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700">
                   {client.empresa || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700 text-nowrap">
                   {client.ciudad || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700">
                   {client.codigoPostal || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700">
                   {client.genero || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700">
                   {client.fechaNacimiento || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700">
                   {client.pais || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700">
                   {client.type || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm">
+                <td className="px-4 py-4 text-sm">
                   <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full text-nowrap ${
+                    className={`px-4 py-1 text-xs font-semibold rounded-full text-nowrap ${
                       client.estado === "Activo"
                         ? "bg-green-100 text-green-700"
                         : client.estado === "Inactivo"
@@ -99,7 +99,7 @@ export default function ClientsTable({
                     {client.estado}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
+                <td className="px-4 py-4 text-sm text-gray-500">
                   {client.created_at
                     ? new Date(client.created_at).toLocaleDateString("es-AR", {
                         day: "2-digit",
@@ -108,7 +108,7 @@ export default function ClientsTable({
                       })
                     : "—"}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
+                <td className="px-4 py-4 whitespace-nowrap text-right">
                   <button
                     onClick={() => onClientClick(client)}
                     className="text-gray-400 hover:text-gray-600 cursor-pointer"

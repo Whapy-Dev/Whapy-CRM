@@ -15,12 +15,17 @@ export function useProfiles() {
         .select(
           `
           *,
+          videos(*),
           projects:projects(
             *,
+            videos(*),
             documents(*),
-            all_meetings(*)
+            all_meetings(
+              *,
+              videos(*)
             )
-            budgets(*)
+          ),
+          budgets(*)
         `
         )
         .eq("role", "cliente");

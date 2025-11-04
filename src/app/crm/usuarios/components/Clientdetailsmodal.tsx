@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Client, Project } from "../page";
 import ProjectCard from "./Projectcard";
+import AssignVideoModal from "./AssignVideoModal";
+import ShowVideoClientModal from "./VideoClient";
 
 type ClientDetailsModalProps = {
   show: boolean;
@@ -18,6 +21,8 @@ export default function ClientDetailsModal({
   onAssignDocument,
   onAssignMeeting,
 }: ClientDetailsModalProps) {
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showVideoClient, setShowVideoClient] = useState(false);
   if (!show || !client) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -28,9 +33,25 @@ export default function ClientDetailsModal({
 
         {/* Card Datos Personales */}
         <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow-md border border-blue-200">
-          <h3 className="text-xl font-semibold mb-4 text-blue-700">
-            Datos Personales
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xl font-semibold mb-4 text-blue-700">
+              Datos Personales
+            </h3>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowVideoClient(true)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+              >
+                Ver Videos
+              </button>
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+              >
+                Subir Video
+              </button>
+            </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-800">
             <p>
               <strong>Email:</strong> {client.email}
@@ -93,6 +114,16 @@ export default function ClientDetailsModal({
           </button>
         </div>
       </div>
+      <AssignVideoModal
+        show={showUploadModal}
+        client={client}
+        onClose={() => setShowUploadModal(false)}
+      />
+      <ShowVideoClientModal
+        show={showVideoClient}
+        client={client}
+        onClose={() => setShowVideoClient(false)}
+      />
     </div>
   );
 }
