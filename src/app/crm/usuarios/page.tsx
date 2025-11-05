@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useProfiles } from "@/hooks/admin/useProfiles";
 import EditProjectModal from "./components/Editprojectmodal";
-import AssignDocumentModal from "./components/Assigndocumentmodal";
 import ClientDetailsModal from "./components/Clientdetailsmodal";
 import CreateAccountModal from "./components/Createaccountmodal";
 import ClientsTable from "./components/Clientstable";
-import AssignMeetingModal from "./components/Assignmeetingmodal";
+
 import { Plus, Search } from "lucide-react";
 export type Document = {
   id: string;
@@ -140,9 +139,6 @@ export default function ClientsPageUnsafe() {
   const [showModal, setShowModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showEditProject, setShowEditProject] = useState(false);
-  const [showDocumentModal, setShowDocumentModal] = useState(false);
-  const [showMeetingModal, setShowMeetingModal] = useState(false);
-
   // Estados de búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTipo, setSelectedTipo] = useState("");
@@ -255,14 +251,6 @@ export default function ClientsPageUnsafe() {
             setSelectedProject(project);
             setShowEditProject(true);
           }}
-          onAssignDocument={(project) => {
-            setSelectedProject(project);
-            setShowDocumentModal(true);
-          }}
-          onAssignMeeting={(project) => {
-            setSelectedProject(project);
-            setShowMeetingModal(true);
-          }}
         />
 
         {/* Modal Editar Proyecto */}
@@ -273,20 +261,6 @@ export default function ClientsPageUnsafe() {
         />
 
         {/* Modal Asignar Documento */}
-        <AssignDocumentModal
-          show={showDocumentModal}
-          project={selectedProject}
-          client={selectedClient}
-          onClose={() => setShowDocumentModal(false)}
-          refetchProfiles={refetchProfiles}
-        />
-        <AssignMeetingModal
-          show={showMeetingModal}
-          project={selectedProject}
-          client={selectedClient}
-          onClose={() => setShowMeetingModal(false)}
-          refetchProfiles={refetchProfiles}
-        />
       </div>
     </>
   );

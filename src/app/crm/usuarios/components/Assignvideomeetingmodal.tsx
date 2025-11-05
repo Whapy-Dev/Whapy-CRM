@@ -1,11 +1,11 @@
 import { useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
-import { Client, Meeting, Project } from "../page";
+import { Meeting } from "../page";
 
-type AssignVideoModalProps = {
+type AssignVideoMeetingsModalProps = {
   show: boolean;
-  client: Client | null;
+  all_meetings: Meeting[] | null | undefined;
   onClose: () => void;
 };
 type Video = {
@@ -16,26 +16,24 @@ type Video = {
   descripcion: string;
   project_id?: string;
   meeting_id?: string;
+  duration: string;
 };
-export default function AssignVideoModal({
+export default function AssignVideoMeetingModal({
   show,
-  client,
+  all_meetings,
   onClose,
-}: AssignVideoModalProps) {
-  const [showUploadModal, setShowUploadModal] = useState(false);
+}: AssignVideoMeetingsModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedMeetingId, setSelectedMeetingId] = useState("");
-  const [soloUsuario, setSoloUsuario] = useState(true);
 
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const supabase = createClient();
-  if (!show || !client) return null;
+  if (!show || !all_meetings) return null;
 
   // 🔹 Subida del video a Vimeo + guardado en DB
   const handleUpload = async () => {
@@ -56,7 +54,7 @@ export default function AssignVideoModal({
       setMessage("Asigna una duracion en minutos.");
       return;
     }
-    if (!soloUsuario && !selectedProjectId && !selectedMeetingId) {
+    if (!selectedMeetingId) {
       setMessage("Debes seleccionar a quién pertenece el video.");
       return;
     }
@@ -111,20 +109,15 @@ export default function AssignVideoModal({
       const videoData: Video = {
         vimeo_id: vimeoId,
         vimeo_url: vimeoUrl,
+        meeting_id: selectedMeetingId,
         title,
         descripcion,
+        duration,
       };
-      if (soloUsuario) {
-        videoData.user_id = client.id;
-      } else if (selectedMeetingId) {
-        videoData.meeting_id = selectedMeetingId;
-      } else if (selectedProjectId) {
-        videoData.project_id = selectedProjectId;
-      } else {
+      if (!selectedMeetingId)
         throw new Error(
           "Debe seleccionar un destino (usuario, reunión o proyecto)."
         );
-      }
 
       const { error: dbError } = await supabase
         .from("videos")
@@ -133,13 +126,18 @@ export default function AssignVideoModal({
       if (dbError) throw dbError;
 
       setMessage("✅ Video subido y guardado correctamente.");
+      setIsUploading(false);
       setProgress(100);
       setFile(null);
       setTitle("");
+      setDuration("");
       setDescripcion("");
       setSelectedMeetingId("");
-      setSelectedProjectId("");
-      setTimeout(() => setShowUploadModal(false), 1500);
+      setTimeout(() => {
+        setMessage("");
+        setProgress(0);
+        onClose();
+      }, 1500);
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err);
@@ -150,76 +148,26 @@ export default function AssignVideoModal({
       }
     }
   };
-  if (!show || !client) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md border border-gray-200">
         {/* Nueva sección para elegir destino del video */}
         <div className="mb-4">
           <h4 className="text-lg font-semibold mb-3 text-gray-800">
-            Subir video a:
+            Subir video a reunion
           </h4>
-
-          {/* Checkbox: Solo al usuario */}
-          <div className="flex items-center gap-3 mb-3">
-            <input
-              type="checkbox"
-              id="soloUsuario"
-              checked={soloUsuario}
-              onChange={() => {
-                const newVal = !soloUsuario;
-                setSoloUsuario(newVal);
-                if (newVal) {
-                  setSelectedProjectId("");
-                  setSelectedMeetingId("");
-                }
-              }}
-              className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-            />
-            <label
-              htmlFor="soloUsuario"
-              className="text-gray-700 font-medium cursor-pointer"
-            >
-              Solo al usuario
-            </label>
-          </div>
-
-          {!soloUsuario && (
-            <>
-              <select
-                value={selectedProjectId}
-                onChange={(e) => {
-                  setSelectedProjectId(e.target.value);
-                  setSelectedMeetingId("");
-                }}
-                className="w-full border border-gray-300 rounded-xl p-3 mb-3 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
-              >
-                <option value="">— Seleccionar Proyecto —</option>
-                {client.projects?.map((p: Project) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                  </option>
-                ))}
-              </select>
-
-              {selectedProjectId && (
-                <select
-                  value={selectedMeetingId}
-                  onChange={(e) => setSelectedMeetingId(e.target.value)}
-                  className="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
-                >
-                  <option value="">— Seleccionar Reunión —</option>
-                  {client.projects
-                    ?.find((p: Project) => p.id === selectedProjectId)
-                    ?.all_meetings?.map((m: Meeting) => (
-                      <option key={m.meeting_id} value={m.meeting_id}>
-                        {m.title}
-                      </option>
-                    ))}
-                </select>
-              )}
-            </>
-          )}
+          <select
+            value={selectedMeetingId}
+            onChange={(e) => setSelectedMeetingId(e.target.value)}
+            className="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+          >
+            <option value="">— Seleccionar Reunión —</option>
+            {all_meetings?.map((m: Meeting) => (
+              <option key={m.meeting_id} value={m.meeting_id}>
+                {m.title}
+              </option>
+            ))}
+          </select>
         </div>
 
         <input
@@ -272,15 +220,16 @@ export default function AssignVideoModal({
         <div className="flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-gray-200 text-gray-800 rounded-2xl hover:bg-gray-300 transition font-medium cursor-pointer"
             disabled={isUploading}
+            className="px-5 py-2 rounded-2xl font-medium transition bg-gray-200 text-gray-800 hover:bg-gray-300 cursor-pointer disabled:text-gray-400 disabled:cursor-not-allowed"
           >
             Cancelar
           </button>
+
           <button
             onClick={handleUpload}
-            className="px-5 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition font-medium cursor-pointer"
             disabled={isUploading}
+            className="px-5 py-2 rounded-2xl font-medium transition bg-blue-600 text-white hover:bg-blue-700 cursor-pointer disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
             {isUploading ? "Subiendo..." : "Subir"}
           </button>

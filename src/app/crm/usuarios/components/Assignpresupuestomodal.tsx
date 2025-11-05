@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Client } from "../page";
+import { Client, Project } from "../page";
 import { createClient } from "@/lib/supabase/client";
 import { AlertCircle } from "lucide-react";
 
 type AssignPresupuestoModalProps = {
   show: boolean;
   client: Client | null;
+  project: Project | null;
   onClose: () => void;
 };
 const supabase = createClient();
 export default function AssignPresupuestoModal({
   show,
   client,
+  project,
   onClose,
 }: AssignPresupuestoModalProps) {
   const [status, setStatus] = useState("");
@@ -50,6 +52,7 @@ export default function AssignPresupuestoModal({
       const { error } = await supabase.from("budgets").insert([
         {
           user_id: client?.id,
+          project_id: project?.id,
           title: title,
           status: status,
           amount_total: Number(amountTotal),

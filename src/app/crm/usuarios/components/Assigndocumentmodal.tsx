@@ -148,10 +148,10 @@ export default function AssignDocumentModal({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150 bg-white"
             >
               <option value="">Seleccionar...</option>
-              <option value="Diseño">Diseño</option>
+              <option value="Varios">Varios</option>
               <option value="Contractual">Contractual</option>
-              <option value="Reuniones">Reuniones</option>
-              <option value="Técnico">Técnico</option>
+              <option value="Presentacion visual">Presentacion visual</option>
+              <option value="Presupuesto">Presupuesto</option>
             </select>
           </div>
 

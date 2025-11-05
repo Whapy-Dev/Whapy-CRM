@@ -1,42 +1,40 @@
 import { useState } from "react";
 import { Client, Project } from "../page";
 import ProjectCard from "./Projectcard";
-import AssignVideoModal from "./AssignVideoModal";
-import ShowVideoClientModal from "./VideoClient";
 import ShowEditClientModal from "./EditClient";
 import AssignProjectModal from "./Assignprojectmodal";
-import AssignPresupuestoModal from "./Assignpresupuestomodal";
 import EditDetallesModal from "./EditDetallesModal";
+import AssignDocumentModal from "./Assigndocumentmodal";
+import AssignMeetingModal from "./Assignmeetingmodal";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ClientDetailsModalProps = {
   show: boolean;
   client: Client | null;
   onClose: () => void;
   onEditProject: (project: Project) => void;
-  onAssignDocument: (project: Project) => void;
-  onAssignMeeting: (project: Project) => void;
 };
-
 export default function ClientDetailsModal({
   show,
   client,
   onClose,
   onEditProject,
-  onAssignDocument,
-  onAssignMeeting,
 }: ClientDetailsModalProps) {
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showVideoClient, setShowVideoClient] = useState(false);
   const [showEditClientModal, setShowEditClientModal] = useState(false);
   const [showNewProjectClientModal, setShowNewProjectClientModal] =
     useState(false);
-  const [showNewPresupuestoClientModal, setShowNewPresupuestoClientModal] =
-    useState(false);
-  const [showEditDetalles, setShowEditDetalles] = useState(false); // 👈 nuevo estado
+  const [showEditDetalles, setShowEditDetalles] = useState(false);
   const [currentDetalles, setCurrentDetalles] = useState(
     client?.detalles || ""
   );
+  const queryClient = useQueryClient();
+  // nuevos estados para documentos y reuniones
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
   if (!show || !client) return null;
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl p-6 w-full overflow-y-auto max-h-[90vh] shadow-2xl border border-gray-200">
@@ -44,8 +42,7 @@ export default function ClientDetailsModal({
           {client?.nombre || "—"}
         </h2>
 
-        {/* Card Datos Personales */}
-        {/* Card Datos Personales */}
+        {/* Datos Personales */}
         <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow-md border border-blue-200">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xl font-semibold text-blue-700">
@@ -53,69 +50,45 @@ export default function ClientDetailsModal({
             </h3>
             <div className="flex gap-2">
               <button
-                onClick={() => setShowNewPresupuestoClientModal(true)}
-                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
-              >
-                Crear Presupuesto
-              </button>
-              <button
-                onClick={() => setShowNewProjectClientModal(true)}
-                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
-              >
-                Crear Proyecto
-              </button>
-              <button
                 onClick={() => setShowEditClientModal(true)}
                 className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
               >
                 Editar cliente
-              </button>
-              <button
-                onClick={() => setShowVideoClient(true)}
-                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
-              >
-                Ver Videos
-              </button>
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
-              >
-                Subir Video
               </button>
             </div>
           </div>
 
           <div className="flex gap-10 text-gray-800 flex-wrap">
             <div className="flex flex-col justify-center min-w-[250px]">
-              <p className="mb-1">
+              <p>
                 <strong>Email:</strong> {client.email}
               </p>
-              <p className="mb-1">
-                <strong>Teléfono:</strong> {client?.telefono || "—"}
+              <p>
+                <strong>Teléfono:</strong> {client.telefono || "—"}
               </p>
-              <p className="mb-1">
+              <p>
                 <strong>Empresa:</strong> {client.empresa || "—"}
               </p>
-              <p className="mb-1">
+              <p>
                 <strong>Ciudad:</strong> {client.ciudad || "—"}
               </p>
-              <p className="mb-1">
+              <p>
                 <strong>Código Postal:</strong> {client.codigoPostal || "—"}
               </p>
             </div>
 
             <div className="flex flex-col justify-center min-w-[250px]">
-              <p className="mb-1">
+              <p>
                 <strong>Tipo:</strong> {client.type || "—"}
               </p>
-              <p className="mb-1">
+              <p>
                 <strong>Género:</strong> {client.genero || "—"}
               </p>
-              <p className="mb-1">
+              <p>
                 <strong>Fecha de Nacimiento:</strong>{" "}
                 {client.fechaNacimiento || "—"}
               </p>
-              <p className="mb-1">
+              <p>
                 <strong>País:</strong> {client.pais || "—"}
               </p>
               <div
@@ -141,16 +114,34 @@ export default function ClientDetailsModal({
         </div>
 
         {/* Proyectos */}
-        <h3 className="text-2xl font-semibold mb-4 text-gray-900">Proyectos</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-semibold mb-4 text-gray-900">
+            Proyectos
+          </h3>
+          <button
+            onClick={() => setShowNewProjectClientModal(true)}
+            className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+          >
+            Crear Proyecto
+          </button>
+        </div>
+
         {client.projects?.length ? (
           <div className="grid grid-cols-2 gap-5">
             {client.projects.map((project: Project) => (
               <ProjectCard
                 key={project.id}
                 project={project}
+                client={client}
                 onEditClick={() => onEditProject(project)}
-                onAssignDocument={() => onAssignDocument(project)}
-                onAssignMeeting={() => onAssignMeeting(project)}
+                onAssignDocument={() => {
+                  setSelectedProject(project);
+                  setShowDocumentModal(true);
+                }}
+                onAssignMeeting={() => {
+                  setSelectedProject(project);
+                  setShowMeetingModal(true);
+                }}
               />
             ))}
           </div>
@@ -167,16 +158,8 @@ export default function ClientDetailsModal({
           </button>
         </div>
       </div>
-      <AssignVideoModal
-        show={showUploadModal}
-        client={client}
-        onClose={() => setShowUploadModal(false)}
-      />
-      <ShowVideoClientModal
-        show={showVideoClient}
-        client={client}
-        onClose={() => setShowVideoClient(false)}
-      />
+
+      {/* Modales secundarios */}
       <ShowEditClientModal
         show={showEditClientModal}
         client={client}
@@ -187,16 +170,29 @@ export default function ClientDetailsModal({
         client={client}
         onClose={() => setShowNewProjectClientModal(false)}
       />
-      <AssignPresupuestoModal
-        show={showNewPresupuestoClientModal}
-        client={client}
-        onClose={() => setShowNewPresupuestoClientModal(false)}
-      />
       <EditDetallesModal
         show={showEditDetalles}
         client={client}
         onClose={() => setShowEditDetalles(false)}
         onUpdate={(newDetalles) => setCurrentDetalles(newDetalles)}
+      />
+      <AssignDocumentModal
+        show={showDocumentModal}
+        project={selectedProject}
+        client={client}
+        onClose={() => setShowDocumentModal(false)}
+        refetchProfiles={() =>
+          queryClient.invalidateQueries({ queryKey: ["profiles"] })
+        }
+      />
+      <AssignMeetingModal
+        show={showMeetingModal}
+        project={selectedProject}
+        client={client}
+        onClose={() => setShowMeetingModal(false)}
+        refetchProfiles={() =>
+          queryClient.invalidateQueries({ queryKey: ["profiles"] })
+        }
       />
     </div>
   );
