@@ -99,7 +99,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleNewDocument = async (e: React.FormEvent) => {
+  const handleNewProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorForm("");
     setLoading(true);
@@ -227,7 +227,7 @@ export default function ProjectsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Nuevo Proyecto</h2>
-            <form onSubmit={handleNewDocument} className="space-y-4">
+            <form onSubmit={handleNewProject} className="space-y-4">
               {errorForm && (
                 <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -409,7 +409,7 @@ function ProjectsTable({ filteredProjects }: { filteredProjects: Project[] }) {
     setViewModal(true);
   };
 
-  const handleCreateThings = async (e: React.FormEvent) => {
+  const handleNewDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
     if (!title || !documentUrl || !categoryDocument || !typeDocument) {
@@ -594,7 +594,7 @@ function ProjectsTable({ filteredProjects }: { filteredProjects: Project[] }) {
               </div>
             )}
 
-            <form onSubmit={handleCreateThings} className="space-y-4">
+            <form onSubmit={handleNewDocument} className="space-y-4">
               <div>
                 <label
                   htmlFor="title"

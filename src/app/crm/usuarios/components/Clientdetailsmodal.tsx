@@ -3,6 +3,9 @@ import { Client, Project } from "../page";
 import ProjectCard from "./Projectcard";
 import AssignVideoModal from "./AssignVideoModal";
 import ShowVideoClientModal from "./VideoClient";
+import ShowEditClientModal from "./EditClient";
+import AssignProjectModal from "./Assignprojectmodal";
+import AssignPresupuestoModal from "./Assignpresupuestomodal";
 
 type ClientDetailsModalProps = {
   show: boolean;
@@ -23,6 +26,11 @@ export default function ClientDetailsModal({
 }: ClientDetailsModalProps) {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showVideoClient, setShowVideoClient] = useState(false);
+  const [showEditClientModal, setShowEditClientModal] = useState(false);
+  const [showNewProjectClientModal, setShowNewProjectClientModal] =
+    useState(false);
+  const [showNewPresupuestoClientModal, setShowNewPresupuestoClientModal] =
+    useState(false);
   if (!show || !client) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -32,58 +40,82 @@ export default function ClientDetailsModal({
         </h2>
 
         {/* Card Datos Personales */}
-        <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow-md border border-blue-200">
+        {/* Card Datos Personales */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow-md border border-blue-200">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xl font-semibold mb-4 text-blue-700">
+            <h3 className="text-xl font-semibold text-blue-700">
               Datos Personales
             </h3>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowNewPresupuestoClientModal(true)}
+                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+              >
+                Crear Presupuesto
+              </button>
+              <button
+                onClick={() => setShowNewProjectClientModal(true)}
+                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+              >
+                Crear Proyecto
+              </button>
+              <button
+                onClick={() => setShowEditClientModal(true)}
+                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+              >
+                Editar cliente
+              </button>
               <button
                 onClick={() => setShowVideoClient(true)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
               >
                 Ver Videos
               </button>
               <button
                 onClick={() => setShowUploadModal(true)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
               >
                 Subir Video
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-800">
-            <p>
-              <strong>Email:</strong> {client.email}
-            </p>
-            <p>
-              <strong>Teléfono:</strong> {client?.telefono || "—"}
-            </p>
-            <p>
-              <strong>Empresa:</strong> {client.empresa || "—"}
-            </p>
-            <p>
-              <strong>Ciudad:</strong> {client.ciudad || "—"}
-            </p>
-            <p>
-              <strong>Código Postal:</strong> {client.codigoPostal || "—"}
-            </p>
-            <p>
-              <strong>Tipo:</strong> {client.type || "—"}
-            </p>
-            <p>
-              <strong>Genero:</strong> {client.genero || "—"}
-            </p>
-            <p>
-              <strong>Fecha de Nacimiento:</strong>{" "}
-              {client.fechaNacimiento || "—"}
-            </p>
-            <p>
-              <strong>Pais:</strong> {client.pais || "—"}
-            </p>
-            <p className="text-pretty">
-              <strong>Detalles:</strong> {client.detalles || "—"}
-            </p>
+
+          <div className="flex gap-10 text-gray-800 ">
+            <div className="flex flex-col justify-center">
+              <p className="mb-1">
+                <strong>Email:</strong> {client.email}
+              </p>
+              <p className="mb-1">
+                <strong>Teléfono:</strong> {client?.telefono || "—"}
+              </p>
+              <p className="mb-1">
+                <strong>Empresa:</strong> {client.empresa || "—"}
+              </p>
+              <p className="mb-1">
+                <strong>Ciudad:</strong> {client.ciudad || "—"}
+              </p>
+              <p className="mb-1">
+                <strong>Código Postal:</strong> {client.codigoPostal || "—"}
+              </p>
+            </div>
+            <div className="flex flex-col justify-center">
+              <p className="mb-1">
+                <strong>Tipo:</strong> {client.type || "—"}
+              </p>
+              <p className="mb-1">
+                <strong>Género:</strong> {client.genero || "—"}
+              </p>
+              <p className="mb-1">
+                <strong>Fecha de Nacimiento:</strong>{" "}
+                {client.fechaNacimiento || "—"}
+              </p>
+              <p className="mb-1">
+                <strong>País:</strong> {client.pais || "—"}
+              </p>
+              <p className="mb-1">
+                <strong>Detalles:</strong> {client.detalles || "—"}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -123,6 +155,21 @@ export default function ClientDetailsModal({
         show={showVideoClient}
         client={client}
         onClose={() => setShowVideoClient(false)}
+      />
+      <ShowEditClientModal
+        show={showEditClientModal}
+        client={client}
+        onClose={() => setShowEditClientModal(false)}
+      />
+      <AssignProjectModal
+        show={showNewProjectClientModal}
+        client={client}
+        onClose={() => setShowNewProjectClientModal(false)}
+      />
+      <AssignPresupuestoModal
+        show={showNewPresupuestoClientModal}
+        client={client}
+        onClose={() => setShowNewPresupuestoClientModal(false)}
       />
     </div>
   );
