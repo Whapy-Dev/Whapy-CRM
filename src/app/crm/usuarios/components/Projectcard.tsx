@@ -19,9 +19,25 @@ export default function ProjectCard({
   if (project.status === "Terminado")
     statusColor = "bg-green-100 text-green-800";
   if (project.status === "Cancelado") statusColor = "bg-red-100 text-red-800";
+  const categories = [
+    "Varios",
+    "Contractual",
+    "Presentacion visual",
+    "Presupuesto",
+  ];
 
+  const groupedDocs = categories.map((category) => {
+    const docs = project.documents
+      ?.filter((doc: Document) => doc.category_document === category)
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      .slice(0, 3);
+    return { category, docs };
+  });
   return (
-    <div className="p-6 rounded-2xl shadow-md border border-gray-200 bg-gradient-to-r from-white to-gray-50 hover:border hover:border-black">
+    <div className="p-4 rounded-2xl shadow-md border border-gray-200 bg-gradient-to-r from-white to-gray-50 hover:border hover:border-black">
       <div className="flex items-center justify-between">
         <p
           className={`px-4 py-1 inline-block rounded-full ${statusColor} font-semibold`}
@@ -56,19 +72,35 @@ export default function ProjectCard({
           </button>
         </div>
         {project.documents?.length ? (
-          <ul className="list-disc ml-5 space-y-1 text-blue-800">
-            {project.documents.map((doc: Document) => (
-              <li key={doc.id}>
-                <a
-                  href={doc.document_url}
-                  target="_blank"
-                  className="underline hover:text-blue-900"
-                >
-                  {doc.title} ({doc.category_document})
-                </a>
-              </li>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+            {groupedDocs.map(({ category, docs }) => (
+              <div key={category} className="w-auto">
+                <h6 className="font-semibold capitalize text-blue-800 mb-1">
+                  {category}
+                </h6>
+                {docs && docs.length > 0 ? (
+                  <ul className="list-disc ml-5 space-y-1 text-blue-800">
+                    {docs.map((doc: Document) => (
+                      <li key={doc.id}>
+                        <a
+                          href={doc.document_url}
+                          target="_blank"
+                          className="underline hover:text-blue-900"
+                        >
+                          {doc.title}
+                        </a>{" "}
+                        <span className="text-xs text-gray-500">
+                          ({new Date(doc.created_at).toLocaleDateString()})
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-blue-600 text-sm">No hay documentos</p>
+                )}
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
           <p className="text-blue-600">No hay documentos</p>
         )}
@@ -77,7 +109,7 @@ export default function ProjectCard({
       {/* Reuniones */}
       <div className="p-4 bg-green-50 rounded-xl shadow-inner border border-green-100">
         <div className="flex justify-between items-center mb-2">
-          <h5 className="font-semibold text-green-700">Reuniones</h5>
+          <h5 className="font-semibold text-green-700">Videos</h5>
           <button
             onClick={onAssignMeeting}
             className="px-2 py-1 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 cursor-pointer"

@@ -6,6 +6,7 @@ import ShowVideoClientModal from "./VideoClient";
 import ShowEditClientModal from "./EditClient";
 import AssignProjectModal from "./Assignprojectmodal";
 import AssignPresupuestoModal from "./Assignpresupuestomodal";
+import EditDetallesModal from "./EditDetallesModal";
 
 type ClientDetailsModalProps = {
   show: boolean;
@@ -31,6 +32,10 @@ export default function ClientDetailsModal({
     useState(false);
   const [showNewPresupuestoClientModal, setShowNewPresupuestoClientModal] =
     useState(false);
+  const [showEditDetalles, setShowEditDetalles] = useState(false); // 👈 nuevo estado
+  const [currentDetalles, setCurrentDetalles] = useState(
+    client?.detalles || ""
+  );
   if (!show || !client) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -80,8 +85,8 @@ export default function ClientDetailsModal({
             </div>
           </div>
 
-          <div className="flex gap-10 text-gray-800 ">
-            <div className="flex flex-col justify-center">
+          <div className="flex gap-10 text-gray-800 flex-wrap">
+            <div className="flex flex-col justify-center min-w-[250px]">
               <p className="mb-1">
                 <strong>Email:</strong> {client.email}
               </p>
@@ -98,7 +103,8 @@ export default function ClientDetailsModal({
                 <strong>Código Postal:</strong> {client.codigoPostal || "—"}
               </p>
             </div>
-            <div className="flex flex-col justify-center">
+
+            <div className="flex flex-col justify-center min-w-[250px]">
               <p className="mb-1">
                 <strong>Tipo:</strong> {client.type || "—"}
               </p>
@@ -112,9 +118,24 @@ export default function ClientDetailsModal({
               <p className="mb-1">
                 <strong>País:</strong> {client.pais || "—"}
               </p>
-              <p className="mb-1">
-                <strong>Detalles:</strong> {client.detalles || "—"}
-              </p>
+              <div
+                className="mb-1 max-w-[300px] cursor-pointer"
+                onClick={() => setShowEditDetalles(true)}
+              >
+                <p className="overflow-hidden text-ellipsis whitespace-nowrap inline-block align-middle">
+                  <strong>Detalles:</strong>{" "}
+                  {client.detalles
+                    ? client.detalles.length > 50
+                      ? client.detalles.slice(0, 50) + "..."
+                      : client.detalles
+                    : "—"}
+                </p>
+                {client.detalles && client.detalles.length > 50 && (
+                  <span className="text-gray-500 text-xs ml-1 align-middle">
+                    ({client.detalles.length} caracteres)
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -170,6 +191,12 @@ export default function ClientDetailsModal({
         show={showNewPresupuestoClientModal}
         client={client}
         onClose={() => setShowNewPresupuestoClientModal(false)}
+      />
+      <EditDetallesModal
+        show={showEditDetalles}
+        client={client}
+        onClose={() => setShowEditDetalles(false)}
+        onUpdate={(newDetalles) => setCurrentDetalles(newDetalles)}
       />
     </div>
   );
