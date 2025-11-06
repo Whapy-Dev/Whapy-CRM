@@ -62,7 +62,13 @@ export default function DocumentsContent({ documents, projectId }: Props) {
     return <FileText className="w-8 h-8 text-gray-600" />;
   };
 
-  const categories = ["Todos", "Contractual", "Técnico", "Reuniones", "Diseño"];
+  const categories = [
+    "Todos",
+    "Varios",
+    "Presupuesto",
+    "Contractual",
+    "Presentacion visual",
+  ];
   const [selectedCategory, setSelectedCategory] = useState("Todos");
 
   const filteredDocs =

@@ -40,7 +40,9 @@ export function useAllMeetingsByProjectId(projectId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("all_meetings")
-        .select("*, leads(name), profiles(nombre), projects!inner(title)")
+        .select(
+          "*, leads(name), profiles(nombre), projects!inner(title), videos(*)"
+        )
         .eq("project_id", projectId)
         .order("start_at", { ascending: true });
       if (error) throw error;

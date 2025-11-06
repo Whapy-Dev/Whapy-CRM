@@ -1,7 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Video, FileText, Play, Calendar, Clock } from "lucide-react";
+import { FileText, Play, Calendar, Clock, Video, X } from "lucide-react";
+
+type VideoType = {
+  id: string;
+  user_id?: string | null;
+  meeting_id?: string | null;
+  project_id?: string | null;
+  vimeo_id: string;
+  vimeo_url: string;
+  title: string;
+  status: string;
+  descripcion: string;
+  duration?: string | null;
+  created_at: string;
+};
 
 type Lead = {
   name: string;
@@ -10,6 +24,7 @@ type Lead = {
 type Profile = {
   nombre: string;
 };
+
 type Meeting = {
   meeting_id: string;
   project_id: string;
@@ -27,23 +42,25 @@ type Meeting = {
   leads?: Lead;
   profiles?: Profile;
   duration: string;
+  videos?: VideoType[];
 };
+
 type Props = {
   meetings: Meeting[];
   projectId: string;
 };
 
 export default function MeetingsContent({ meetings, projectId }: Props) {
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+
   const meetingsWithDate = meetings.filter(
     (m) => m.start_at && new Date(m.start_at) > new Date()
   );
 
-  // Ordenamos por fecha ascendente
   const sortedMeetings = meetingsWithDate.sort(
     (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
   );
 
-  // Tomamos la primera (próxima)
   const nextMeeting = sortedMeetings[0];
 
   const formatDate = (dateString: string) => {
@@ -83,7 +100,7 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
             </div>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            {meetings.filter((m) => m.meet_url).length}
+            {meetings.filter((m) => m.videos && m.videos.length > 0).length}
           </p>
           <p className="text-sm text-gray-600">Grabaciones</p>
         </div>
@@ -137,16 +154,16 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
                 <p className="text-gray-700 mb-4">{meeting.summary_md}</p>
 
                 <div className="flex gap-3">
-                  {meeting.meet_url && (
-                    <a
-                      href={meeting.meet_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  {meeting.videos && meeting.videos.length > 0 && (
+                    <button
+                      onClick={() =>
+                        setSelectedVideo(meeting.videos![0].vimeo_url)
+                      }
                       className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
                       <Play className="w-4 h-4" />
                       Ver Grabación
-                    </a>
+                    </button>
                   )}
                   {meeting.summary_pdf_url && (
                     <a
@@ -168,7 +185,7 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
 
       {/* Next Meeting Card */}
       {nextMeeting ? (
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white mt-6">
           <h3 className="text-lg font-bold mb-2">📅 Próxima Reunión</h3>
           <p className="text-blue-100 mb-4">
             {nextMeeting.title} -{" "}
@@ -181,20 +198,37 @@ export default function MeetingsContent({ meetings, projectId }: Props) {
               minute: "2-digit",
             })}
           </p>
-          {nextMeeting.meet_url && (
-            <a
-              href={nextMeeting.meet_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
-            >
-              <Video className="w-4 h-4" />
-              Unirse a la reunión
-            </a>
-          )}
         </div>
       ) : (
-        <div>No hay próximas reuniones programadas.</div>
+        <div className="mt-6">No hay próximas reuniones programadas.</div>
+      )}
+
+      {/* 🎬 Modal Vimeo */}
+      {selectedVideo && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-4 relative">
+            <button
+              onClick={() => setSelectedVideo(null)}
+              className="absolute top-7 right-7 text-white hover:text-gray-800 cursor-pointer"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="aspect-video w-full rounded-lg overflow-hidden">
+              <iframe
+                src={selectedVideo.replace(
+                  "vimeo.com",
+                  "player.vimeo.com/video"
+                )}
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
