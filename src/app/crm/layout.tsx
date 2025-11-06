@@ -97,12 +97,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <Image
-              src="/favicon-32x32.png"
-              alt="Whapy Icon"
-              width={32}
-              height={32}
-            />
+            <Image src="/102.png" alt="Whapy Icon" width={32} height={32} />
 
             <div>
               <h1 className="text-xl font-bold text-gray-900">Whapy CRM</h1>

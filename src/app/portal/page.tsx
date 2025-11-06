@@ -91,7 +91,7 @@ export default function PortalDashboard() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
           href="/portal/projects"
           className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
@@ -109,21 +109,6 @@ export default function PortalDashboard() {
             Ver proyectos <ArrowRight className="w-4 h-4" />
           </p>
         </Link>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-          <h3 className="text-sm font-medium text-gray-600 mb-1">
-            Estado General
-          </h3>
-          <p className="text-2xl font-bold text-gray-900">En progreso</p>
-          <p className="text-sm text-gray-500 mt-2">
-            Todo marcha según lo planeado
-          </p>
-        </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">

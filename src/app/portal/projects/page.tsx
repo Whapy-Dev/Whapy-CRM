@@ -75,7 +75,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-2">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -101,25 +101,6 @@ export default function ProjectsPage() {
             )}
           </p>
           <p className="text-sm text-gray-600">Reuniones Totales</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-purple-600" />
-            </div>
-          </div>
-
-          <p className="text-2xl font-bold text-gray-900">
-            {projectsData && projectsData.length > 0
-              ? Math.round(
-                  projectsData.reduce((sum, p) => sum + p.progress, 0) /
-                    projectsData.length
-                )
-              : 0}
-            %
-          </p>
-          <p className="text-sm text-gray-600">Progreso Promedio</p>
         </div>
       </div>
 
@@ -188,7 +169,7 @@ export default function ProjectsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {project?.all_meetings?.length || 0} reuniones
+                      {project?.all_meetings?.length || 0} grabaciones
                     </div>
                   </div>
                 </div>
@@ -218,7 +199,7 @@ export default function ProjectsPage() {
 
             {/* Project Actions */}
 
-            <div className="p-6 bg-gray-50 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="p-6 bg-gray-50 grid grid-cols-1 md:grid-cols-3 gap-3">
               {project?.id && (
                 <Link
                   href={`/portal/projects/${project.id}/meetings`}
@@ -229,9 +210,9 @@ export default function ProjectsPage() {
                       <Calendar className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">Reuniones</h3>
+                      <h3 className="font-medium text-gray-900">Grabaciones</h3>
                       <p className="text-sm text-gray-500">
-                        {project?.all_meetings?.length || 0} reuniones
+                        {project?.all_meetings?.length || 0} grabaciones
                       </p>
                     </div>
                   </div>
@@ -248,7 +229,9 @@ export default function ProjectsPage() {
                       <FolderOpen className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">Documentos</h3>
+                      <h3 className="font-medium text-gray-900">
+                        Documentacion
+                      </h3>
                       <p className="text-sm text-gray-500">
                         {project?.documents?.length || 0} archivos
                       </p>
@@ -257,23 +240,8 @@ export default function ProjectsPage() {
                   <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
                 </Link>
               )}
-              {project?.id && (
-                <Link
-                  href={`/portal/projects/${project.id}/meetings`}
-                  className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition-all group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                      <Play className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">Ver Looms</h3>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                </Link>
-              )}
-              {project.has_figma ? (
+
+              {project.consumo ? (
                 <Link
                   href={`/portal/projects/${project.id}/design`}
                   className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-green-500 hover:shadow-sm transition-all group"
@@ -289,7 +257,7 @@ export default function ProjectsPage() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">Diseño</h3>
+                      <h3 className="font-medium text-gray-900">Consumos</h3>
                       <p className="text-sm text-gray-500">Ver en Figma</p>
                     </div>
                   </div>
@@ -308,7 +276,7 @@ export default function ProjectsPage() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-500">Diseño</h3>
+                      <h3 className="font-medium text-gray-500">Consumos</h3>
                       <p className="text-sm text-gray-400">No disponible</p>
                     </div>
                   </div>

@@ -57,14 +57,9 @@ export default function PortalLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <Image
-                src="/favicon-32x32.png"
-                alt="Whapy Icon"
-                width={32}
-                height={32}
-              />
+              <Image src="/102.png" alt="Whapy Icon" width={32} height={32} />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Whapy LLC</h1>
+                <h1 className="text-xl font-bold text-gray-900">Whapy</h1>
                 <p className="text-xs text-gray-500">
                   {role === "admin"
                     ? "Panel de Administración"

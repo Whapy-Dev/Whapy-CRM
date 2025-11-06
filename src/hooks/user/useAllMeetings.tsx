@@ -44,7 +44,7 @@ export function useAllMeetingsByProjectId(projectId: string) {
           "*, leads(name), profiles(nombre), projects!inner(title), videos(*)"
         )
         .eq("project_id", projectId)
-        .order("start_at", { ascending: true });
+        .order("start_at", { ascending: false });
       if (error) throw error;
       return data as Meeting[];
     },

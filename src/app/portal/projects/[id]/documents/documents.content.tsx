@@ -64,10 +64,12 @@ export default function DocumentsContent({ documents, projectId }: Props) {
 
   const categories = [
     "Todos",
-    "Varios",
-    "Presupuesto",
-    "Contractual",
-    "Presentacion visual",
+    "Presupuestos",
+    "Contratos",
+    "Diseño",
+    "Repositorio",
+    "Accesos",
+    "Otros Recursos",
   ];
   const [selectedCategory, setSelectedCategory] = useState("Todos");
 
