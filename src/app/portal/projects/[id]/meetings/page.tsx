@@ -69,9 +69,6 @@ export default function ProjectMeetingsPage({
   }
 
   const projectName = meetings[0].projects?.title ?? "Proyecto sin nombre";
-
-  console.log("Project ID:", id);
-  console.log("Videos obtenidos:", videos);
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}

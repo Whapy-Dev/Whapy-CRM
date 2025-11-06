@@ -54,7 +54,7 @@ export default function ProjectCard({
       .slice(0, 3);
     return { category, docs };
   });
-  console.log(project);
+
   return (
     <div className="p-4 rounded-2xl shadow-md border border-gray-200 bg-gradient-to-r from-white to-gray-50 hover:border hover:border-black">
       <div className="flex items-center justify-between">

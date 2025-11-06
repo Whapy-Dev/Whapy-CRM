@@ -48,7 +48,6 @@ export default function PortalLayout({
       </div>
     );
   }
-  console.log("Auth state:", { loading, role, user: _user });
 
   return (
     <div className="min-h-screen bg-gray-50">
