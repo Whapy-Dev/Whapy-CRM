@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useBudgetsUser } from "@/hooks/user/budgetsUser";
 import {
   Download,
@@ -25,11 +26,12 @@ type Budget = {
 };
 
 export default function PortalBudgetsPage() {
+  const { user } = useAuth();
   const {
     data: dataBudgetsUser,
     isLoading: isLoadingBudgetsUser,
     error: errorBudgetsUser,
-  } = useBudgetsUser();
+  } = useBudgetsUser(user);
 
   const budgets = dataBudgetsUser || [];
 

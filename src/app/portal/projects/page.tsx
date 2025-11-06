@@ -11,6 +11,7 @@ import {
   Play,
 } from "lucide-react";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
+import { useAuth } from "@/hooks/useAuth";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type Project = {
   id: string;
@@ -25,11 +26,12 @@ type Project = {
 };
 
 export default function ProjectsPage() {
+  const { user } = useAuth();
   const {
     data: projectsData = [],
     isLoading: isLoadingProjects,
     error: errorProjects,
-  } = useProjectsUser();
+  } = useProjectsUser(user);
 
   const statusConfig = {
     en_progreso: {

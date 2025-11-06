@@ -11,15 +11,17 @@ import {
 import { useDatosUser } from "@/hooks/user/datosUser";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { useAllMeetingsUser } from "@/hooks/user/useAllMeetings";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PortalDashboard() {
-  const { data: userData = [] } = useDatosUser();
-  const { data: projectsData = [] } = useProjectsUser();
+  const { user } = useAuth();
+  const { data: userData = [] } = useDatosUser(user);
+  const { data: projectsData = [] } = useProjectsUser(user);
   const {
     data: allMeetingsData = [],
     isLoading: isLoadingAllMeetingsData,
     error: errorAllMeetingsData,
-  } = useAllMeetingsUser();
+  } = useAllMeetingsUser(user);
 
   const activeProjects = projectsData.filter(
     (project) => project.status !== "pausado" && project.status !== "cancelado"

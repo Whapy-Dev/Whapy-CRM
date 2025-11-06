@@ -3,6 +3,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const supabase = createClient();
 
@@ -51,25 +52,18 @@ export function useAllMeetingsByProjectId(projectId: string) {
   });
 }
 
-export function useAllMeetingsUser() {
+export function useAllMeetingsUser(user: User | null) {
   return useQuery({
-    queryKey: ["AllMeetingsUser"],
+    queryKey: ["AllMeetingsUser", user?.id],
     queryFn: async () => {
-      const {
-        data: { user },
-        error: errorUser,
-      } = await supabase.auth.getUser();
-
-      if (errorUser) throw errorUser;
-      if (!user) return null;
-
       const { data, error } = await supabase
         .from("all_meetings")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user?.id);
 
       if (error) throw error;
       return data || [];
     },
+    enabled: !!user,
   });
 }

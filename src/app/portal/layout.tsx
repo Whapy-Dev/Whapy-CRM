@@ -20,10 +20,9 @@ export default function PortalLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { user: _user, role, loading, signOut } = useAuth();
 
-  const { data: userData = [] } = useDatosUser();
+  const { data: userData = [] } = useDatosUser(_user);
   const isActive = (path: string) => {
     if (path === "/portal") {
       return pathname === path;
@@ -49,6 +48,7 @@ export default function PortalLayout({
       </div>
     );
   }
+  console.log("Auth state:", { loading, role, user: _user });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -57,7 +57,13 @@ export default function PortalLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <Image src="/102.png" alt="Whapy Icon" width={32} height={32} />
+              <Image
+                src="/102.png"
+                alt="Whapy Icon"
+                width={32}
+                height={32}
+                className="rounded-4xl"
+              />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Whapy</h1>
                 <p className="text-xs text-gray-500">
