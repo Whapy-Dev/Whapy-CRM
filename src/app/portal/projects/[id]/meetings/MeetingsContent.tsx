@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Play, Calendar, Clock, Video } from "lucide-react";
+import { FileText, Play, Calendar, Video } from "lucide-react";
+import SelectVideoModal from "./SelectVideoModal";
 
 type VideoType = {
   id: string;
@@ -17,13 +18,8 @@ type VideoType = {
   created_at: string;
 };
 
-type Lead = {
-  name: string;
-};
-
-type Profile = {
-  nombre: string;
-};
+type Lead = { name: string };
+type Profile = { nombre: string };
 
 type Meeting = {
   meeting_id: string;
@@ -56,9 +52,9 @@ export default function MeetingsContent({
   projectId,
   videos,
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
-
+  const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
+  const [showFull, setShowFull] = useState(false);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
@@ -74,6 +70,7 @@ export default function MeetingsContent({
       }),
     };
   };
+
   const meetingsWithDate = meetings.filter(
     (m) => m.start_at && new Date(m.start_at) > new Date()
   );
@@ -84,7 +81,6 @@ export default function MeetingsContent({
 
   const nextMeeting = sortedMeetings[0];
 
-  // 🔹 Filtrado según categoría seleccionada
   const filteredMeetings =
     selectedCategory === "Reuniones" || selectedCategory === "Todos"
       ? meetings
@@ -92,6 +88,12 @@ export default function MeetingsContent({
 
   const filteredVideos =
     selectedCategory === "Videos" || selectedCategory === "Todos" ? videos : [];
+
+  // 🔹 Contenido combinado
+  const combinedItems = [
+    ...filteredMeetings.map((m) => ({ type: "meeting", data: m })),
+    ...filteredVideos.map((v) => ({ type: "video", data: v })),
+  ];
 
   return (
     <>
@@ -103,7 +105,7 @@ export default function MeetingsContent({
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{meetings?.length}</p>
+          <p className="text-2xl font-bold text-gray-900">{meetings.length}</p>
           <p className="text-sm text-gray-600">Total de Reuniones</p>
         </div>
 
@@ -130,28 +132,46 @@ export default function MeetingsContent({
         </div>
       </div>
 
-      {/* 🔹 Filtros */}
+      {/* Filtros */}
+      {/* Filtros */}
       <div className="flex gap-3 mb-6">
-        {["Todos", "Reuniones", "Videos"].map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border transition cursor-pointer ${
-              selectedCategory === cat
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+        {["Todos", "Reuniones", "Videos"].map((cat) => {
+          const isActive = selectedCategory === cat;
+
+          let activeClasses = "";
+          if (cat === "Todos") {
+            activeClasses = isActive
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100";
+          } else if (cat === "Reuniones") {
+            activeClasses = isActive
+              ? "bg-blue-100 text-blue-700 border-blue-300"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50";
+          } else if (cat === "Videos") {
+            activeClasses = isActive
+              ? "bg-purple-100 text-purple-700 border-purple-300"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-purple-50";
+          }
+
+          return (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition cursor-pointer ${activeClasses}`}
+            >
+              {cat}
+            </button>
+          );
+        })}
       </div>
 
-      {/* 🔹 Mostrar Reuniones */}
-      {(selectedCategory === "Reuniones" || selectedCategory === "Todos") && (
-        <div className="space-y-4">
-          {filteredMeetings.map((meeting, index) => {
+      {/* 🔹 Grid combinado */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {combinedItems.map((item, index) => {
+          if (item.type === "meeting") {
+            const meeting = item.data as Meeting;
             const dateInfo = formatDate(meeting.start_at);
+            const videoToOpen = meeting.videos?.[0] || null;
             const embedUrl =
               meeting.videos && meeting.videos.length > 0
                 ? meeting.videos[0].vimeo_url.replace(
@@ -162,117 +182,132 @@ export default function MeetingsContent({
 
             return (
               <div
-                key={meeting.meeting_id}
-                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                key={`meeting-${meeting.meeting_id}`}
+                onClick={() => {
+                  if (videoToOpen) setSelectedVideo(videoToOpen);
+                }}
+                className="bg-white rounded-xl shadow hover:shadow-lg transition-all overflow-hidden group border-l-4 border-blue-500 relative cursor-pointer"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                          Reunión #{index + 1}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {meeting.duration}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-bold text-gray-900">
-                          {meeting.title}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Calendar className="w-4 h-4" />
-                          <span className="capitalize">{dateInfo.full}</span>
-                          <span className="mx-2">•</span>
-                          <Clock className="w-4 h-4" />
-                          <span>{dateInfo.time}</span>
-                        </div>
-                      </div>
+                <div className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-md shadow">
+                  📅 Reunión #{index + 1}
+                </div>
+
+                <div className="relative w-full pb-[56.25%] bg-gray-200">
+                  {embedUrl ? (
+                    <iframe
+                      src={`${embedUrl}?autoplay=0&muted=1&title=0&byline=0&portrait=0`}
+                      className="absolute top-0 left-0 w-full h-full rounded-t-xl pointer-events-none"
+                      frameBorder="0"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                    ></iframe>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                      <Calendar className="w-12 h-12" />
                     </div>
-                  </div>
+                  )}
+                  {embedUrl && (
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Play className="w-12 h-12 text-white drop-shadow-lg" />
+                    </div>
+                  )}
+                </div>
 
-                  <div className="flex flex-col gap-3">
-                    {embedUrl && (
-                      <div className="relative w-full pb-[56.25%]">
-                        <iframe
-                          src={embedUrl}
-                          className="absolute top-0 left-0 w-full h-full rounded-lg"
-                          frameBorder="0"
-                          allow="autoplay; fullscreen; picture-in-picture"
-                          allowFullScreen
-                        ></iframe>
-                      </div>
-                    )}
+                <div className="p-4">
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
+                    {meeting.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                    {dateInfo.full} • {dateInfo.time}
+                  </p>
 
-                    <p className="text-gray-700 mb-4 whitespace-pre-wrap break-words">
-                      {expanded
-                        ? meeting.summary_md
-                        : meeting.summary_md.slice(0, 300) +
-                          (meeting.summary_md.length > 300 ? "..." : "")}
-                    </p>
-                    {meeting.summary_md.length > 300 && (
-                      <button
-                        onClick={() => setExpanded(!expanded)}
-                        className="text-blue-600 text-sm hover:underline"
-                      >
-                        {expanded ? "Ver menos" : "Ver más"}
-                      </button>
-                    )}
-
-                    {meeting.summary_pdf_url && (
-                      <a
-                        href={meeting.summary_pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex justify-center items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <FileText className="w-4 h-4" />
-                        Descargar Resumen
-                      </a>
-                    )}
-                  </div>
+                  {meeting.summary_pdf_url && (
+                    <a
+                      href={meeting.summary_pdf_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-600 text-sm mt-2 hover:underline"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Ver resumen
+                    </a>
+                  )}
                 </div>
               </div>
             );
-          })}
-        </div>
-      )}
-
-      {/* 🔹 Mostrar Videos */}
-      {(selectedCategory === "Videos" || selectedCategory === "Todos") && (
-        <div className="space-y-4 mt-8">
-          {filteredVideos.map((video) => {
+          } else {
+            const video = item.data as VideoType;
             const embedUrl = video.vimeo_url.replace(
               "vimeo.com/",
               "player.vimeo.com/video/"
             );
+            const dateInfo = formatDate(video.created_at);
+
             return (
               <div
-                key={video.id}
-                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6"
+                key={`video-${video.id}`}
+                onClick={() => setSelectedVideo(video)}
+                className="cursor-pointer bg-white rounded-xl shadow hover:shadow-lg transition-all overflow-hidden group border-l-4 border-purple-500 relative"
               >
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  🎥 {video.title}
-                </h3>
-                <div className="relative w-full pb-[56.25%] mb-3">
+                <div className="absolute top-3 left-3 bg-purple-600 text-white text-xs font-semibold px-2 py-1 rounded-md shadow">
+                  🎥 Video
+                </div>
+
+                <div className="relative w-full pb-[56.25%] bg-black">
                   <iframe
-                    src={embedUrl}
-                    className="absolute top-0 left-0 w-full h-full rounded-lg"
+                    src={`${embedUrl}?autoplay=0&title=0&byline=0&portrait=0&muted=1`}
+                    className="absolute top-0 left-0 w-full h-full rounded-t-xl pointer-events-none"
                     frameBorder="0"
                     allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
                   ></iframe>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Play className="w-12 h-12 text-white drop-shadow-lg" />
+                  </div>
                 </div>
-                <p className="text-gray-700 whitespace-pre-wrap">
-                  {video.descripcion}
-                </p>
+
+                <div className="p-4">
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
+                    {video.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                    {dateInfo.full} • {dateInfo.time}
+                  </p>
+                  {video.descripcion ? (
+                    <div className="text-sm text-gray-500 mt-1">
+                      {video.descripcion.length > 50 ? (
+                        <>
+                          <p
+                            className={`transition-all ${
+                              showFull ? "line-clamp-none" : "line-clamp-2"
+                            }`}
+                          >
+                            {showFull
+                              ? video.descripcion
+                              : video.descripcion.slice(0, 50) + "..."}
+                          </p>
+                          <button
+                            onClick={() => setShowFull(!showFull)}
+                            className="text-blue-600 hover:underline font-medium ml-1"
+                          >
+                            {showFull ? "Ver menos" : "Ver más"}
+                          </button>
+                        </>
+                      ) : (
+                        <p>{video.descripcion}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 mt-1 italic">
+                      Sin descripción
+                    </p>
+                  )}
+                </div>
               </div>
             );
-          })}
-        </div>
-      )}
+          }
+        })}
+      </div>
 
-      {/* 🔹 Próxima reunión */}
+      {/* Próxima reunión */}
       {nextMeeting ? (
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white mt-6">
           <h3 className="text-lg font-bold mb-2">📅 Próxima Reunión</h3>
@@ -292,6 +327,14 @@ export default function MeetingsContent({
         <div className="mt-6 text-gray-700">
           No hay próximas reuniones programadas.
         </div>
+      )}
+
+      {/* 🔹 Modal de selección de video */}
+      {selectedVideo && (
+        <SelectVideoModal
+          video={selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+        />
       )}
     </>
   );

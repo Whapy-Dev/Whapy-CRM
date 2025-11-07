@@ -36,10 +36,12 @@ export default function DocumentsContent({ documents, projectId }: Props) {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      Contractual: "bg-red-100 text-red-800",
-      Técnico: "bg-blue-100 text-blue-800",
-      Reuniones: "bg-purple-100 text-purple-800",
       Diseño: "bg-green-100 text-green-800",
+      Presupuestos: "bg-yellow-100 text-yellow-800",
+      Contratos: "bg-rose-100 text-rose-800",
+      Repositorio: "bg-sky-100 text-sky-800",
+      Accesos: "bg-indigo-100 text-indigo-800",
+      "Otros Recursos": "bg-gray-100 text-gray-800",
     };
     return colors[category] || "bg-gray-100 text-gray-800";
   };
@@ -92,8 +94,13 @@ export default function DocumentsContent({ documents, projectId }: Props) {
           <p className="text-sm text-gray-600">Total Documentos</p>
         </div>
 
-        {["Contractual", "Técnico", "Reuniones"].map((cat) => (
+        {["Presupuestos", "Contratos", "Diseño"].map((cat) => (
           <div key={cat} className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <FileText className="w-5 h-5 text-blue-600" />
+              </div>
+            </div>
             <p className="text-2xl font-bold text-gray-900">
               {documents.filter((d) => d.category_document === cat).length}
             </p>
