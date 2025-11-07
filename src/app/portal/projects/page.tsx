@@ -26,12 +26,18 @@ type Project = {
 };
 
 export default function ProjectsPage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const {
     data: projectsData = [],
     isLoading: isLoadingProjects,
     error: errorProjects,
   } = useProjectsUser(user);
+  if (loading) return <p>Cargando usuario...</p>;
+
+  if (isLoadingProjects) return <p>Cargando proyectos...</p>;
+  if (!isLoadingProjects && !errorProjects && projectsData.length === 0)
+    return <p>No hay proyectos disponibles</p>;
+  if (errorProjects) return <p>Error: {errorProjects.message}</p>;
 
   const statusConfig = {
     en_progreso: {
@@ -61,10 +67,6 @@ export default function ProjectsPage() {
     if (progress < 70) return "bg-yellow-600";
     return "bg-green-600";
   };
-  if (isLoadingProjects) return <p>Cargando proyectos...</p>;
-  if (!isLoadingProjects && !errorProjects && projectsData?.length === 0)
-    return <p>No hay proyectos disponibles</p>;
-  if (errorProjects) return <p>Error: {errorProjects.message}</p>;
 
   return (
     <div className="space-y-6">

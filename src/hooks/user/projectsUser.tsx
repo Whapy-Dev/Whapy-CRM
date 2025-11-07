@@ -8,7 +8,7 @@ const supabase = createClient();
 
 export function useProjectsUser(user: User | null) {
   return useQuery({
-    queryKey: ["projectsUser"],
+    queryKey: ["projectsUser", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")

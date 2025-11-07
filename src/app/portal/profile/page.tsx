@@ -76,7 +76,9 @@ export default function ProfilePage() {
 
     getUserProfile();
   }, []);
-
+  if (loading) {
+    return <div>Cargando perfil...</div>;
+  }
   const handleSave = async () => {
     setIsSaving(true);
 
@@ -117,9 +119,6 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  if (loading) {
-    return <div>Cargando perfil...</div>;
-  }
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -164,7 +163,7 @@ export default function ProfilePage() {
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 Editar Perfil
               </button>
@@ -172,14 +171,14 @@ export default function ProfilePage() {
               <>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                   Cancelar
                 </button>
                 <button
                   onClick={handleSave}
-                  className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   Guardar Cambios

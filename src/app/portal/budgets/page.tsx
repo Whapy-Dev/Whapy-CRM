@@ -26,17 +26,21 @@ type Budget = {
 };
 
 export default function PortalBudgetsPage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const {
     data: dataBudgetsUser,
     isLoading: isLoadingBudgetsUser,
     error: errorBudgetsUser,
   } = useBudgetsUser(user);
-
-  const budgets = dataBudgetsUser || [];
-
   const [showModal, setShowModal] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+
+  if (loading) return <p>Cargando usuario...</p>;
+
+  if (isLoadingBudgetsUser) return <p>Cargando proyectos...</p>;
+  if (errorBudgetsUser) return <p>Error: {errorBudgetsUser.message}</p>;
+
+  const budgets = dataBudgetsUser || [];
 
   const statusConfig = {
     presentado: {
@@ -84,8 +88,6 @@ export default function PortalBudgetsPage() {
     setShowModal(false);
     setSelectedBudget(null);
   };
-  if (isLoadingBudgetsUser) return <p>Cargando proyectos...</p>;
-  if (errorBudgetsUser) return <p>Error: {errorBudgetsUser.message}</p>;
 
   return (
     <div className="space-y-6">

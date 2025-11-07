@@ -59,7 +59,28 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (request.nextUrl.pathname === "/") {
+    if (!user) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    } else {
+      // Si hay usuario, traemos el rol y redirigimos al dashboard correspondiente
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
+      const userRole = profile?.role;
+
+      if (userRole === "admin") {
+        return NextResponse.redirect(new URL("/crm", request.url));
+      } else if (userRole === "cliente") {
+        return NextResponse.redirect(new URL("/portal", request.url));
+      } else {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+    }
+  }
   // Rutas públicas que no requieren autenticación
 
   const publicPaths = ["/login"];

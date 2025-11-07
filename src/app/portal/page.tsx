@@ -14,7 +14,7 @@ import { useAllMeetingsUser } from "@/hooks/user/useAllMeetings";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function PortalDashboard() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { data: userData = [] } = useDatosUser(user);
   const { data: projectsData = [] } = useProjectsUser(user);
   const {
@@ -22,6 +22,14 @@ export default function PortalDashboard() {
     isLoading: isLoadingAllMeetingsData,
     error: errorAllMeetingsData,
   } = useAllMeetingsUser(user);
+
+  // 🔹 Evita renderizar mientras useAuth aún está resolviendo
+  if (loading) return <p>Cargando usuario...</p>;
+
+  if (isLoadingAllMeetingsData) return <p>Cargando proyectos...</p>;
+  if (errorAllMeetingsData) return <p>Error: {errorAllMeetingsData.message}</p>;
+
+  // ... resto del componente igual
 
   const activeProjects = projectsData.filter(
     (project) => project.status !== "pausado" && project.status !== "cancelado"
@@ -76,10 +84,6 @@ export default function PortalDashboard() {
   const totalProyectos30Dias = proyectosUltimos30Dias.length;
   const totalMeetings30Dias = meetingsUltimos30Dias?.length ?? 0;
   const totalActividad30Dias = totalProyectos30Dias + totalMeetings30Dias;
-
-  if (isLoadingAllMeetingsData) return <p>Cargando proyectos...</p>;
-  if (errorAllMeetingsData) return <p>Error: {errorAllMeetingsData.message}</p>;
-
   return (
     <div className="space-y-6">
       {/* Bienvenida */}
