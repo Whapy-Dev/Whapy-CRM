@@ -6,6 +6,7 @@ import type { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
 type UserRole = "admin" | "cliente" | null;
 
 const supabase = createClient();
+
 interface AuthState {
   user: User | null;
   role: UserRole;
@@ -21,71 +22,90 @@ export function useAuth() {
   });
 
   useEffect(() => {
-    // Obtener usuario actual
+    let mounted = true;
 
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const fetchUser = async () => {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-      if (user) {
-        // Obtener rol del usuario
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single();
+        if (sessionError) throw sessionError;
 
-        setAuthState({
-          user,
-          role: profile?.role || null,
-          loading: false,
-        });
-      } else {
-        setAuthState({
-          user: null,
-          role: null,
-          loading: false,
-        });
+        const user = session?.user || null;
+
+        if (user) {
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+          if (profileError) console.error(profileError);
+
+          if (mounted) {
+            setAuthState({
+              user,
+              role: profile?.role || null,
+              loading: false,
+            });
+          }
+        } else {
+          if (mounted) {
+            setAuthState({
+              user: null,
+              role: null,
+              loading: false,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error al obtener usuario:", err);
+        if (mounted) {
+          setAuthState({ user: null, role: null, loading: false });
+        }
       }
     };
 
-    getUser();
+    fetchUser();
 
-    // Escuchar cambios de autenticación
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
+    const { data: listener } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        if (session?.user) {
+        const user = session?.user || null;
+        if (user) {
           const { data: profile } = await supabase
             .from("profiles")
             .select("role")
-            .eq("id", session.user.id)
+            .eq("id", user.id)
             .single();
 
-          setAuthState({
-            user: session.user,
-            role: profile?.role || null,
-            loading: false,
-          });
+          if (mounted) {
+            setAuthState({
+              user,
+              role: profile?.role || null,
+              loading: false,
+            });
+          }
         } else {
-          setAuthState({
-            user: null,
-            role: null,
-            loading: false,
-          });
+          if (mounted) {
+            setAuthState({
+              user: null,
+              role: null,
+              loading: false,
+            });
+          }
         }
       }
     );
 
     return () => {
-      subscription.unsubscribe();
+      mounted = false;
+      listener.subscription.unsubscribe();
     };
   }, []);
 
   const signOut = async () => {
-    const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
   };

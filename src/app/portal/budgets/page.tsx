@@ -28,19 +28,15 @@ type Budget = {
 export default function PortalBudgetsPage() {
   const { user, loading } = useAuth();
   const {
-    data: dataBudgetsUser,
+    data: dataBudgetsUser = [],
     isLoading: isLoadingBudgetsUser,
     error: errorBudgetsUser,
   } = useBudgetsUser(user);
   const [showModal, setShowModal] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
-
   if (loading) return <p>Cargando usuario...</p>;
-
   if (isLoadingBudgetsUser) return <p>Cargando proyectos...</p>;
   if (errorBudgetsUser) return <p>Error: {errorBudgetsUser.message}</p>;
-
-  const budgets = dataBudgetsUser || [];
 
   const statusConfig = {
     presentado: {
@@ -101,7 +97,7 @@ export default function PortalBudgetsPage() {
 
       {/* Presupuestos List */}
       <div className="space-y-6">
-        {budgets.map((budget) => (
+        {dataBudgetsUser.map((budget) => (
           <div
             key={budget.id}
             className="bg-white rounded-lg shadow-md overflow-hidden"
@@ -212,7 +208,7 @@ export default function PortalBudgetsPage() {
           </div>
         ))}
 
-        {budgets.length === 0 && (
+        {dataBudgetsUser.length === 0 && (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">

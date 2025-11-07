@@ -195,6 +195,17 @@ export default function ProfilePage() {
                 Información Personal
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Email */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </label>
+
+                  <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                    {profile.email}
+                  </p>
+                </div>
                 {/* Name */}
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
@@ -215,17 +226,6 @@ export default function ProfilePage() {
                       {profile.nombre}
                     </p>
                   )}
-                </div>
-                {/* Email */}
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <Mail className="w-4 h-4" />
-                    Email
-                  </label>
-
-                  <p className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                    {profile.email}
-                  </p>
                 </div>
                 {/* Phone */}
                 <div>
