@@ -193,7 +193,7 @@ export default function MeetingsContent({
         className="
           flex overflow-x-auto gap-6 pb-4 
           md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible
-          snap-x snap-mandatory
+          snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden
         "
       >
         {combinedItems.map((item, index) => {
@@ -272,7 +272,7 @@ export default function MeetingsContent({
       </div>
 
       {/* Próxima reunión */}
-      {nextMeeting ? (
+      {/* {nextMeeting ? (
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white mt-6">
           <h3 className="text-lg font-bold mb-2">📅 Próxima Reunión</h3>
           <p className="text-blue-100 mb-4">
@@ -291,7 +291,7 @@ export default function MeetingsContent({
         <div className="mt-6 text-gray-700">
           No hay próximas reuniones programadas.
         </div>
-      )}
+      )} */}
 
       {selectedVideo && (
         <SelectVideoModal
