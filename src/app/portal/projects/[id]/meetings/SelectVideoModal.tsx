@@ -24,7 +24,11 @@ export default function SelectVideoModal({
   onClose,
 }: SelectVideoModalProps) {
   const [show, setShow] = useState(false);
+  const [mounted, setMounted] = useState(false); // 👈 agregado
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const handleClose = useCallback(() => {
     setShow(false);
     setTimeout(onClose, 200);
@@ -45,8 +49,7 @@ export default function SelectVideoModal({
     };
   }, [video, handleClose]);
 
-  if (!video) return null;
-
+  if (!mounted || !video) return null;
   const embedUrl = video.vimeo_url.replace(
     "vimeo.com/",
     "player.vimeo.com/video/"

@@ -1,11 +1,8 @@
-// src/hooks/user/useMeetings.ts
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-
-const supabase = createClient();
 
 type Lead = {
   name: string;
@@ -39,6 +36,7 @@ export function useAllMeetingsByProjectId(projectId: string) {
   return useQuery({
     queryKey: ["allMeetingsByProjectId", projectId],
     queryFn: async () => {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("all_meetings")
         .select(
@@ -56,6 +54,7 @@ export function useAllMeetingsUser(user: User | null) {
   return useQuery({
     queryKey: ["AllMeetingsUser", user?.id],
     queryFn: async () => {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("all_meetings")
         .select("*")

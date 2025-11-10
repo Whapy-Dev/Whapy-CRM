@@ -55,6 +55,9 @@ export default function PortalLoginPage() {
       }
 
       // 3. Redirigir según el rol
+      router.refresh(); // 🔹 Sincroniza cookies y middleware
+      await new Promise((r) => setTimeout(r, 100)); // 🔹 Espera breve
+
       if (profile.role === "admin") {
         router.push("/crm");
       } else if (profile.role === "cliente") {

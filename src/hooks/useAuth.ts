@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -5,11 +7,10 @@ import type { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 type UserRole = "admin" | "cliente" | null;
 
-const supabase = createClient();
-
 interface AuthState {
   user: User | null;
   role: UserRole;
+  name: string | null;
   loading: boolean;
 }
 
@@ -18,10 +19,12 @@ export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     role: null,
+    name: null,
     loading: true,
   });
 
   useEffect(() => {
+    const supabase = createClient();
     let mounted = true;
 
     const fetchUser = async () => {
@@ -30,7 +33,6 @@ export function useAuth() {
           data: { session },
           error: sessionError,
         } = await supabase.auth.getSession();
-
         if (sessionError) throw sessionError;
 
         const user = session?.user || null;
@@ -38,7 +40,7 @@ export function useAuth() {
         if (user) {
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
-            .select("role")
+            .select("role, nombre")
             .eq("id", user.id)
             .single();
 
@@ -48,6 +50,11 @@ export function useAuth() {
             setAuthState({
               user,
               role: profile?.role || null,
+              name:
+                profile?.nombre ||
+                user.user_metadata?.nombre ||
+                user.email?.split("@")[0] ||
+                "Usuario",
               loading: false,
             });
           }
@@ -56,6 +63,7 @@ export function useAuth() {
             setAuthState({
               user: null,
               role: null,
+              name: null,
               loading: false,
             });
           }
@@ -63,20 +71,23 @@ export function useAuth() {
       } catch (err) {
         console.error("Error al obtener usuario:", err);
         if (mounted) {
-          setAuthState({ user: null, role: null, loading: false });
+          setAuthState({ user: null, role: null, name: null, loading: false });
         }
       }
     };
 
     fetchUser();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
         const user = session?.user || null;
+
         if (user) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("role")
+            .select("role, nombre")
             .eq("id", user.id)
             .single();
 
@@ -84,6 +95,11 @@ export function useAuth() {
             setAuthState({
               user,
               role: profile?.role || null,
+              name:
+                profile?.nombre ||
+                user.user_metadata?.nombre ||
+                user.email?.split("@")[0] ||
+                "Usuario",
               loading: false,
             });
           }
@@ -92,27 +108,40 @@ export function useAuth() {
             setAuthState({
               user: null,
               role: null,
+              name: null,
               loading: false,
             });
           }
+        }
+
+        if (event === "SIGNED_IN") {
+          router.refresh();
         }
       }
     );
 
     return () => {
       mounted = false;
-      listener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
+    const supabase = createClient();
+    try {
+      await supabase.auth.signOut();
+      document.cookie = "user_role=; Max-Age=0; path=/;";
+      setAuthState({ user: null, role: null, name: null, loading: false });
+      router.push("/login");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
   };
 
   return {
     user: authState.user,
     role: authState.role,
+    name: authState.name,
     loading: authState.loading,
     isAdmin: authState.role === "admin",
     isCliente: authState.role === "cliente",

@@ -19,8 +19,6 @@ export default function PortalBudgetsPage() {
   if (!isLoadingProjects && projectsData.length === 0)
     return <p>No hay proyectos disponibles</p>;
 
-  console.log(projectsData);
-
   return (
     <div className="space-y-6">
       {/* Header */}

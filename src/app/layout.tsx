@@ -1,7 +1,9 @@
+"use client";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import { useAuthSync } from "@/hooks/useAuthSync";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,12 +14,10 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-export const metadata: Metadata = {
-  title: "Whapy",
-  description: "App de Whapy",
-};
-
+function AuthSyncWrapper({ children }: { children: React.ReactNode }) {
+  useAuthSync();
+  return <>{children}</>;
+}
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,6 +26,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <title>Whapy</title>
+        <meta name="description" content="App de Whapy" />
         <link
           rel="icon"
           type="image/png"
@@ -46,7 +48,9 @@ export default function RootLayout({
       </head>
 
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <AuthSyncWrapper>{children}</AuthSyncWrapper>
+        </Providers>
       </body>
     </html>
   );

@@ -3,8 +3,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
-const supabase = createClient();
-
 type Lead = {
   name: string;
 };
@@ -36,6 +34,7 @@ export function useAllMeetings() {
   return useQuery({
     queryKey: ["allMeetings"],
     queryFn: async () => {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("all_meetings")
         .select("*, leads(name), profiles(nombre)");
@@ -50,6 +49,7 @@ export function useAllMeetingsUltimateWeek() {
   return useQuery({
     queryKey: ["allMeetingsUltimateWeek"],
     queryFn: async () => {
+      const supabase = createClient();
       const fechaHace30Dias = new Date();
       fechaHace30Dias.setDate(fechaHace30Dias.getDate() - 30);
 
@@ -69,6 +69,7 @@ export function useAllMeetingsFromToday() {
   return useQuery({
     queryKey: ["allMeetingsFromToday"],
     queryFn: async () => {
+      const supabase = createClient();
       const hoy = new Date();
 
       const { data, error } = await supabase
@@ -76,6 +77,7 @@ export function useAllMeetingsFromToday() {
         .select("*, leads(name), profiles(nombre)")
         .gte("start_at", hoy.toISOString())
         .order("start_at", { ascending: true });
+
       if (error) throw error;
       return data as Meeting[];
     },

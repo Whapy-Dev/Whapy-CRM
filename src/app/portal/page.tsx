@@ -23,13 +23,10 @@ export default function PortalDashboard() {
     error: errorAllMeetingsData,
   } = useAllMeetingsUser(user);
 
-  // 🔹 Evita renderizar mientras useAuth aún está resolviendo
   if (loading) return <p>Cargando usuario...</p>;
 
   if (isLoadingAllMeetingsData) return <p>Cargando proyectos...</p>;
   if (errorAllMeetingsData) return <p>Error: {errorAllMeetingsData.message}</p>;
-
-  // ... resto del componente igual
 
   const activeProjects = projectsData.filter(
     (project) => project.status !== "pausado" && project.status !== "cancelado"
