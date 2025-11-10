@@ -14,7 +14,7 @@ import { useProjects } from "@/hooks/admin/useProjects";
 import { useProfiles } from "@/hooks/admin/useProfiles";
 
 // Tipos
-type DocumentItem = {
+export type DocumentItem = {
   id: string;
   title: string;
   document_url: string;
