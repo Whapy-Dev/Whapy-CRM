@@ -7,6 +7,7 @@ import {
   ArrowRight,
   FolderOpen,
   Video,
+  Calendar,
 } from "lucide-react";
 import { useDatosUser } from "@/hooks/user/datosUser";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
@@ -97,44 +98,6 @@ export default function PortalDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
           href="/portal/projects"
-          className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <FolderOpen className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-          <h3 className="text-sm font-medium text-gray-600 mb-1">
-            Proyectos Activos
-          </h3>
-          <p className="text-3xl font-bold text-gray-900">{activeProjects}</p>
-          <p className="text-sm text-blue-600 mt-2 flex items-center gap-1">
-            Ver proyectos <ArrowRight className="w-4 h-4" />
-          </p>
-        </Link>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <FileText className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-          <h3 className="text-sm font-medium text-gray-600 mb-1">
-            Actividad Reciente
-          </h3>
-          <p className="text-3xl font-bold text-gray-900">
-            {totalActividad30Dias}
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Actualizaciones esta semana
-          </p>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Link
-          href="/portal/projects"
           className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 hover:shadow-md transition-shadow border border-blue-200"
         >
           <div className="flex items-center justify-between mb-4">
@@ -143,9 +106,10 @@ export default function PortalDashboard() {
             </div>
             <ArrowRight className="w-6 h-6 text-blue-600" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <h3 className="text-lg font-bold text-gray-900">
             Explorar Proyectos
           </h3>
+          <p className="text-3xl font-bold text-gray-900">{activeProjects}</p>
           <p className="text-gray-600">
             Accede a reuniones, documentos y diseños de tus proyectos
           </p>
@@ -157,16 +121,14 @@ export default function PortalDashboard() {
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-600 rounded-lg">
-              <FileText className="w-6 h-6 text-white" />
+              <Calendar className="w-6 h-6 text-white" />
             </div>
             <ArrowRight className="w-6 h-6 text-purple-600" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">
-            Ver Presupuestos
+            Agendar Reunion
           </h3>
-          <p className="text-gray-600">
-            Revisa y gestiona las propuestas comerciales
-          </p>
+          <p className="text-gray-600">Agendá una reunion con nosotros</p>
         </Link>
       </div>
 

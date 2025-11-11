@@ -130,8 +130,29 @@ export function useAuth() {
     const supabase = createClient();
     try {
       await supabase.auth.signOut();
-      document.cookie = "user_role=; Max-Age=0; path=/;";
+
+      const cookiesToDelete = [
+        "__next_hmr_refresh_hash__",
+        "sb-dkgpbbxjzehoedtkreiq-auth-token",
+        "user_role",
+      ];
+
+      cookiesToDelete.forEach((name) => {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname};`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.location.hostname};`;
+      });
+
+      document.cookie.split(";").forEach((cookie) => {
+        const eqPos = cookie.indexOf("=");
+        const name =
+          eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+      });
+
       setAuthState({ user: null, role: null, name: null, loading: false });
+
+      // Redirigir al login
       router.push("/login");
     } catch (error) {
       console.error("Error al cerrar sesión:", error);

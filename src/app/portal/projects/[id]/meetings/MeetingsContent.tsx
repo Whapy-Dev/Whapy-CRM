@@ -55,6 +55,7 @@ export default function MeetingsContent({
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
   const [showFull, setShowFull] = useState(false);
+
   const timeAgo = (dateString: string) => {
     const now = new Date();
     const past = new Date(dateString);
@@ -77,6 +78,7 @@ export default function MeetingsContent({
     if (minutes > 0) return rtf.format(-minutes, "minute");
     return "hace unos segundos";
   };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
@@ -115,6 +117,14 @@ export default function MeetingsContent({
     ...filteredMeetings.map((m) => ({ type: "meeting", data: m })),
     ...filteredVideos.map((v) => ({ type: "video", data: v })),
   ];
+
+  // 🔹 Mostrar mensaje si no hay elementos según el filtro
+  const noItemsMessage =
+    selectedCategory === "Videos" && videos.length === 0
+      ? "No hay videos disponibles para este proyecto."
+      : selectedCategory === "Reuniones" && meetings.length === 0
+      ? "No hay reuniones registradas para este proyecto."
+      : null;
 
   return (
     <>
@@ -188,88 +198,98 @@ export default function MeetingsContent({
         })}
       </div>
 
-      {/* 🔹 Grid combinado (scroll en móviles) */}
-      <div
-        className="
-          flex overflow-x-auto gap-6 pb-4 
-          md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible
-          snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden
-        "
-      >
-        {combinedItems.map((item, index) => {
-          const isVideo = item.type === "video";
-          const data = item.data as VideoType | Meeting;
-          const embedUrl = isVideo
-            ? (data as VideoType).vimeo_url.replace(
-                "vimeo.com/",
-                "player.vimeo.com/video/"
-              )
-            : (data as Meeting).videos?.[0]?.vimeo_url?.replace(
-                "vimeo.com/",
-                "player.vimeo.com/video/"
-              );
+      {/* 🔹 Mostrar mensaje si no hay elementos */}
+      {noItemsMessage ? (
+        <div className="text-center text-gray-500 py-10 text-sm font-medium">
+          {noItemsMessage}
+        </div>
+      ) : (
+        <div
+          className="
+            flex overflow-x-auto gap-6 pb-4 
+            md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible
+            snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden
+          "
+        >
+          {combinedItems.map((item, index) => {
+            const isVideo = item.type === "video";
+            const data = item.data as VideoType | Meeting;
+            const embedUrl = isVideo
+              ? (data as VideoType).vimeo_url.replace(
+                  "vimeo.com/",
+                  "player.vimeo.com/video/"
+                )
+              : (data as Meeting).videos?.[0]?.vimeo_url?.replace(
+                  "vimeo.com/",
+                  "player.vimeo.com/video/"
+                );
 
-          const dateInfo = formatDate(data.created_at);
-          const borderColor = isVideo ? "border-purple-500" : "border-blue-500";
+            const dateInfo = formatDate(data.created_at);
+            const borderColor = isVideo
+              ? "border-purple-500"
+              : "border-blue-500";
 
-          return (
-            <div
-              key={`${item.type}-${
-                isVideo ? (data as VideoType).id : (data as Meeting).meeting_id
-              }`}
-              onClick={() =>
-                isVideo
-                  ? setSelectedVideo(data as VideoType)
-                  : (() => {
-                      const meeting = data as Meeting;
-                      const firstVideo = meeting.videos?.[0];
-                      if (firstVideo) setSelectedVideo(firstVideo);
-                    })()
-              }
-              className={`bg-white rounded-xl shadow hover:shadow-lg transition-all overflow-hidden group border-l-4 ${borderColor} relative cursor-pointer flex-shrink-0 w-80 md:w-auto snap-center`}
-            >
+            return (
               <div
-                className={`absolute top-3 left-3 ${
-                  isVideo ? "bg-purple-600" : "bg-blue-600"
-                } text-white text-xs font-semibold px-2 py-1 rounded-md shadow`}
+                key={`${item.type}-${
+                  isVideo
+                    ? (data as VideoType).id
+                    : (data as Meeting).meeting_id
+                }`}
+                onClick={() =>
+                  isVideo
+                    ? setSelectedVideo(data as VideoType)
+                    : (() => {
+                        const meeting = data as Meeting;
+                        const firstVideo = meeting.videos?.[0];
+                        if (firstVideo) setSelectedVideo(firstVideo);
+                      })()
+                }
+                className={`bg-white rounded-xl shadow hover:shadow-lg transition-all overflow-hidden group border-l-4 ${borderColor} relative cursor-pointer flex-shrink-0 w-80 md:w-auto snap-center`}
               >
-                {isVideo ? "🎥 Video" : `📅 Reunión #${index + 1}`}
-              </div>
+                <div
+                  className={`absolute top-3 left-3 ${
+                    isVideo ? "bg-purple-600" : "bg-blue-600"
+                  } text-white text-xs font-semibold px-2 py-1 rounded-md shadow`}
+                >
+                  {isVideo ? "🎥 Video" : `📅 Reunión #${index + 1}`}
+                </div>
 
-              <div className="relative w-full pb-[56.25%] bg-gray-200">
-                {embedUrl ? (
-                  <iframe
-                    src={`${embedUrl}?autoplay=0&muted=1&title=0&byline=0&portrait=0`}
-                    className="absolute top-0 left-0 w-full h-full rounded-t-xl pointer-events-none"
-                    frameBorder="0"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                  ></iframe>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                    <Calendar className="w-12 h-12" />
+                <div className="relative w-full pb-[56.25%] bg-gray-200">
+                  {embedUrl ? (
+                    <iframe
+                      src={`${embedUrl}?autoplay=0&muted=1&title=0&byline=0&portrait=0`}
+                      className="absolute top-0 left-0 w-full h-full rounded-t-xl pointer-events-none"
+                      frameBorder="0"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                    ></iframe>
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                      <Calendar className="w-12 h-12" />
+                      No hay video cargado
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Play className="w-12 h-12 text-white drop-shadow-lg" />
                   </div>
-                )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <Play className="w-12 h-12 text-white drop-shadow-lg" />
+                </div>
+
+                <div className="p-4">
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
+                    {data.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                    {dateInfo.full} • {dateInfo.time}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1 italic">
+                    {timeAgo(data.created_at)}
+                  </p>
                 </div>
               </div>
-
-              <div className="p-4">
-                <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
-                  {data.title}
-                </h3>
-                <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                  {dateInfo.full} • {dateInfo.time}
-                </p>
-
-                <p className="text-xs text-gray-400 mt-1 italic">
-                  {timeAgo(data.created_at)}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Próxima reunión */}
       {/* {nextMeeting ? (
