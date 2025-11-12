@@ -110,8 +110,13 @@ export function useAuth() {
           setLoading(false);
           console.log("🟢 [AUTH] Completado exitosamente");
         }
-      } catch (error: any) {
-        console.error("🔴 [AUTH] Error general:", error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error("🔴 [AUTH] Error general:", error.message);
+        } else {
+          console.error("🔴 [AUTH] Error desconocido:", error);
+        }
+
         clearTimeout(timeoutId);
         if (isMounted) {
           setLoading(false);
