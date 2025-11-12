@@ -11,7 +11,6 @@ export function useCurrentUser() {
     const supabase = createClient();
 
     const fetchUser = async () => {
-      console.log("🟦 Iniciando fetchUser inicial...");
       const { data, error } = await supabase.auth.getUser();
       if (error) console.error("Error obteniendo usuario:", error);
       setUser(data?.user || null);

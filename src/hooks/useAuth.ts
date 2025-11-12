@@ -22,25 +22,19 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("🟦 [AUTH] Iniciando...");
-
     let isMounted = true;
 
     // TIMEOUT FORZADO - GARANTIZA QUE LOADING SE PONE EN FALSE
     const timeoutId = setTimeout(() => {
-      console.log("🔴 [AUTH] TIMEOUT de 5 segundos alcanzado");
       if (isMounted) {
         setLoading(false);
-        console.log("🔴 [AUTH] Loading establecido a FALSE por timeout");
       }
     }, 5000); // 5 segundos
 
     const init = async () => {
       try {
-        console.log("🟦 [AUTH] Creando cliente Supabase...");
         const supabase = createClient();
 
-        console.log("🟦 [AUTH] Obteniendo sesión...");
         const {
           data: { session },
           error: sessionError,
@@ -54,13 +48,10 @@ export function useAuth() {
         }
 
         if (!session) {
-          console.log("⚪ [AUTH] No hay sesión");
           clearTimeout(timeoutId);
           if (isMounted) setLoading(false);
           return;
         }
-
-        console.log("🟢 [AUTH] Sesión encontrada:", session.user.email);
 
         // Establecer usuario inmediatamente
         if (isMounted) {
@@ -69,7 +60,7 @@ export function useAuth() {
         }
 
         // Intentar obtener perfil (pero no es crítico)
-        console.log("🟦 [AUTH] Obteniendo perfil...");
+
         try {
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
@@ -87,7 +78,6 @@ export function useAuth() {
               setRole("cliente");
             }
           } else {
-            console.log("🟢 [AUTH] Perfil cargado:", profile);
             if (isMounted) {
               setRole(profile?.role || "cliente");
               setName(
@@ -108,7 +98,6 @@ export function useAuth() {
         clearTimeout(timeoutId);
         if (isMounted) {
           setLoading(false);
-          console.log("🟢 [AUTH] Completado exitosamente");
         }
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -128,14 +117,12 @@ export function useAuth() {
 
     // Cleanup
     return () => {
-      console.log("🟦 [AUTH] Cleanup");
       isMounted = false;
       clearTimeout(timeoutId);
     };
   }, []); // Sin dependencias
 
   const signOut = async () => {
-    console.log("🟦 [AUTH] Cerrando sesión...");
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
@@ -149,16 +136,6 @@ export function useAuth() {
       window.location.href = "/login";
     }
   };
-
-  // Debug: Log del estado actual cada vez que cambia
-  useEffect(() => {
-    console.log("📊 [AUTH] Estado actual:", {
-      loading,
-      hasUser: !!user,
-      role,
-      name,
-    });
-  }, [loading, user, role, name]);
 
   return {
     user,
