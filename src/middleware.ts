@@ -69,10 +69,14 @@ export async function middleware(request: NextRequest) {
   );
 
   // Si no hay usuario y está intentando acceder a rutas protegidas
-  if (!user && !isPublicPath) {
+  if (request.nextUrl.pathname === "/" && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // Si no hay usuario y está intentando acceder a rutas protegidas
+  if (!user && !isPublicPath) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
   // Si hay usuario autenticado
   if (user) {
     // Obtener el rol del usuario
