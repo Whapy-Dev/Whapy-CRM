@@ -144,9 +144,10 @@ export default function PortalDashboard() {
           </p>
         </Link>
 
-        <Link
-          href="/portal/budgets"
+        <a
+          href="https://calendly.com/admin-whapy/40min/2025-09-12T16:00:00-03:00"
           className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 hover:shadow-md transition-shadow border border-purple-200"
+          target="_blank"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-600 rounded-lg">
@@ -158,7 +159,7 @@ export default function PortalDashboard() {
             Agendar Reunión
           </h3>
           <p className="text-gray-600">Agendá una reunión con nosotros</p>
-        </Link>
+        </a>
       </div>
 
       {/* Próximos pasos */}

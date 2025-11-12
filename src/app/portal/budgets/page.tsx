@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { Download, Eye, FileText, Calendar, X } from "lucide-react";
 import type { Document, Project } from "@/app/crm/usuarios/page";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PortalBudgetsPage() {
-  const { user, loading } = useAuth();
+  const { user, role, loading, signOut } = useAuth();
   const {
     data: projectsData = [],
     isLoading: isLoadingProjects,

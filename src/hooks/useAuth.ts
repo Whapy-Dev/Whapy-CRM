@@ -28,19 +28,14 @@ export function useAuth() {
     let mounted = true;
 
     const loadUser = async (session: Session | null, source: string) => {
-      console.log(`🟩 loadUser desde: ${source}`);
-
       const user = session?.user || null;
 
       if (!user) {
-        console.log("🚫 No hay usuario logueado");
         if (mounted) {
           setAuthState({ user: null, role: null, name: null, loading: false });
         }
         return;
       }
-
-      console.log("✅ Usuario autenticado:", user.email);
 
       const { data: profile, error } = await supabase
         .from("profiles")
@@ -49,7 +44,6 @@ export function useAuth() {
         .single();
 
       if (error) console.error("⚠️ Error al obtener perfil:", error);
-      console.log("📄 Perfil obtenido:", profile);
 
       if (mounted) {
         setAuthState({
@@ -66,7 +60,6 @@ export function useAuth() {
     };
 
     const init = async () => {
-      console.log("🟦 Iniciando fetchUser inicial...");
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -78,7 +71,6 @@ export function useAuth() {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(
         async (event: AuthChangeEvent, session: Session | null) => {
-          console.log("🔄 Cambio de estado de auth:", event);
           if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
             await loadUser(session, event);
           } else if (event === "SIGNED_OUT") {

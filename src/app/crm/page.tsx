@@ -5,11 +5,7 @@ import {
   useAllMeetingsUltimateWeek,
 } from "@/hooks/admin/useAllMeetings";
 import { useBudgets, useBudgetsActive } from "@/hooks/admin/useBudgets";
-import {
-  useLeads,
-  useLeadsRecent,
-  useLeadsUltimateMonth,
-} from "@/hooks/admin/useLeads";
+import { useLeadsRecent, useLeadsUltimateMonth } from "@/hooks/admin/useLeads";
 import {
   Users,
   FileText,
@@ -21,8 +17,6 @@ import {
 } from "lucide-react";
 
 export default function CRMDashboard() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data: leads = [], isLoading, isError, error } = useLeads();
   const { data: leadsUltimateMonth = [] } = useLeadsUltimateMonth();
   const { data: leadsRecent = [] } = useLeadsRecent();
   const { data: AllMeetingsUltimateWeek = [] } = useAllMeetingsUltimateWeek();

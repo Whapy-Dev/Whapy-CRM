@@ -26,7 +26,7 @@ type Project = {
 };
 
 export default function ProjectsPage() {
-  const { user, loading } = useAuth();
+  const { user, role, loading, signOut } = useAuth();
   const {
     data: projectsData = [],
     isLoading: isLoadingProjects,
@@ -234,7 +234,7 @@ export default function ProjectsPage() {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">
-                        Documentacion
+                        Documentación
                       </h3>
                       <p className="text-sm text-gray-500">
                         {project?.documents?.length || 0} archivos

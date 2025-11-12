@@ -74,6 +74,7 @@ export default function AssignProjectModal({
       }
 
       setLoading(false);
+      onClose();
     } catch (err) {
       console.error("Error al crear nuevo proyecto:", err);
       setErrorForm(

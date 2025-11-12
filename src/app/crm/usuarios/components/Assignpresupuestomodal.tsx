@@ -80,6 +80,7 @@ export default function AssignPresupuestoModal({
       setModalidadPago("");
       setPdfUrl("");
       setCurrency("");
+      onClose();
     } catch (err) {
       console.error("Error al crear nuevo Presupuesto:", err);
       setErrorForm("Ocurrió un error inesperado. Intenta nuevamente.");
