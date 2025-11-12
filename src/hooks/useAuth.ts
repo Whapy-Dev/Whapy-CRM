@@ -129,33 +129,19 @@ export function useAuth() {
   const signOut = async () => {
     const supabase = createClient();
     try {
+      // Primero hacer signOut en Supabase
       await supabase.auth.signOut();
 
-      const cookiesToDelete = [
-        "__next_hmr_refresh_hash__",
-        "sb-dkgpbbxjzehoedtkreiq-auth-token",
-        "user_role",
-      ];
-
-      cookiesToDelete.forEach((name) => {
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname};`;
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.location.hostname};`;
-      });
-
-      document.cookie.split(";").forEach((cookie) => {
-        const eqPos = cookie.indexOf("=");
-        const name =
-          eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
-      });
-
+      // Limpiar estado local
       setAuthState({ user: null, role: null, name: null, loading: false });
 
-      // Redirigir al login
-      router.push("/login");
+      // Usar window.location para forzar una recarga completa
+      // Esto asegura que el middleware procese correctamente el logout
+      window.location.href = "/login";
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
+      // Incluso si hay error, intentar redirigir
+      window.location.href = "/login";
     }
   };
 

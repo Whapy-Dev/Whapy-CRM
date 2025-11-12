@@ -15,8 +15,11 @@ import { useAllMeetingsUser } from "@/hooks/user/useAllMeetings";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function PortalDashboard() {
-  const { user, loading } = useAuth();
-  const { data: userData = [] } = useDatosUser(user);
+  const { user, loading, name } = useAuth();
+
+  // Usar el hook, pero manejar como array
+  const { data: userDataArray = [], isLoading: isLoadingUserData } =
+    useDatosUser(user);
   const { data: projectsData = [] } = useProjectsUser(user);
   const {
     data: allMeetingsData = [],
@@ -24,16 +27,45 @@ export default function PortalDashboard() {
     error: errorAllMeetingsData,
   } = useAllMeetingsUser(user);
 
-  if (loading) return <p>Cargando usuario...</p>;
+  // Extraer el primer elemento del array si existe
+  const userData = userDataArray[0] || {};
 
-  if (isLoadingAllMeetingsData) return <p>Cargando proyectos...</p>;
-  if (errorAllMeetingsData) return <p>Error: {errorAllMeetingsData.message}</p>;
+  if (loading || isLoadingUserData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoadingAllMeetingsData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando proyectos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorAllMeetingsData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+          <p className="text-red-800">Error: {errorAllMeetingsData.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   const activeProjects = projectsData.filter(
     (project) => project.status !== "pausado" && project.status !== "cancelado"
   ).length;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
@@ -50,16 +82,25 @@ export default function PortalDashboard() {
     };
   };
 
-  // const nextMeeting = formatDate(clientData.nextMeeting.date);
+  // Obtener la próxima reunión
+  const now = new Date();
+  const upcomingMeetings = allMeetingsData
+    ?.filter((meeting) => new Date(meeting.start_at) > now)
+    .sort(
+      (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
+    );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const nextMeeting = upcomingMeetings?.[0];
+  const nextMeetingFormatted = nextMeeting
+    ? formatDate(nextMeeting.start_at)
+    : null;
+
   const activityIcons = {
     document: <FileText className="w-5 h-5 text-blue-600" />,
     design: <FolderOpen className="w-5 h-5 text-purple-600" />,
     meeting: <Video className="w-5 h-5 text-green-600" />,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const activityBgColors = {
     document: "bg-blue-100",
     design: "bg-purple-100",
@@ -82,13 +123,15 @@ export default function PortalDashboard() {
   const totalProyectos30Dias = proyectosUltimos30Dias.length;
   const totalMeetings30Dias = meetingsUltimos30Dias?.length ?? 0;
   const totalActividad30Dias = totalProyectos30Dias + totalMeetings30Dias;
+
+  // Usar el nombre del hook useAuth o el de userData
+  const displayName = name || userData.nombre || "Usuario";
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Bienvenida */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">
-          ¡Hola, {userData.nombre}! 👋
-        </h1>
+        <h1 className="text-3xl font-bold mb-2">¡Hola, {displayName}! 👋</h1>
         <p className="text-blue-100 text-lg">
           Bienvenido a tu portal personalizado de Whapy LLC
         </p>
@@ -126,9 +169,9 @@ export default function PortalDashboard() {
             <ArrowRight className="w-6 h-6 text-purple-600" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">
-            Agendar Reunion
+            Agendar Reunión
           </h3>
-          <p className="text-gray-600">Agendá una reunion con nosotros</p>
+          <p className="text-gray-600">Agendá una reunión con nosotros</p>
         </Link>
       </div>
 
@@ -142,11 +185,19 @@ export default function PortalDashboard() {
             </div>
             <div>
               <h3 className="font-medium text-gray-900 mb-1">
-                Asistir a la próxima reunión
+                {nextMeeting
+                  ? "Asistir a la próxima reunión"
+                  : "Agendar una reunión"}
               </h3>
-              <p className="text-sm text-gray-600">
-                {} a las {}
-              </p>
+              {nextMeetingFormatted ? (
+                <p className="text-sm text-gray-600">
+                  {nextMeetingFormatted.date} a las {nextMeetingFormatted.time}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-600">
+                  No hay reuniones programadas. Agenda una reunión con nosotros.
+                </p>
+              )}
             </div>
           </div>
 
@@ -159,7 +210,7 @@ export default function PortalDashboard() {
                 Revisar los últimos diseños
               </h3>
               <p className="text-sm text-gray-600">
-                Nuevas actualizaciones disponibles en Figma
+                Nuevas actualizaciones disponibles en tus proyectos
               </p>
             </div>
           </div>
@@ -179,6 +230,49 @@ export default function PortalDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Actividad reciente */}
+      {totalActividad30Dias > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Actividad de los últimos 30 días
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-blue-50 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <FolderOpen className="w-5 h-5 text-blue-600" />
+                <h3 className="font-medium text-gray-900">Proyectos</h3>
+              </div>
+              <p className="text-3xl font-bold text-blue-600">
+                {totalProyectos30Dias}
+              </p>
+              <p className="text-sm text-gray-600">Nuevos proyectos</p>
+            </div>
+
+            <div className="bg-green-50 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <Video className="w-5 h-5 text-green-600" />
+                <h3 className="font-medium text-gray-900">Reuniones</h3>
+              </div>
+              <p className="text-3xl font-bold text-green-600">
+                {totalMeetings30Dias}
+              </p>
+              <p className="text-sm text-gray-600">Reuniones realizadas</p>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <CheckCircle className="w-5 h-5 text-purple-600" />
+                <h3 className="font-medium text-gray-900">Total</h3>
+              </div>
+              <p className="text-3xl font-bold text-purple-600">
+                {totalActividad30Dias}
+              </p>
+              <p className="text-sm text-gray-600">Actividades totales</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CTA de contacto */}
       <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 text-center">
