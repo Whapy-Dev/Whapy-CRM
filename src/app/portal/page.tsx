@@ -14,22 +14,20 @@ import { useAllMeetingsUser } from "@/hooks/user/useAllMeetings";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function PortalDashboard() {
-  const { user, loading, name } = useAuth();
+  const { user, loading: authLoading, name } = useAuth();
 
-  // Usar el hook, pero manejar como array
-  const { data: userDataArray = [], isLoading: isLoadingUserData } =
-    useDatosUser(user);
-  const { data: projectsData = [] } = useProjectsUser(user);
+  const { data: userData, isLoading: isLoadingUserData } = useDatosUser(user);
+  const { data: projectsData = [], isLoading: isLoadingProjects } =
+    useProjectsUser(user);
   const {
     data: allMeetingsData = [],
     isLoading: isLoadingAllMeetingsData,
     error: errorAllMeetingsData,
   } = useAllMeetingsUser(user);
 
-  // Extraer el primer elemento del array si existe
-  const userData = userDataArray[0] || {};
+  const loading = authLoading || isLoadingUserData || isLoadingProjects;
 
-  if (loading || isLoadingUserData) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -111,7 +109,7 @@ export default function PortalDashboard() {
   const totalActividad30Dias = totalProyectos30Dias + totalMeetings30Dias;
 
   // Usar el nombre del hook useAuth o el de userData
-  const displayName = name || userData.nombre || "Usuario";
+  const displayName = name || userData?.nombre || "Usuario";
 
   return (
     <div className="space-y-6 p-6">
@@ -148,6 +146,7 @@ export default function PortalDashboard() {
           href="https://calendly.com/admin-whapy/40min/2025-09-12T16:00:00-03:00"
           className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 hover:shadow-md transition-shadow border border-purple-200"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-600 rounded-lg">

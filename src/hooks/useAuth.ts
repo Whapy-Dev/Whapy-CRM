@@ -1,117 +1,167 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
+
+/**
+ * VERSIÓN MINIMALISTA - GARANTIZADO NO SE QUEDA EN LOADING
+ *
+ * - Timeout de 5 segundos FORZADO
+ * - Logs extensivos para debugging
+ * - Try-catch en todo
+ * - Sin dependencias extras
+ */
 
 type UserRole = "admin" | "cliente" | null;
 
-interface AuthState {
-  user: User | null;
-  role: UserRole;
-  name: string | null;
-  loading: boolean;
-}
-
 export function useAuth() {
-  const router = useRouter();
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    role: null,
-    name: null,
-    loading: true,
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<UserRole>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createClient();
-    let mounted = true;
+    console.log("🟦 [AUTH] Iniciando...");
 
-    const loadUser = async (session: Session | null, source: string) => {
-      const user = session?.user || null;
+    let isMounted = true;
 
-      if (!user) {
-        if (mounted) {
-          setAuthState({ user: null, role: null, name: null, loading: false });
-        }
-        return;
+    // TIMEOUT FORZADO - GARANTIZA QUE LOADING SE PONE EN FALSE
+    const timeoutId = setTimeout(() => {
+      console.log("🔴 [AUTH] TIMEOUT de 5 segundos alcanzado");
+      if (isMounted) {
+        setLoading(false);
+        console.log("🔴 [AUTH] Loading establecido a FALSE por timeout");
       }
-
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("role, nombre")
-        .eq("id", user.id)
-        .single();
-
-      if (error) console.error("⚠️ Error al obtener perfil:", error);
-
-      if (mounted) {
-        setAuthState({
-          user,
-          role: profile?.role || "cliente",
-          name:
-            profile?.nombre ||
-            user.user_metadata?.nombre ||
-            user.email?.split("@")[0] ||
-            "Usuario",
-          loading: false,
-        });
-      }
-    };
+    }, 5000); // 5 segundos
 
     const init = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      try {
+        console.log("🟦 [AUTH] Creando cliente Supabase...");
+        const supabase = createClient();
 
-      await loadUser(session, "INIT");
+        console.log("🟦 [AUTH] Obteniendo sesión...");
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-      // Listener para cambios de auth (login/logout)
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(
-        async (event: AuthChangeEvent, session: Session | null) => {
-          if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-            await loadUser(session, event);
-          } else if (event === "SIGNED_OUT") {
-            setAuthState({
-              user: null,
-              role: null,
-              name: null,
-              loading: false,
-            });
+        if (sessionError) {
+          console.error("🔴 [AUTH] Error en sesión:", sessionError);
+          clearTimeout(timeoutId);
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        if (!session) {
+          console.log("⚪ [AUTH] No hay sesión");
+          clearTimeout(timeoutId);
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        console.log("🟢 [AUTH] Sesión encontrada:", session.user.email);
+
+        // Establecer usuario inmediatamente
+        if (isMounted) {
+          setUser(session.user);
+          setName(session.user.email?.split("@")[0] || "Usuario");
+        }
+
+        // Intentar obtener perfil (pero no es crítico)
+        console.log("🟦 [AUTH] Obteniendo perfil...");
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("role, nombre")
+            .eq("id", session.user.id)
+            .single();
+
+          if (profileError) {
+            console.warn(
+              "⚠️ [AUTH] Error en perfil (no crítico):",
+              profileError.message
+            );
+            // Usar rol por defecto
+            if (isMounted) {
+              setRole("cliente");
+            }
+          } else {
+            console.log("🟢 [AUTH] Perfil cargado:", profile);
+            if (isMounted) {
+              setRole(profile?.role || "cliente");
+              setName(
+                profile?.nombre ||
+                  session.user.email?.split("@")[0] ||
+                  "Usuario"
+              );
+            }
+          }
+        } catch (profileError) {
+          console.warn("⚠️ [AUTH] Exception en perfil:", profileError);
+          if (isMounted) {
+            setRole("cliente");
           }
         }
-      );
 
-      return () => {
-        mounted = false;
-        subscription.unsubscribe();
-      };
+        // Limpiar timeout y establecer loading false
+        clearTimeout(timeoutId);
+        if (isMounted) {
+          setLoading(false);
+          console.log("🟢 [AUTH] Completado exitosamente");
+        }
+      } catch (error: any) {
+        console.error("🔴 [AUTH] Error general:", error);
+        clearTimeout(timeoutId);
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
 
     init();
-  }, [router]);
+
+    // Cleanup
+    return () => {
+      console.log("🟦 [AUTH] Cleanup");
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, []); // Sin dependencias
 
   const signOut = async () => {
-    const supabase = createClient();
+    console.log("🟦 [AUTH] Cerrando sesión...");
     try {
+      const supabase = createClient();
       await supabase.auth.signOut();
-      setAuthState({ user: null, role: null, name: null, loading: false });
+      setUser(null);
+      setRole(null);
+      setName(null);
       window.location.href = "/login";
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      console.error("🔴 [AUTH] Error al cerrar sesión:", error);
+      // Forzar redirección de todas formas
       window.location.href = "/login";
     }
   };
 
+  // Debug: Log del estado actual cada vez que cambia
+  useEffect(() => {
+    console.log("📊 [AUTH] Estado actual:", {
+      loading,
+      hasUser: !!user,
+      role,
+      name,
+    });
+  }, [loading, user, role, name]);
+
   return {
-    user: authState.user,
-    role: authState.role,
-    name: authState.name,
-    loading: authState.loading,
-    isAdmin: authState.role === "admin",
-    isCliente: authState.role === "cliente",
+    user,
+    role,
+    name,
+    loading,
+    isAdmin: role === "admin",
+    isCliente: role === "cliente",
     signOut,
   };
 }

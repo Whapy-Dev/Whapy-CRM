@@ -19,5 +19,8 @@ export function useDatosUser(user: User | null) {
       return data;
     },
     enabled: !!user,
+    retry: 3, // Reintentar 3 veces si falla
+    retryDelay: 1000, // Esperar 1 segundo entre reintentos
+    staleTime: 5 * 60 * 1000, // Los datos son válidos por 5 minutos
   });
 }

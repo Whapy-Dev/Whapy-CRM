@@ -20,9 +20,10 @@ export default function PortalLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user: _user, role, loading, signOut } = useAuth();
+  const { user, role, loading: authLoading, signOut } = useAuth();
 
-  const { data: userData = [] } = useDatosUser(_user);
+  const { data: userData, isLoading: isLoadingUserData } = useDatosUser(user);
+
   const isActive = (path: string) => {
     if (path === "/portal") {
       return pathname === path;
@@ -37,6 +38,9 @@ export default function PortalLayout({
         : "text-gray-700 hover:text-blue-600 hover:bg-blue-50 border-b-2 border-transparent hover:border-blue-600"
     }`;
   };
+
+  // Combinamos ambos loadings
+  const loading = authLoading || isLoadingUserData;
 
   if (loading) {
     return (
@@ -76,7 +80,7 @@ export default function PortalLayout({
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
-                  {userData?.email || "Usuario"}
+                  {userData?.email || user?.email || "Usuario"}
                 </p>
                 <p className="text-xs text-gray-500 capitalize">{role}</p>
               </div>
@@ -142,24 +146,6 @@ export default function PortalLayout({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
-
-      {/* Footer */}
-      {/* <footer className="bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center text-sm text-gray-500">
-            <p>© 2025 Whapy LLC. Todos los derechos reservados.</p>
-            <p className="mt-1">
-              ¿Necesitas ayuda?{" "}
-              <a
-                href="mailto:soporte@whapy.com"
-                className="text-blue-600 hover:text-blue-700"
-              >
-                Contáctanos
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer> */}
     </div>
   );
 }

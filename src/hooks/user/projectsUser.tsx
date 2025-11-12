@@ -13,9 +13,13 @@ export function useProjectsUser(user: User | null) {
         .from("projects")
         .select(`*, all_meetings!left(*), documents(*)`)
         .eq("user_id", user?.id);
+
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!user,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 }

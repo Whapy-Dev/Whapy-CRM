@@ -44,9 +44,13 @@ export function useAllMeetingsByProjectId(projectId: string) {
         )
         .eq("project_id", projectId)
         .order("start_at", { ascending: false });
+
       if (error) throw error;
       return data as Meeting[];
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -64,5 +68,8 @@ export function useAllMeetingsUser(user: User | null) {
       return data || [];
     },
     enabled: !!user,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 5 * 60 * 1000,
   });
 }
