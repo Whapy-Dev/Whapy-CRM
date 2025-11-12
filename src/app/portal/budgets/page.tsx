@@ -122,7 +122,7 @@ function ProjectCard({
 }: {
   project: Project;
   categories: string[];
-  getTypeIcon: (type: string) => JSX.Element;
+  getTypeIcon: (type: string) => React.ReactNode;
   getCategoryColor: (cat: string) => string;
 }) {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
