@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  FileText,
   CheckCircle,
   ArrowRight,
   FolderOpen,
@@ -94,19 +93,6 @@ export default function PortalDashboard() {
   const nextMeetingFormatted = nextMeeting
     ? formatDate(nextMeeting.start_at)
     : null;
-
-  const activityIcons = {
-    document: <FileText className="w-5 h-5 text-blue-600" />,
-    design: <FolderOpen className="w-5 h-5 text-purple-600" />,
-    meeting: <Video className="w-5 h-5 text-green-600" />,
-  };
-
-  const activityBgColors = {
-    document: "bg-blue-100",
-    design: "bg-purple-100",
-    meeting: "bg-green-100",
-  };
-
   const fechaLimite = new Date();
   fechaLimite.setDate(fechaLimite.getDate() - 30);
 

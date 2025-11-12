@@ -6,7 +6,6 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
 export default function ProfilePage() {
-  const supabase = createClient();
   const [isEditing, setIsEditing] = useState(false);
   const [isRealEmail, setIsRealEmail] = useState("");
   const [profile, setProfile] = useState({
@@ -26,6 +25,7 @@ export default function ProfilePage() {
   const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
+    const supabase = createClient();
     const getUserProfile = async () => {
       setLoading(true);
       const { data: userData, error: userError } =
@@ -80,6 +80,7 @@ export default function ProfilePage() {
     return <div>Cargando perfil...</div>;
   }
   const handleSave = async () => {
+    const supabase = createClient();
     setIsSaving(true);
 
     try {

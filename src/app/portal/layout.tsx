@@ -13,14 +13,12 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useDatosUser } from "@/hooks/user/datosUser";
 import Image from "next/image";
-import { useAuthSync } from "@/hooks/useAuthSync";
 
 export default function PortalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
- 
   const pathname = usePathname();
   const { user: _user, role, loading, signOut } = useAuth();
 
