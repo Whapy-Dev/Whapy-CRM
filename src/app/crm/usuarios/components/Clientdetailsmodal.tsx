@@ -7,6 +7,7 @@ import EditDetallesModal from "./EditDetallesModal";
 import AssignDocumentModal from "./Assigndocumentmodal";
 import AssignMeetingModal from "./Assignmeetingmodal";
 import { useQueryClient } from "@tanstack/react-query";
+import EditPasosClient from "./editPasosModal";
 
 type ClientDetailsModalProps = {
   show: boolean;
@@ -22,6 +23,8 @@ export default function ClientDetailsModal({
 }: ClientDetailsModalProps) {
   const [showEditClientModal, setShowEditClientModal] = useState(false);
   const [showNewProjectClientModal, setShowNewProjectClientModal] =
+    useState(false);
+  const [showEditPasosClientModal, setShowEditPasosClientModal] =
     useState(false);
   const [showEditDetalles, setShowEditDetalles] = useState(false);
   const [currentDetalles, setCurrentDetalles] = useState(
@@ -49,6 +52,12 @@ export default function ClientDetailsModal({
               Datos Personales
             </h3>
             <div className="flex gap-2">
+              <button
+                onClick={() => setShowEditPasosClientModal(true)}
+                className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+              >
+                Editar pasos
+              </button>
               <button
                 onClick={() => setShowEditClientModal(true)}
                 className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
@@ -160,6 +169,11 @@ export default function ClientDetailsModal({
       </div>
 
       {/* Modales secundarios */}
+      <EditPasosClient
+        show={showEditPasosClientModal}
+        client={client}
+        onClose={() => setShowEditPasosClientModal(false)}
+      />
       <ShowEditClientModal
         show={showEditClientModal}
         client={client}

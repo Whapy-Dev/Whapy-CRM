@@ -67,6 +67,16 @@ export type Project = {
   videos?: Video[] | null;
 };
 
+export type Pasos = {
+  id: string;
+  titulo1: string;
+  detalles1: string;
+  titulo2: string;
+  detalles2: string;
+  titulo3: string;
+  detalles3: string;
+};
+
 export type Client = {
   id: string;
   nombre: string;
@@ -84,6 +94,7 @@ export type Client = {
   detalles?: string | null;
   estado: string;
   videos?: Video[] | null;
+  pasos?: Pasos[] | null;
 };
 
 export type InsertData = {

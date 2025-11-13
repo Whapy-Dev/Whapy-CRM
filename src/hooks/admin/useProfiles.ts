@@ -15,6 +15,7 @@ export function useProfiles() {
         .select(
           `
           *,
+          pasos(*),
           videos(*),
           projects:projects(
             *,

@@ -12,6 +12,7 @@ import { useDatosUser } from "@/hooks/user/datosUser";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { useAllMeetingsUser } from "@/hooks/user/useAllMeetings";
 import { useAuth } from "@/hooks/useAuth";
+import { usePasosUser } from "@/hooks/user/usePasosUser";
 
 export default function PortalDashboard() {
   const { user, loading: authLoading, name } = useAuth();
@@ -24,7 +25,7 @@ export default function PortalDashboard() {
     isLoading: isLoadingAllMeetingsData,
     error: errorAllMeetingsData,
   } = useAllMeetingsUser(user);
-
+  const { data: pasos, isLoading: isLoadingPasos } = usePasosUser(user);
   const loading = authLoading || isLoadingUserData || isLoadingProjects;
 
   if (loading) {
@@ -110,7 +111,11 @@ export default function PortalDashboard() {
 
   // Usar el nombre del hook useAuth o el de userData
   const displayName = name || userData?.nombre || "Usuario";
-
+  const items = [
+    { titulo: pasos.paso_titulo_1, detalle: pasos.paso_detalle_1 },
+    { titulo: pasos.paso_titulo_2, detalle: pasos.paso_detalle_2 },
+    { titulo: pasos.paso_titulo_3, detalle: pasos.paso_detalle_3 },
+  ].filter((p) => p.titulo);
   return (
     <div className="space-y-6 p-6">
       {/* Bienvenida */}
@@ -164,56 +169,22 @@ export default function PortalDashboard() {
       {/* Próximos pasos */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Próximos Pasos</h2>
+
         <div className="space-y-3">
-          <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
-            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-              1
+          {items.map((p, i) => (
+            <div
+              key={i}
+              className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg"
+            >
+              <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                {i + 1}
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-1">{p.titulo}</h3>
+                <p className="text-sm text-gray-600">{p.detalle}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-1">
-                {nextMeeting
-                  ? "Asistir a la próxima reunión"
-                  : "Agendar una reunión"}
-              </h3>
-              {nextMeetingFormatted ? (
-                <p className="text-sm text-gray-600">
-                  {nextMeetingFormatted.date} a las {nextMeetingFormatted.time}
-                </p>
-              ) : (
-                <p className="text-sm text-gray-600">
-                  No hay reuniones programadas. Agenda una reunión con nosotros.
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-            <div className="w-6 h-6 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-              2
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-1">
-                Revisar los últimos diseños
-              </h3>
-              <p className="text-sm text-gray-600">
-                Nuevas actualizaciones disponibles en tus proyectos
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-            <div className="w-6 h-6 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-              3
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-1">
-                Proporcionar feedback
-              </h3>
-              <p className="text-sm text-gray-600">
-                Tu opinión es fundamental para el éxito del proyecto
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
