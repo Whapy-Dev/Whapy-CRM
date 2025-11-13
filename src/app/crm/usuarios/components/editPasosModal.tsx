@@ -32,13 +32,14 @@ export default function EditClientStepsModal({
     // Si el cliente tiene pasos, los cargamos al form
     if (client.pasos && client.pasos.length > 0) {
       const pasos = client.pasos[0]; // asumimos un registro por cliente
+      console.log(pasos);
       setFormData({
-        titulo1: pasos.titulo1 || "",
-        detalles1: pasos.detalles1 || "",
-        titulo2: pasos.titulo2 || "",
-        detalles2: pasos.detalles2 || "",
-        titulo3: pasos.titulo3 || "",
-        detalles3: pasos.detalles3 || "",
+        titulo1: pasos.paso_titulo_1 || "",
+        detalles1: pasos.paso_detalle_1 || "",
+        titulo2: pasos.paso_titulo_2 || "",
+        detalles2: pasos.paso_detalle_2 || "",
+        titulo3: pasos.paso_titulo_3 || "",
+        detalles3: pasos.paso_detalle_3 || "",
       });
     } else {
       // Si no tiene pasos, dejamos el form vacío
@@ -70,12 +71,12 @@ export default function EditClientStepsModal({
       const { error } = await supabase
         .from("pasos")
         .update({
-          titulo1: formData.titulo1,
-          detalles1: formData.detalles1,
-          titulo2: formData.titulo2,
-          detalles2: formData.detalles2,
-          titulo3: formData.titulo3,
-          detalles3: formData.detalles3,
+          paso_titulo_1: formData.titulo1,
+          paso_detalle_1: formData.detalles1,
+          paso_titulo_2: formData.titulo2,
+          paso_detalle_2: formData.detalles2,
+          paso_titulo_3: formData.titulo3,
+          paso_detalle_3: formData.detalles3,
         })
         .eq("id", pasoExistente.id);
 

@@ -69,12 +69,12 @@ export type Project = {
 
 export type Pasos = {
   id: string;
-  titulo1: string;
-  detalles1: string;
-  titulo2: string;
-  detalles2: string;
-  titulo3: string;
-  detalles3: string;
+  paso_titulo_1: string;
+  paso_detalle_1: string;
+  paso_titulo_2: string;
+  paso_detalle_2: string;
+  paso_titulo_3: string;
+  paso_detalle_3: string;
 };
 
 export type Client = {
