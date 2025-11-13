@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { Project, Video } from "../page";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ClientVideoDetailsMeetingModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
 
 const supabase = createClient();
@@ -16,17 +18,19 @@ export default function ShowVideoMeetingClientModal({
   show,
   project,
   onClose,
+  refetchProfiles,
 }: ClientVideoDetailsMeetingModalProps) {
+  const queryClient = useQueryClient();
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   if (!show || !project) return null;
 
-  // 🔹 Obtener todos los videos de los meetings del proyecto
+  // 📹 Obtener todos los videos de los meetings del proyecto
   const allVideos: Video[] =
     project.all_meetings?.flatMap((m) => m.videos || []) || [];
 
-  // 🔹 Filtrar solo por título
+  // 📹 Filtrar solo por título
   const videosToShow = allVideos.filter((v) =>
     v.title.toLowerCase().includes(searchTitle.toLowerCase())
   );
@@ -50,8 +54,13 @@ export default function ShowVideoMeetingClientModal({
         .delete()
         .eq("id", video.id);
 
-      if (error) console.error("Error en Supabase:", error);
-      else setSelectedVideo(null);
+      if (error) {
+        console.error("Error en Supabase:", error);
+      } else {
+        // ✅ Invalidar queries para actualización automática
+        await refetchProfiles();
+        setSelectedVideo(null);
+      }
     } catch (err) {
       console.error("Error eliminando video:", err);
     }

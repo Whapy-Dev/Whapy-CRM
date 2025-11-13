@@ -10,13 +10,17 @@ type AssignPresupuestoModalProps = {
   client: Client | null;
   project: Project | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
+
 const supabase = createClient();
+
 export default function AssignPresupuestoModal({
   show,
   client,
   project,
   onClose,
+  refetchProfiles,
 }: AssignPresupuestoModalProps) {
   const [status, setStatus] = useState("");
   const [title, setTitle] = useState("");
@@ -36,7 +40,6 @@ export default function AssignPresupuestoModal({
     setSuccess(false);
 
     try {
-      // Validaciones básicas
       if (
         !title ||
         !amountTotal ||
@@ -71,7 +74,9 @@ export default function AssignPresupuestoModal({
       }
 
       setSuccess(true);
-      setLoading(false);
+
+      // ✅ Usar refetchProfiles
+      await refetchProfiles();
 
       setStatus("");
       setTitle("");
@@ -80,20 +85,25 @@ export default function AssignPresupuestoModal({
       setModalidadPago("");
       setPdfUrl("");
       setCurrency("");
-      onClose();
+
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     } catch (err) {
       console.error("Error al crear nuevo Presupuesto:", err);
       setErrorForm("Ocurrió un error inesperado. Intenta nuevamente.");
+    } finally {
       setLoading(false);
     }
   };
+
   if (!show || !client) return null;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Nuevo Presupuesto</h2>
         <form onSubmit={handleNewPresupuesto} className="space-y-4">
-          {/* Error */}
           {errorForm && (
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -101,7 +111,6 @@ export default function AssignPresupuestoModal({
             </div>
           )}
 
-          {/* Success */}
           {success && (
             <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm text-green-800">
@@ -110,7 +119,6 @@ export default function AssignPresupuestoModal({
             </div>
           )}
 
-          {/* Título */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Título
@@ -125,7 +133,6 @@ export default function AssignPresupuestoModal({
             />
           </div>
 
-          {/* Estado */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Estado
@@ -144,7 +151,6 @@ export default function AssignPresupuestoModal({
             </select>
           </div>
 
-          {/* Monto */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Monto total
@@ -158,6 +164,7 @@ export default function AssignPresupuestoModal({
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Duracion Estimada
@@ -171,6 +178,7 @@ export default function AssignPresupuestoModal({
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Modalidad de Pago
@@ -185,7 +193,6 @@ export default function AssignPresupuestoModal({
             />
           </div>
 
-          {/* PDF */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               URL del PDF (opcional)
@@ -199,7 +206,6 @@ export default function AssignPresupuestoModal({
             />
           </div>
 
-          {/* Moneda */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Moneda (opcional)
@@ -213,7 +219,6 @@ export default function AssignPresupuestoModal({
             />
           </div>
 
-          {/* Botones */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"

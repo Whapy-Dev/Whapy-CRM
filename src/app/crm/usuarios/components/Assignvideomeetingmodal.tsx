@@ -2,11 +2,13 @@ import { useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Meeting } from "../page";
+import { useQueryClient } from "@tanstack/react-query";
 
 type AssignVideoMeetingsModalProps = {
   show: boolean;
   all_meetings: Meeting[] | null | undefined;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
 type Video = {
   user_id?: string;
@@ -22,7 +24,9 @@ export default function AssignVideoMeetingModal({
   show,
   all_meetings,
   onClose,
+  refetchProfiles,
 }: AssignVideoMeetingsModalProps) {
+  const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
@@ -35,7 +39,7 @@ export default function AssignVideoMeetingModal({
   const supabase = createClient();
   if (!show || !all_meetings) return null;
 
-  // 🔹 Subida del video a Vimeo + guardado en DB
+  // 📹 Subida del video a Vimeo + guardado en DB
   const handleUpload = async () => {
     if (!file) {
       setMessage("Seleccioná un archivo.");
@@ -126,6 +130,9 @@ export default function AssignVideoMeetingModal({
       if (dbError) throw dbError;
 
       setMessage("✅ Video subido y guardado correctamente.");
+
+      // ✅ Invalidar queries para actualización automática
+      await refetchProfiles();
       setIsUploading(false);
       setProgress(100);
       setFile(null);
@@ -146,6 +153,8 @@ export default function AssignVideoMeetingModal({
         console.error(err);
         setMessage("❌ Error desconocido");
       }
+    } finally {
+      setIsUploading(false);
     }
   };
   return (

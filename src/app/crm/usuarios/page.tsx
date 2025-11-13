@@ -251,6 +251,7 @@ export default function ClientsPageUnsafe() {
         <CreateAccountModal
           show={showModal}
           onClose={() => setShowModal(false)}
+          refetchProfiles={refetchProfiles}
         />
 
         {/* Modal Detalles del Cliente */}
@@ -262,6 +263,7 @@ export default function ClientsPageUnsafe() {
             setSelectedProject(project);
             setShowEditProject(true);
           }}
+          refetchProfiles={refetchProfiles}
         />
 
         {/* Modal Editar Proyecto */}
@@ -269,6 +271,7 @@ export default function ClientsPageUnsafe() {
           show={showEditProject}
           project={selectedProject}
           onClose={() => setShowEditProject(false)}
+          refetchProfiles={refetchProfiles}
         />
 
         {/* Modal Asignar Documento */}

@@ -9,12 +9,16 @@ type AssignProjectModalProps = {
   show: boolean;
   client: Client | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
+
 const supabase = createClient();
+
 export default function AssignProjectModal({
   show,
   client,
   onClose,
+  refetchProfiles,
 }: AssignProjectModalProps) {
   const [title, setTitle] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -67,14 +71,21 @@ export default function AssignProjectModal({
         setErrorForm("Error al asignar documento");
       } else {
         setSuccess(true);
+
+        // ✅ Usar refetchProfiles
+        await refetchProfiles();
+
         setTitle("");
         setDescripcion("");
         setStatus("");
         setProgress("");
+
+        setTimeout(() => {
+          onClose();
+        }, 1000);
       }
 
       setLoading(false);
-      onClose();
     } catch (err) {
       console.error("Error al crear nuevo proyecto:", err);
       setErrorForm(
@@ -184,6 +195,7 @@ export default function AssignProjectModal({
             </button>
             <button
               type="submit"
+              disabled={loading}
               className={`flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 ${
                 loading ? "cursor-not-allowed" : "cursor-pointer"
               }`}

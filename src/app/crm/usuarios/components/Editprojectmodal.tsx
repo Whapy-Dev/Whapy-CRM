@@ -2,18 +2,22 @@ import { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Project } from "../page";
+import { useQueryClient } from "@tanstack/react-query";
 
 type EditProjectModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
 
 export default function EditProjectModal({
   show,
   project,
   onClose,
+  refetchProfiles,
 }: EditProjectModalProps) {
+  const queryClient = useQueryClient();
   const [editProjectTitle, setEditProjectTitle] = useState("");
   const [editProjectDescripcion, setEditProjectDescripcion] = useState("");
   const [editProjectEstado, setEditProjectEstado] = useState("");
@@ -22,7 +26,7 @@ export default function EditProjectModal({
   const [loadingEditProject, setLoadingEditProject] = useState(false);
   const [successFormEditProject, setSuccessFormEditProject] = useState(false);
 
-  // 🔹 Cuando se abre el modal o cambia el proyecto, rellenar los campos
+  // 📹 Cuando se abre el modal o cambia el proyecto, rellenar los campos
   useEffect(() => {
     if (project) {
       setEditProjectTitle(project.title || "");
@@ -62,7 +66,8 @@ export default function EditProjectModal({
       } else {
         setSuccessFormEditProject(true);
 
-        // 🔹 Cerrar el modal automáticamente tras 1.5 segundos
+        await refetchProfiles();
+        // 📹 Cerrar el modal automáticamente tras 1.5 segundos
         setTimeout(() => {
           setSuccessFormEditProject(false);
           onClose();

@@ -6,7 +6,6 @@ import AssignProjectModal from "./Assignprojectmodal";
 import EditDetallesModal from "./EditDetallesModal";
 import AssignDocumentModal from "./Assigndocumentmodal";
 import AssignMeetingModal from "./Assignmeetingmodal";
-import { useQueryClient } from "@tanstack/react-query";
 import EditPasosClient from "./editPasosModal";
 
 type ClientDetailsModalProps = {
@@ -14,12 +13,15 @@ type ClientDetailsModalProps = {
   client: Client | null;
   onClose: () => void;
   onEditProject: (project: Project) => void;
+  refetchProfiles: () => void;
 };
+
 export default function ClientDetailsModal({
   show,
   client,
   onClose,
   onEditProject,
+  refetchProfiles,
 }: ClientDetailsModalProps) {
   const [showEditClientModal, setShowEditClientModal] = useState(false);
   const [showNewProjectClientModal, setShowNewProjectClientModal] =
@@ -30,7 +32,7 @@ export default function ClientDetailsModal({
   const [currentDetalles, setCurrentDetalles] = useState(
     client?.detalles || ""
   );
-  const queryClient = useQueryClient();
+
   // nuevos estados para documentos y reuniones
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showMeetingModal, setShowMeetingModal] = useState(false);
@@ -151,6 +153,7 @@ export default function ClientDetailsModal({
                   setSelectedProject(project);
                   setShowMeetingModal(true);
                 }}
+                refetchProfiles={refetchProfiles}
               />
             ))}
           </div>
@@ -173,40 +176,46 @@ export default function ClientDetailsModal({
         show={showEditPasosClientModal}
         client={client}
         onClose={() => setShowEditPasosClientModal(false)}
+        refetchProfiles={refetchProfiles}
       />
+
       <ShowEditClientModal
         show={showEditClientModal}
         client={client}
         onClose={() => setShowEditClientModal(false)}
+        refetchProfiles={refetchProfiles}
       />
+
       <AssignProjectModal
         show={showNewProjectClientModal}
         client={client}
         onClose={() => setShowNewProjectClientModal(false)}
+        refetchProfiles={refetchProfiles}
       />
+
       <EditDetallesModal
         show={showEditDetalles}
         client={client}
         onClose={() => setShowEditDetalles(false)}
         onUpdate={(newDetalles) => setCurrentDetalles(newDetalles)}
+        refetchProfiles={refetchProfiles}
       />
+
+      {/* ✅ SIN DUPLICADOS - Solo una vez refetchProfiles */}
       <AssignDocumentModal
         show={showDocumentModal}
         project={selectedProject}
         client={client}
         onClose={() => setShowDocumentModal(false)}
-        refetchProfiles={() =>
-          queryClient.invalidateQueries({ queryKey: ["profiles"] })
-        }
+        refetchProfiles={refetchProfiles}
       />
+
       <AssignMeetingModal
         show={showMeetingModal}
         project={selectedProject}
         client={client}
         onClose={() => setShowMeetingModal(false)}
-        refetchProfiles={() =>
-          queryClient.invalidateQueries({ queryKey: ["profiles"] })
-        }
+        refetchProfiles={refetchProfiles}
       />
     </div>
   );

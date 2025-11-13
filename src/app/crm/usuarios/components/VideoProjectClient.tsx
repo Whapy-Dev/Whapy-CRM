@@ -3,27 +3,31 @@
 import { useState } from "react";
 import { Project, Video } from "../page";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ClientVideoDetailsProjectModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
 
 export default function ShowVideoProjectClientModal({
   show,
   project,
   onClose,
+  refetchProfiles,
 }: ClientVideoDetailsProjectModalProps) {
+  const queryClient = useQueryClient();
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   if (!show || !project) return null;
 
-  // 🔹 Solo mostrar los videos del proyecto
+  // 📹 Solo mostrar los videos del proyecto
   const projectVideos = project.videos || [];
 
-  // 🔹 Filtrar por título
+  // 📹 Filtrar por título
   const filteredVideos = projectVideos.filter((v) =>
     v.title.toLowerCase().includes(searchTitle.toLowerCase())
   );
@@ -48,8 +52,13 @@ export default function ShowVideoProjectClientModal({
         .from("videos")
         .delete()
         .eq("id", video.id);
-      if (error) console.error("Error eliminando en Supabase:", error);
-      else setSelectedVideo(null);
+
+      if (error) {
+        console.error("Error eliminando en Supabase:", error);
+      } else {
+        await refetchProfiles();
+        setSelectedVideo(null);
+      }
     } catch (err) {
       console.error("Error eliminando video:", err);
     }
@@ -70,7 +79,7 @@ export default function ShowVideoProjectClientModal({
           </button>
         </div>
 
-        {/* 🔹 Filtro por título */}
+        {/* 📹 Filtro por título */}
         <div className="flex justify-center mb-6">
           <input
             type="text"
@@ -81,7 +90,7 @@ export default function ShowVideoProjectClientModal({
           />
         </div>
 
-        {/* 🔹 Galería */}
+        {/* 📹 Galería */}
         {filteredVideos.length ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredVideos.map((v) => (
@@ -115,7 +124,7 @@ export default function ShowVideoProjectClientModal({
         )}
       </div>
 
-      {/* 🔹 Modal de video seleccionado */}
+      {/* 📹 Modal de video seleccionado */}
       {selectedVideo && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl p-6 w-full max-w-[1500px] shadow-2xl border border-gray-200 flex flex-col md:flex-row gap-6 min-h-[750px]">

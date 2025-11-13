@@ -4,11 +4,13 @@ import { AlertCircle, CheckCircle } from "lucide-react";
 type CreateAccountModalProps = {
   show: boolean;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
 
 export default function CreateAccountModal({
   show,
   onClose,
+  refetchProfiles,
 }: CreateAccountModalProps) {
   const [loading, setLoading] = useState(false);
   const [errorForm, setErrorForm] = useState("");
@@ -59,6 +61,13 @@ export default function CreateAccountModal({
       setEmailInput("");
       setPasswordInput("");
       setNameInput("");
+
+      // ✅ Usar refetchProfiles
+      await refetchProfiles();
+
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (err: unknown) {
       console.log(err);
 

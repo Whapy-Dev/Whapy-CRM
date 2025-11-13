@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Client } from "../page";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ClientStepsEditModalProps = {
   show: boolean;
   client: Client | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
 
 const supabase = createClient();
@@ -16,7 +18,9 @@ export default function EditClientStepsModal({
   show,
   client,
   onClose,
+  refetchProfiles,
 }: ClientStepsEditModalProps) {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     titulo1: "",
     detalles1: "",
@@ -108,6 +112,7 @@ export default function EditClientStepsModal({
       }
     }
 
+    await refetchProfiles();
     onClose();
   };
 

@@ -2,11 +2,13 @@ import { useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Project } from "../page";
+import { useQueryClient } from "@tanstack/react-query";
 
 type AssignVideoProjectModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
 type Video = {
   user_id?: string;
@@ -22,7 +24,9 @@ export default function AssignVideoProjectModal({
   show,
   project,
   onClose,
+  refetchProfiles,
 }: AssignVideoProjectModalProps) {
+  const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
@@ -34,7 +38,7 @@ export default function AssignVideoProjectModal({
   const supabase = createClient();
   if (!show || !project) return null;
 
-  // 🔹 Subida del video a Vimeo + guardado en DB
+  // 📹 Subida del video a Vimeo + guardado en DB
   const handleUpload = async () => {
     if (!file) {
       setMessage("Seleccioná un archivo.");
@@ -123,6 +127,8 @@ export default function AssignVideoProjectModal({
       if (dbError) throw dbError;
 
       setMessage("✅ Video subido y guardado correctamente.");
+
+      await refetchProfiles();
       setIsUploading(false);
       setProgress(100);
       setFile(null);
@@ -142,6 +148,8 @@ export default function AssignVideoProjectModal({
         console.error(err);
         setMessage("❌ Error desconocido");
       }
+    } finally {
+      setIsUploading(false);
     }
   };
   return (

@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Document, Project } from "../page";
 import { createClient } from "@/lib/supabase/client";
 import { AlertCircle, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ClientDocumentsModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
 
 const supabase = createClient();
@@ -17,13 +19,15 @@ export default function ShowDocumentsClientModal({
   show,
   project,
   onClose,
+  refetchProfiles,
 }: ClientDocumentsModalProps) {
+  const queryClient = useQueryClient();
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
   );
   const [error, setError] = useState("");
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null); // 👈 agregado
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   if (!show || !project) return null;
 
@@ -44,6 +48,7 @@ export default function ShowDocumentsClientModal({
         console.error("Error en Supabase:", error);
         setError("Error eliminando el documento.");
       } else {
+        await refetchProfiles();
         setSelectedDocument(null);
       }
     } catch (err) {
@@ -136,7 +141,6 @@ export default function ShowDocumentsClientModal({
               {new Date(selectedDocument.created_at).toLocaleString()}
             </p>
 
-            {/* 👇 botón corregido */}
             <button
               onClick={() => setPdfUrl(selectedDocument.document_url)}
               className="text-blue-600  cursor-pointer"

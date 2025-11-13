@@ -14,6 +14,7 @@ type ProjectCardProps = {
   onEditClick: () => void;
   onAssignDocument: () => void;
   onAssignMeeting: () => void;
+  refetchProfiles: () => void;
 };
 
 export default function ProjectCard({
@@ -22,6 +23,7 @@ export default function ProjectCard({
   onEditClick,
   onAssignDocument,
   onAssignMeeting,
+  refetchProfiles,
 }: ProjectCardProps) {
   const [showVideoMeetingClient, setShowVideoMeetingClient] = useState(false);
   const [showVideoProjectClient, setShowVideoProjectClient] = useState(false);
@@ -199,32 +201,38 @@ export default function ProjectCard({
         show={showVideoMeetingClient}
         project={project}
         onClose={() => setShowVideoMeetingClient(false)}
+        refetchProfiles={refetchProfiles}
       />
       <ShowVideoProjectClientModal
         show={showVideoProjectClient}
         project={project}
         onClose={() => setShowVideoProjectClient(false)}
+        refetchProfiles={refetchProfiles}
       />
       <AssignVideoMeetingModal
         show={showUploadMeetingModal}
         all_meetings={project.all_meetings}
         onClose={() => setShowUploadMeetingModal(false)}
+        refetchProfiles={refetchProfiles}
       />
       <AssignVideoProjectModal
         show={showUploadProjectModal}
         project={project}
         onClose={() => setShowUploadProjectModal(false)}
+        refetchProfiles={refetchProfiles}
       />{" "}
       <AssignPresupuestoModal
         show={showNewPresupuestoClientModal}
         client={client}
         project={project}
         onClose={() => setShowNewPresupuestoClientModal(false)}
+        refetchProfiles={refetchProfiles}
       />
       <ShowDocumentsClientModal
         show={showDocumentsClientModal}
         project={project}
         onClose={() => setShowDocumentsClientModal(false)}
+        refetchProfiles={refetchProfiles}
       />
     </div>
   );

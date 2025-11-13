@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Client } from "../page";
+import { useQueryClient } from "@tanstack/react-query";
 
 type EditDetallesModalProps = {
   show: boolean;
   client: Client;
   onClose: () => void;
   onUpdate: (newDetalles: string) => void;
+  refetchProfiles: () => void;
 };
 
 export default function EditDetallesModal({
@@ -16,7 +18,9 @@ export default function EditDetallesModal({
   client,
   onClose,
   onUpdate,
+  refetchProfiles,
 }: EditDetallesModalProps) {
+  const queryClient = useQueryClient();
   const [detalles, setDetalles] = useState(client.detalles || "");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
@@ -34,6 +38,9 @@ export default function EditDetallesModal({
       if (error) throw error;
 
       onUpdate(detalles);
+
+      await refetchProfiles();
+
       onClose();
     } catch (err) {
       console.error("Error actualizando detalles:", err);

@@ -8,12 +8,16 @@ type ClientEditModalProps = {
   show: boolean;
   client: Client | null;
   onClose: () => void;
+  refetchProfiles: () => void;
 };
+
 const supabase = createClient();
+
 export default function ShowEditClientModal({
   show,
   client,
   onClose,
+  refetchProfiles,
 }: ClientEditModalProps) {
   const [formData, setFormData] = useState({
     nombre: "",
@@ -85,6 +89,10 @@ export default function ShowEditClientModal({
 
     if (!error) {
       alert("Cliente actualizado correctamente");
+
+      // ✅ Usar refetchProfiles
+      await refetchProfiles();
+
       setFormData({
         nombre: "",
         email: "",
@@ -113,7 +121,6 @@ export default function ShowEditClientModal({
           onSubmit={handleSubmit}
           className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-800"
         >
-          {/* Columna 1 */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Nombre</label>
             <input
