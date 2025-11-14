@@ -94,7 +94,7 @@ export default function PortalBudgetsPage() {
         </p>
         <div className="flex gap-3">
           <a
-            href="mailto:contacto@whapy.com"
+            href="mailto:admin@whapy.com"
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Enviar Email
