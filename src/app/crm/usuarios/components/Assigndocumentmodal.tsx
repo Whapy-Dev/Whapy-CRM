@@ -49,13 +49,8 @@ export default function AssignDocumentModal({
       document_url: documentUrl,
       category_document: categoryDocument,
       type_document: typeDocument,
+      lead_id: client.id,
     };
-
-    if (client.type === "Lead") {
-      insertData.lead_id = client.id;
-    } else {
-      insertData.user_id = client.id;
-    }
 
     const { error } = await supabase.from("documents").insert(insertData);
     await queryClient.invalidateQueries({ queryKey: ["profiles"] });
