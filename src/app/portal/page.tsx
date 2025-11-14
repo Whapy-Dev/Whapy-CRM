@@ -112,10 +112,11 @@ export default function PortalDashboard() {
   // Usar el nombre del hook useAuth o el de userData
   const displayName = name || userData?.nombre || "Usuario";
   const items = [
-    { titulo: pasos.paso_titulo_1, detalle: pasos.paso_detalle_1 },
-    { titulo: pasos.paso_titulo_2, detalle: pasos.paso_detalle_2 },
-    { titulo: pasos.paso_titulo_3, detalle: pasos.paso_detalle_3 },
+    { titulo: pasos?.paso_titulo_1, detalle: pasos?.paso_detalle_1 },
+    { titulo: pasos?.paso_titulo_2, detalle: pasos?.paso_detalle_2 },
+    { titulo: pasos?.paso_titulo_3, detalle: pasos?.paso_detalle_3 },
   ].filter((p) => p.titulo);
+
   return (
     <div className="space-y-6 p-6">
       {/* Bienvenida */}
