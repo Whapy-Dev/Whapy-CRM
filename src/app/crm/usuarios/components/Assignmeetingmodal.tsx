@@ -65,13 +65,8 @@ export default function AssignMeetingModal({
       type_meeting: typeMeeting,
       estado: estado,
       duration: duration,
+      user_id: client.id,
     };
-
-    if (client.type === "Lead") {
-      insertData.lead_id = client.id;
-    } else {
-      insertData.user_id = client.id;
-    }
 
     const { error } = await supabase.from("all_meetings").insert(insertData);
     await queryClient.invalidateQueries({ queryKey: ["profiles"] });
