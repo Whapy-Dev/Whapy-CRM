@@ -21,7 +21,7 @@ export default function AssignDocumentModal({
   refetchProfiles,
 }: AssignDocumentModalProps) {
   const [title, setTitle] = useState("");
-  const [documentUrl, setDocumentUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [categoryDocument, setCategoryDocument] = useState("");
   const [typeDocument, setTypeDocument] = useState("");
   const [loadingDocument, setLoadingDocument] = useState(false);
@@ -34,19 +34,40 @@ export default function AssignDocumentModal({
   const handleNewDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!project || !client) return;
-    if (!title || !documentUrl || !categoryDocument || !typeDocument) {
+
+    if (!title || !file || !categoryDocument || !typeDocument) {
       setErrorFormDocument("Completa todos los campos antes de guardar");
       setLoadingDocument(false);
       return;
     }
+
     setLoadingDocument(true);
     setErrorFormDocument("");
     setSuccessDocument(false);
 
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${client.id}/${Date.now()}.${fileExt}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("contracts")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error(uploadError);
+      setErrorFormDocument("Error al subir el PDF");
+      setLoadingDocument(false);
+      return;
+    }
+
+    const fileStoragePath = uploadData?.path;
+
     const insertData: InsertData = {
       project_id: project.id,
-      title: title,
-      document_url: documentUrl,
+      title,
+      document_url: fileStoragePath,
       category_document: categoryDocument,
       type_document: typeDocument,
       user_id: client.id,
@@ -55,6 +76,7 @@ export default function AssignDocumentModal({
     const { error } = await supabase.from("documents").insert(insertData);
     await queryClient.invalidateQueries({ queryKey: ["profiles"] });
     await queryClient.invalidateQueries({ queryKey: ["leads"] });
+
     if (error) {
       console.error(error);
       setErrorFormDocument("Error al asignar documento");
@@ -62,10 +84,12 @@ export default function AssignDocumentModal({
       setSuccessDocument(true);
       await refetchProfiles();
 
+      // Reset
       setTitle("");
-      setDocumentUrl("");
+      setFile(null);
       setCategoryDocument("");
       setTypeDocument("");
+
       setTimeout(() => {
         onClose();
         setSuccessDocument(false);
@@ -116,20 +140,14 @@ export default function AssignDocumentModal({
           </div>
 
           <div>
-            <label
-              htmlFor="documentUrl"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              URL del Documento
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Archivo PDF
             </label>
             <input
-              value={documentUrl}
-              onChange={(e) => setDocumentUrl(e.target.value)}
-              type="text"
-              id="documentUrl"
-              name="documentUrl"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-              placeholder="https://..."
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150 bg-white"
             />
           </div>
 

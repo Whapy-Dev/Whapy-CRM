@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FileText, Download, Eye, Calendar, X } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export type Documents = {
   id: string;
@@ -22,7 +23,7 @@ type Props = {
   documents: Documents[];
   projectId: string;
 };
-
+const supabase = createClient();
 export default function DocumentsContent({ documents, projectId }: Props) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -187,7 +188,13 @@ export default function DocumentsContent({ documents, projectId }: Props) {
 
             <div className="flex gap-2">
               <button
-                onClick={() => setPdfUrl(doc.document_url)}
+                onClick={() => {
+                  const url = supabase.storage
+                    .from("contracts")
+                    .getPublicUrl(doc.document_url).data.publicUrl;
+
+                  setPdfUrl(url);
+                }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 <Eye className="w-4 h-4" />
@@ -195,7 +202,11 @@ export default function DocumentsContent({ documents, projectId }: Props) {
               </button>
 
               <a
-                href={doc.document_url}
+                href={
+                  supabase.storage
+                    .from("contracts")
+                    .getPublicUrl(doc.document_url).data.publicUrl
+                }
                 download
                 target="_blank"
                 rel="noopener noreferrer"

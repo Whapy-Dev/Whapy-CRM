@@ -21,7 +21,6 @@ export default function ShowDocumentsClientModal({
   onClose,
   refetchProfiles,
 }: ClientDocumentsModalProps) {
-  const queryClient = useQueryClient();
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
@@ -142,7 +141,13 @@ export default function ShowDocumentsClientModal({
             </p>
 
             <button
-              onClick={() => setPdfUrl(selectedDocument.document_url)}
+              onClick={() => {
+                const url = supabase.storage
+                  .from("contracts")
+                  .getPublicUrl(selectedDocument.document_url).data.publicUrl;
+
+                setPdfUrl(url);
+              }}
               className="text-blue-600  cursor-pointer"
             >
               Abrir documento

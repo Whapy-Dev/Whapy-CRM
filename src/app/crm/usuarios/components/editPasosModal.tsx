@@ -36,7 +36,6 @@ export default function EditClientStepsModal({
     // Si el cliente tiene pasos, los cargamos al form
     if (client.pasos && client.pasos.length > 0) {
       const pasos = client.pasos[0]; // asumimos un registro por cliente
-      console.log(pasos);
       setFormData({
         titulo1: pasos.paso_titulo_1 || "",
         detalles1: pasos.paso_detalle_1 || "",

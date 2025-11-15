@@ -5,7 +5,8 @@ import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { Download, Eye, FileText, Calendar, X } from "lucide-react";
 import type { Document, Project } from "@/app/crm/usuarios/page";
 import { useAuth } from "@/hooks/useAuth";
-
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 export default function PortalBudgetsPage() {
   const { user, role, loading, signOut } = useAuth();
   const {
@@ -100,7 +101,7 @@ export default function PortalBudgetsPage() {
             Enviar Email
           </a>
           <a
-            href="https://wa.me/5493442310408"
+            href="https://wa.me/5493442665131"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
@@ -220,14 +221,24 @@ function ProjectCard({
 
               <div className="flex justify-between mt-auto">
                 <button
-                  onClick={() => setPdfUrl(doc.document_url)}
+                  onClick={() => {
+                    const url = supabase.storage
+                      .from("contracts")
+                      .getPublicUrl(doc.document_url).data.publicUrl;
+
+                    setPdfUrl(url);
+                  }}
                   className="flex items-center text-indigo-600 hover:text-indigo-800 text-sm"
                 >
                   <Eye className="w-4 h-4 mr-1" /> Ver
                 </button>
 
                 <a
-                  href={doc.document_url}
+                  href={
+                    supabase.storage
+                      .from("contracts")
+                      .getPublicUrl(doc.document_url).data.publicUrl
+                  }
                   download
                   target="_blank"
                   rel="noopener noreferrer"

@@ -201,7 +201,6 @@ export default function ClientDetailsModal({
         refetchProfiles={refetchProfiles}
       />
 
-      {/* ✅ SIN DUPLICADOS - Solo una vez refetchProfiles */}
       <AssignDocumentModal
         show={showDocumentModal}
         project={selectedProject}
