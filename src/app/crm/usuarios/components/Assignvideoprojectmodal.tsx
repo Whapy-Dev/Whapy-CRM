@@ -1,69 +1,78 @@
 import { useState } from "react";
-
 import { createClient } from "@/lib/supabase/client";
-import { Project } from "../page";
-import { useQueryClient } from "@tanstack/react-query";
+import { Meeting, Project } from "../page";
 
-type AssignVideoProjectModalProps = {
+type AssignVideoModalProps = {
   show: boolean;
   project: Project | null;
+  all_meetings: Meeting[] | null | undefined;
   onClose: () => void;
   refetchProfiles: () => void;
 };
+
 type Video = {
-  user_id?: string;
   vimeo_id: string;
   vimeo_url: string;
   title: string;
   descripcion: string;
+  duration: string;
   project_id?: string;
   meeting_id?: string;
-  duration: string;
 };
-export default function AssignVideoProjectModal({
+
+// 🔐 Respuesta tipada del endpoint de Vimeo
+type VimeoSessionResponse = {
+  upload_link: string;
+  uri: string;
+  error?: string;
+};
+
+export default function AssignVideoModal({
   show,
   project,
+  all_meetings,
   onClose,
   refetchProfiles,
-}: AssignVideoProjectModalProps) {
-  const queryClient = useQueryClient();
+}: AssignVideoModalProps) {
+  const supabase = createClient();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
   const [descripcion, setDescripcion] = useState("");
 
+  const [uploadType, setUploadType] = useState<"project" | "meeting" | "">("");
+  const [selectedMeetingId, setSelectedMeetingId] = useState("");
+
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
-  const supabase = createClient();
+
+  const resetForm = () => {
+    setFile(null);
+    setTitle("");
+    setDuration("");
+    setDescripcion("");
+    setUploadType("");
+    setSelectedMeetingId("");
+    setProgress(0);
+    setMessage("");
+  };
   if (!show || !project) return null;
-
-  // 📹 Subida del video a Vimeo + guardado en DB
   const handleUpload = async () => {
-    if (!file) {
-      setMessage("Seleccioná un archivo.");
-      return;
-    }
-
-    if (!title) {
-      setMessage("Escribe un titulo.");
-      return;
-    }
-    if (!descripcion) {
-      setMessage("Escribe una descripcion.");
-      return;
-    }
-    if (!duration) {
-      setMessage("Asigna una duracion en minutos.");
-      return;
-    }
+    if (!uploadType) return setMessage("Selecciona el tipo de video.");
+    if (!file) return setMessage("Seleccioná un archivo.");
+    if (!title) return setMessage("Escribe un título.");
+    if (!descripcion) return setMessage("Escribe una descripción.");
+    if (!duration) return setMessage("Asigna una duración.");
+    if (uploadType === "meeting" && !selectedMeetingId)
+      return setMessage("Selecciona una reunión.");
 
     try {
       setIsUploading(true);
       setProgress(0);
       setMessage("Creando sesión de subida en Vimeo...");
 
-      // 1️⃣ Crear sesión en tu API
+      // 1️⃣ Crear sesión Vimeo
       const sessionRes = await fetch("/api/create-vimeo-upload-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -74,156 +83,173 @@ export default function AssignVideoProjectModal({
         }),
       });
 
-      const { upload_link, uri, error } = await sessionRes.json();
-      if (error) throw new Error(error);
-      if (!upload_link || !uri)
-        throw new Error("No se pudo obtener upload_link de Vimeo");
+      const sessionJson: VimeoSessionResponse = await sessionRes.json();
 
-      // 2️⃣ Subir el archivo directamente a Vimeo (con progreso)
-      setMessage("Subiendo a Vimeo...");
+      if (sessionJson.error) throw new Error(sessionJson.error);
 
+      const { upload_link, uri } = sessionJson;
+      if (!upload_link || !uri) throw new Error("Respuesta inválida de Vimeo.");
+
+      // 2️⃣ Subir video a Vimeo
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("PATCH", upload_link, true);
         xhr.setRequestHeader("Tus-Resumable", "1.0.0");
         xhr.setRequestHeader("Upload-Offset", "0");
         xhr.setRequestHeader("Content-Type", "application/offset+octet-stream");
+
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             const percent = Math.round((e.loaded / e.total) * 100);
             setProgress(percent);
           }
         };
+
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) resolve();
           else reject(new Error(`Error Vimeo: ${xhr.statusText}`));
         };
+
         xhr.onerror = () => reject(new Error("Error de conexión con Vimeo"));
         xhr.send(file);
       });
 
-      // 3️⃣ Guardar datos en Supabase
-      const vimeoId = uri.split("/").pop();
+      // 3️⃣ Guardar en la DB
+      const vimeoId = uri.split("/").pop() ?? "";
       const vimeoUrl = `https://vimeo.com/${vimeoId}`;
 
       const videoData: Video = {
         vimeo_id: vimeoId,
         vimeo_url: vimeoUrl,
-        project_id: project.id,
         title,
         descripcion,
         duration,
+        ...(uploadType === "project"
+          ? { project_id: project.id }
+          : { meeting_id: selectedMeetingId }),
       };
-      if (!project) {
-        throw new Error(
-          "Debe seleccionar un destino (usuario, reunión o proyecto)."
-        );
-      }
 
       const { error: dbError } = await supabase
         .from("videos")
         .insert([videoData]);
-
       if (dbError) throw dbError;
 
-      setMessage("✅ Video subido y guardado correctamente.");
-
+      setMessage("✅ Video subido correctamente.");
       await refetchProfiles();
-      setIsUploading(false);
-      setProgress(100);
-      setFile(null);
-      setTitle("");
-      setDuration("");
-      setDescripcion("");
+
       setTimeout(() => {
-        setMessage("");
-        setProgress(0);
+        resetForm();
         onClose();
-      }, 1500);
+      }, 1200);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err);
-        setMessage(`❌ ${err.message}`);
-      } else {
-        console.error(err);
-        setMessage("❌ Error desconocido");
-      }
+      const errorMessage =
+        err instanceof Error ? err.message : "Error desconocido";
+      setMessage("❌ " + errorMessage);
     } finally {
       setIsUploading(false);
     }
   };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md border border-gray-200">
-        {/* Nueva sección para elegir destino del video */}
-        <div className="mb-4">
-          <h4 className="text-lg font-semibold mb-3 text-gray-800">
-            Subir video a {project.title}
-          </h4>
-        </div>
+      <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md border">
+        <h4 className="text-lg font-semibold mb-4">Subir Video</h4>
+
+        {/* Tipo de video */}
+        <select
+          value={uploadType}
+          onChange={(e) =>
+            setUploadType(e.target.value as "project" | "meeting" | "")
+          }
+          className="w-full mb-4 border p-3 rounded-xl"
+        >
+          <option value="">— Seleccionar tipo —</option>
+          <option value="project">📁 Video Informativo (Proyecto)</option>
+          <option value="meeting">📅 Video para Reunión</option>
+        </select>
+
+        {uploadType === "meeting" && (
+          <select
+            value={selectedMeetingId}
+            onChange={(e) => setSelectedMeetingId(e.target.value)}
+            className="w-full mb-4 border p-3 rounded-xl"
+          >
+            <option value="">— Seleccionar Reunión —</option>
+            {all_meetings?.map((m) => (
+              <option key={m.meeting_id} value={m.meeting_id}>
+                {m.title}
+              </option>
+            ))}
+          </select>
+        )}
 
         <input
           type="text"
-          placeholder="Título del video"
+          placeholder="Título"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full mb-3 border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+          className="w-full mb-3 border p-3 rounded-xl"
         />
+
         <input
           type="text"
-          placeholder="Duracion en minutos"
+          placeholder="Duración (min)"
           value={duration}
           onChange={(e) => setDuration(e.target.value)}
-          className="w-full mb-3 border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+          className="w-full mb-3 border p-3 rounded-xl"
         />
+
         <textarea
-          placeholder="Descripción (opcional)"
+          placeholder="Descripción"
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
-          className="w-full mb-3 border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+          className="w-full mb-3 border p-3 rounded-xl"
         />
-        <div className="mb-3">
-          <label
-            htmlFor="videoUpload"
-            className="flex items-center justify-center w-full p-3 bg-blue-600 text-white font-medium rounded-xl cursor-pointer hover:bg-blue-700 transition"
-          >
-            {file ? `Archivo seleccionado: ${file.name}` : "Seleccionar video"}
-          </label>
+
+        <label className="w-full p-3 bg-blue-600 text-white rounded-xl mb-3 cursor-pointer block text-center">
+          {file ? file.name : "Seleccionar video"}
           <input
-            id="videoUpload"
             type="file"
             accept="video/*"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
             className="hidden"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
-        </div>
+        </label>
 
         {isUploading && (
-          <div className="w-full bg-gray-200 rounded-full h-4 mb-3 overflow-hidden">
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
             <div
-              className="bg-gradient-to-r from-blue-500 to-blue-400 h-4 rounded-full transition-all duration-300"
+              className="bg-blue-500 h-3 rounded-full transition-all"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
         )}
 
-        {message && <p className="text-sm text-gray-700 mb-3">{message}</p>}
+        {message && <p className="text-gray-700 mb-3">{message}</p>}
 
         <div className="flex justify-end gap-4">
           <button
             onClick={onClose}
             disabled={isUploading}
-            className="px-5 py-2 rounded-2xl font-medium transition bg-gray-200 text-gray-800 hover:bg-gray-300 cursor-pointer disabled:text-gray-400 disabled:cursor-not-allowed"
+            className={`px-5 py-2 rounded-xl transition-all flex items-center gap-2 ${
+              isUploading
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-70"
+                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            }`}
           >
-            Cancelar
+            {isUploading && "🔒"} Cancelar
           </button>
 
           <button
             onClick={handleUpload}
             disabled={isUploading}
-            className="px-5 py-2 rounded-2xl font-medium transition bg-blue-600 text-white hover:bg-blue-700 cursor-pointer disabled:bg-blue-400 disabled:cursor-not-allowed"
+            className={`px-5 py-2 rounded-xl text-white transition-all flex items-center gap-2 ${
+              isUploading
+                ? "bg-blue-300 cursor-not-allowed opacity-70"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            {isUploading ? "Subiendo..." : "Subir"}
+            {isUploading && "🔒"} Subir
           </button>
         </div>
       </div>

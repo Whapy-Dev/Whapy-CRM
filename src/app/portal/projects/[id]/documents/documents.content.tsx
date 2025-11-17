@@ -136,7 +136,7 @@ export default function DocumentsContent({ documents, projectId }: Props) {
                 Vista previa del documento
               </h3>
               <button
-                className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+                className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors cursor-pointer"
                 onClick={() => setPdfUrl(null)}
               >
                 <X className="w-5 h-5" />
@@ -187,33 +187,58 @@ export default function DocumentsContent({ documents, projectId }: Props) {
             </div>
 
             <div className="flex gap-2">
+              {doc.category_document !== "Diseño" && (
+                <button
+                  onClick={() => {
+                    const url = supabase.storage
+                      .from("contracts")
+                      .getPublicUrl(doc.document_url).data.publicUrl;
+
+                    setPdfUrl(url);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                >
+                  <Eye className="w-4 h-4" />
+                  Ver
+                </button>
+              )}
+
+              {/* 🔽 Botón de descarga → SIEMPRE visible */}
               <button
-                onClick={() => {
-                  const url = supabase.storage
+                onClick={async () => {
+                  const { data, error } = await supabase.storage
                     .from("contracts")
-                    .getPublicUrl(doc.document_url).data.publicUrl;
+                    .download(doc.document_url);
 
-                  setPdfUrl(url);
+                  if (error) {
+                    console.error(error);
+                    return;
+                  }
+
+                  let fileName = doc.title || "archivo";
+                  if (!fileName.toLowerCase().endsWith(".html")) {
+                    if (
+                      doc.type_document === "HTML" ||
+                      doc.document_url.includes(".html")
+                    ) {
+                      fileName = `${fileName}.html`;
+                    }
+                  }
+
+                  const url = window.URL.createObjectURL(data);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = fileName;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+
+                  window.URL.revokeObjectURL(url);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
-              >
-                <Eye className="w-4 h-4" />
-                Ver
-              </button>
-
-              <a
-                href={
-                  supabase.storage
-                    .from("contracts")
-                    .getPublicUrl(doc.document_url).data.publicUrl
-                }
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <Download className="w-4 h-4" />
-              </a>
+              </button>
             </div>
           </div>
         ))}

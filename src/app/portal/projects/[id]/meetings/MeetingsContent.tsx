@@ -111,8 +111,9 @@ export default function MeetingsContent({
       : [];
 
   const filteredVideos =
-    selectedCategory === "Videos" || selectedCategory === "Todos" ? videos : [];
-
+    selectedCategory === "Videos Informativos" || selectedCategory === "Todos"
+      ? videos
+      : [];
   const combinedItems = [
     ...filteredMeetings.map((m) => ({ type: "meeting", data: m })),
     ...filteredVideos.map((v) => ({ type: "video", data: v })),
@@ -120,7 +121,7 @@ export default function MeetingsContent({
 
   // 🔹 Mostrar mensaje si no hay elementos según el filtro
   const noItemsMessage =
-    selectedCategory === "Videos" && videos.length === 0
+    selectedCategory === "Videos Informativos" && videos.length === 0
       ? "No hay videos disponibles para este proyecto."
       : selectedCategory === "Reuniones" && meetings.length === 0
       ? "No hay reuniones registradas para este proyecto."
@@ -168,7 +169,7 @@ export default function MeetingsContent({
 
       {/* Filtros */}
       <div className="flex gap-3 mb-6">
-        {["Todos", "Reuniones", "Videos"].map((cat) => {
+        {["Todos", "Reuniones", "Videos Informativos"].map((cat) => {
           const isActive = selectedCategory === cat;
           let activeClasses = "";
 
@@ -180,7 +181,7 @@ export default function MeetingsContent({
             activeClasses = isActive
               ? "bg-blue-100 text-blue-700 border-blue-300"
               : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50";
-          } else if (cat === "Videos") {
+          } else if (cat === "Videos Informativos") {
             activeClasses = isActive
               ? "bg-purple-100 text-purple-700 border-purple-300"
               : "bg-white text-gray-700 border-gray-300 hover:bg-purple-50";

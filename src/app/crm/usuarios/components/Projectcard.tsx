@@ -7,6 +7,7 @@ import ShowVideoMeetingClientModal from "./VideoMeetingClient";
 import ShowVideoProjectClientModal from "./VideoProjectClient";
 import AssignPresupuestoModal from "./Assignpresupuestomodal";
 import ShowDocumentsClientModal from "./Showdocuments";
+import AssignVideoModal from "./Assignvideoprojectmodal";
 
 type ProjectCardProps = {
   project: Project;
@@ -27,8 +28,8 @@ export default function ProjectCard({
 }: ProjectCardProps) {
   const [showVideoMeetingClient, setShowVideoMeetingClient] = useState(false);
   const [showVideoProjectClient, setShowVideoProjectClient] = useState(false);
-  const [showUploadProjectModal, setShowUploadProjectModal] = useState(false);
-  const [showUploadMeetingModal, setShowUploadMeetingModal] = useState(false);
+  const [showAssignVideo, setShowAssignVideo] = useState(false);
+
   const [showNewPresupuestoClientModal, setShowNewPresupuestoClientModal] =
     useState(false);
   const [showDocumentsClientModal, setShowDocumentsClientModal] =
@@ -70,14 +71,9 @@ export default function ProjectCard({
             onClick={() => setShowVideoProjectClient(true)}
             className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 font-medium cursor-pointer transition-colors duration-150"
           >
-            Ver Videos
+            Ver Videos Informativos
           </button>
-          <button
-            onClick={() => setShowUploadProjectModal(true)}
-            className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 font-medium cursor-pointer transition-colors duration-150"
-          >
-            Subir Video
-          </button>
+
           <button
             type="button"
             onClick={onEditClick}
@@ -165,7 +161,7 @@ export default function ProjectCard({
               Ver Videos
             </button>
             <button
-              onClick={() => setShowUploadMeetingModal(true)}
+              onClick={() => setShowAssignVideo(true)}
               className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium cursor-pointer"
             >
               Subir Video
@@ -209,18 +205,14 @@ export default function ProjectCard({
         onClose={() => setShowVideoProjectClient(false)}
         refetchProfiles={refetchProfiles}
       />
-      <AssignVideoMeetingModal
-        show={showUploadMeetingModal}
+      <AssignVideoModal
+        show={showAssignVideo}
+        project={project}
         all_meetings={project.all_meetings}
-        onClose={() => setShowUploadMeetingModal(false)}
+        onClose={() => setShowAssignVideo(false)}
         refetchProfiles={refetchProfiles}
       />
-      <AssignVideoProjectModal
-        show={showUploadProjectModal}
-        project={project}
-        onClose={() => setShowUploadProjectModal(false)}
-        refetchProfiles={refetchProfiles}
-      />{" "}
+
       <AssignPresupuestoModal
         show={showNewPresupuestoClientModal}
         client={client}

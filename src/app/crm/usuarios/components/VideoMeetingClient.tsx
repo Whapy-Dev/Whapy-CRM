@@ -34,7 +34,6 @@ export default function ShowVideoMeetingClientModal({
   const videosToShow = allVideos.filter((v) =>
     v.title.toLowerCase().includes(searchTitle.toLowerCase())
   );
-
   const eliminarVideo = async (video: Video) => {
     try {
       const res = await fetch("/api/delete-video-vimeo", {

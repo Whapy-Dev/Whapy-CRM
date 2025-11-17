@@ -69,7 +69,7 @@ export default function ShowVideoProjectClientModal({
       <div className="bg-white rounded-3xl p-6 w-full max-w-7xl min-h-[48rem] shadow-2xl border border-gray-200">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
-            Videos del Proyecto
+            Videos Informativos
           </h2>
           <button
             onClick={onClose}
