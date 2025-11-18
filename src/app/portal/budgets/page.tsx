@@ -219,33 +219,59 @@ function ProjectCard({
                 {new Date(doc.created_at).toLocaleDateString("es-AR")}
               </div>
 
-              <div className="flex justify-between mt-auto">
+              <div className="flex gap-2">
+                {doc.category_document !== "Diseño" && (
+                  <button
+                    onClick={() => {
+                      const url = supabase.storage
+                        .from("contracts")
+                        .getPublicUrl(doc.document_url).data.publicUrl;
+
+                      setPdfUrl(url);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Ver
+                  </button>
+                )}
+
+                {/* 🔽 Botón de descarga → SIEMPRE visible */}
                 <button
-                  onClick={() => {
-                    const url = supabase.storage
+                  onClick={async () => {
+                    const { data, error } = await supabase.storage
                       .from("contracts")
-                      .getPublicUrl(doc.document_url).data.publicUrl;
+                      .download(doc.document_url);
 
-                    setPdfUrl(url);
+                    if (error) {
+                      console.error(error);
+                      return;
+                    }
+
+                    let fileName = doc.title || "archivo";
+                    if (!fileName.toLowerCase().endsWith(".html")) {
+                      if (
+                        doc.type_document === "HTML" ||
+                        doc.document_url.includes(".html")
+                      ) {
+                        fileName = `${fileName}.html`;
+                      }
+                    }
+
+                    const url = window.URL.createObjectURL(data);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                    window.URL.revokeObjectURL(url);
                   }}
-                  className="flex items-center text-indigo-600 hover:text-indigo-800 text-sm"
+                  className="flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 >
-                  <Eye className="w-4 h-4 mr-1" /> Ver
+                  <Download className="w-4 h-4" />
                 </button>
-
-                <a
-                  href={
-                    supabase.storage
-                      .from("contracts")
-                      .getPublicUrl(doc.document_url).data.publicUrl
-                  }
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center text-green-600 hover:text-green-800 text-sm"
-                >
-                  <Download className="w-4 h-4 mr-1" /> Descargar
-                </a>
               </div>
             </div>
           ))}
