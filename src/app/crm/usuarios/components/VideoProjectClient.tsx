@@ -23,9 +23,9 @@ export default function ShowVideoProjectClientModal({
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   if (!show || !project) return null;
-
   // 📹 Solo mostrar los videos del proyecto
-  const projectVideos = project.videos || [];
+  const projectVideos =
+    project.videos?.filter((v) => v.type_video === "Video informativo") || [];
 
   // 📹 Filtrar por título
   const filteredVideos = projectVideos.filter((v) =>

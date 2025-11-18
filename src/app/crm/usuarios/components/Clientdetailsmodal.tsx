@@ -149,10 +149,6 @@ export default function ClientDetailsModal({
                   setSelectedProject(project);
                   setShowDocumentModal(true);
                 }}
-                onAssignMeeting={() => {
-                  setSelectedProject(project);
-                  setShowMeetingModal(true);
-                }}
                 refetchProfiles={refetchProfiles}
               />
             ))}
@@ -206,14 +202,6 @@ export default function ClientDetailsModal({
         project={selectedProject}
         client={client}
         onClose={() => setShowDocumentModal(false)}
-        refetchProfiles={refetchProfiles}
-      />
-
-      <AssignMeetingModal
-        show={showMeetingModal}
-        project={selectedProject}
-        client={client}
-        onClose={() => setShowMeetingModal(false)}
         refetchProfiles={refetchProfiles}
       />
     </div>

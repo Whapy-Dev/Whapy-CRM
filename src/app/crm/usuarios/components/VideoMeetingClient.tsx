@@ -25,10 +25,10 @@ export default function ShowVideoMeetingClientModal({
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   if (!show || !project) return null;
-
   // 📹 Obtener todos los videos de los meetings del proyecto
+  // 📹 Obtener solo videos de tipo "Reunion" del proyecto
   const allVideos: Video[] =
-    project.all_meetings?.flatMap((m) => m.videos || []) || [];
+    project.videos?.filter((v) => v.type_video === "Reunion") || [];
 
   // 📹 Filtrar solo por título
   const videosToShow = allVideos.filter((v) =>

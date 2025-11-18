@@ -7,7 +7,6 @@ import SelectVideoModal from "./SelectVideoModal";
 type VideoType = {
   id: string;
   user_id?: string | null;
-  meeting_id?: string | null;
   project_id?: string | null;
   vimeo_id: string;
   vimeo_url: string;
@@ -16,45 +15,17 @@ type VideoType = {
   descripcion: string;
   duration?: string | null;
   created_at: string;
-};
-
-type Lead = { name: string };
-type Profile = { nombre: string };
-
-type Meeting = {
-  meeting_id: string;
-  project_id: string;
-  lead_id: string;
-  user_id: string;
-  type_meeting: string;
-  title: string;
-  start_at: string;
-  location: string;
-  meet_url?: string;
-  summary_md: string;
-  summary_pdf_url: string;
-  created_at: string;
-  estado: string;
-  leads?: Lead;
-  profiles?: Profile;
-  duration: string;
-  videos?: VideoType[];
+  type_video: string;
 };
 
 type Props = {
-  meetings: Meeting[];
   projectId: string;
   videos: VideoType[];
 };
 
-export default function MeetingsContent({
-  meetings,
-  projectId,
-  videos,
-}: Props) {
+export default function MeetingsContent({ projectId, videos }: Props) {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
-  const [showFull, setShowFull] = useState(false);
 
   const timeAgo = (dateString: string) => {
     const now = new Date();
@@ -95,36 +66,19 @@ export default function MeetingsContent({
     };
   };
 
-  const meetingsWithDate = meetings.filter(
-    (m) => m.start_at && new Date(m.start_at) > new Date()
-  );
-
-  const sortedMeetings = meetingsWithDate.sort(
-    (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
-  );
-
-  const nextMeeting = sortedMeetings[0];
-
-  const filteredMeetings =
-    selectedCategory === "Reuniones" || selectedCategory === "Todos"
-      ? meetings
-      : [];
-
+  // 🔥 SOLO FILTRO VIDEOS YA QUE NO HAY REUNIONES
   const filteredVideos =
-    selectedCategory === "Videos Informativos" || selectedCategory === "Todos"
+    selectedCategory === "Todos"
       ? videos
-      : [];
-  const combinedItems = [
-    ...filteredMeetings.map((m) => ({ type: "meeting", data: m })),
-    ...filteredVideos.map((v) => ({ type: "video", data: v })),
-  ];
+      : videos.filter((v) =>
+          selectedCategory === "Videos Informativos"
+            ? v.type_video === "Video informativo"
+            : v.type_video === "Reunion"
+        );
 
-  // 🔹 Mostrar mensaje si no hay elementos según el filtro
   const noItemsMessage =
-    selectedCategory === "Videos Informativos" && videos.length === 0
-      ? "No hay videos disponibles para este proyecto."
-      : selectedCategory === "Reuniones" && meetings.length === 0
-      ? "No hay reuniones registradas para este proyecto."
+    filteredVideos.length === 0
+      ? "No hay videos para mostrar en esta categoría."
       : null;
 
   return (
@@ -138,32 +92,34 @@ export default function MeetingsContent({
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{meetings.length}</p>
-          <p className="text-sm text-gray-600">Total de Reuniones</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {videos.filter((v) => v.type_video === "Reunion").length}
+          </p>
+          <p className="text-sm text-gray-600">Videos de Reuniones</p>
         </div>
 
-        {/* Videos */}
+        {/* Videos Informativos */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-purple-100 rounded-lg">
               <Video className="w-5 h-5 text-purple-600" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{videos.length}</p>
-          <p className="text-sm text-gray-600">Videos del Proyecto</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {videos.filter((v) => v.type_video === "Video informativo").length}
+          </p>
+          <p className="text-sm text-gray-600">Videos Informativos</p>
         </div>
 
-        {/* Resúmenes */}
+        {/* Total */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-green-100 rounded-lg">
               <FileText className="w-5 h-5 text-green-600" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {meetings.filter((m) => m.summary_pdf_url).length}
-          </p>
-          <p className="text-sm text-gray-600">Resúmenes</p>
+          <p className="text-2xl font-bold text-gray-900">{videos.length}</p>
+          <p className="text-sm text-gray-600">Total de Videos</p>
         </div>
       </div>
 
@@ -199,7 +155,7 @@ export default function MeetingsContent({
         })}
       </div>
 
-      {/* 🔹 Mostrar mensaje si no hay elementos */}
+      {/* Si no hay elementos */}
       {noItemsMessage ? (
         <div className="text-center text-gray-500 py-10 text-sm font-medium">
           {noItemsMessage}
@@ -212,64 +168,40 @@ export default function MeetingsContent({
             snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden
           "
         >
-          {combinedItems.map((item, index) => {
-            const isVideo = item.type === "video";
-            const data = item.data as VideoType | Meeting;
-            const embedUrl = isVideo
-              ? (data as VideoType).vimeo_url.replace(
-                  "vimeo.com/",
-                  "player.vimeo.com/video/"
-                )
-              : (data as Meeting).videos?.[0]?.vimeo_url?.replace(
-                  "vimeo.com/",
-                  "player.vimeo.com/video/"
-                );
+          {filteredVideos.map((video, index) => {
+            const embedUrl = video.vimeo_url.replace(
+              "vimeo.com/",
+              "player.vimeo.com/video/"
+            );
 
-            const dateInfo = formatDate(data.created_at);
-            const borderColor = isVideo
-              ? "border-purple-500"
-              : "border-blue-500";
+            const dateInfo = formatDate(video.created_at);
+            const isMeeting = video.type_video === "Reunion";
+            const borderColor = isMeeting
+              ? "border-blue-500"
+              : "border-purple-500";
 
             return (
               <div
-                key={`${item.type}-${
-                  isVideo
-                    ? (data as VideoType).id
-                    : (data as Meeting).meeting_id
-                }`}
-                onClick={() =>
-                  isVideo
-                    ? setSelectedVideo(data as VideoType)
-                    : (() => {
-                        const meeting = data as Meeting;
-                        const firstVideo = meeting.videos?.[0];
-                        if (firstVideo) setSelectedVideo(firstVideo);
-                      })()
-                }
+                key={`video-${video.id}`} // 🔥 KEY ÚNICA Y CORRECTA
+                onClick={() => setSelectedVideo(video)}
                 className={`bg-white rounded-xl shadow hover:shadow-lg transition-all overflow-hidden group border-l-4 ${borderColor} relative cursor-pointer flex-shrink-0 w-80 md:w-auto snap-center`}
               >
                 <div
                   className={`absolute top-3 left-3 ${
-                    isVideo ? "bg-purple-600" : "bg-blue-600"
+                    isMeeting ? "bg-blue-600" : "bg-purple-600"
                   } text-white text-xs font-semibold px-2 py-1 rounded-md shadow`}
                 >
-                  {isVideo ? "🎥 Video" : `📅 Reunión #${index + 1}`}
+                  {isMeeting ? "📅 Reunión" : "🎥 Video Informativo"}
                 </div>
 
                 <div className="relative w-full pb-[56.25%] bg-gray-200">
-                  {embedUrl ? (
-                    <iframe
-                      src={`${embedUrl}?autoplay=0&muted=1&title=0&byline=0&portrait=0`}
-                      className="absolute top-0 left-0 w-full h-full rounded-t-xl pointer-events-none"
-                      frameBorder="0"
-                      allow="autoplay; fullscreen; picture-in-picture"
-                    ></iframe>
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                      <Calendar className="w-12 h-12" />
-                      No hay video cargado
-                    </div>
-                  )}
+                  <iframe
+                    src={`${embedUrl}?autoplay=0&muted=1&title=0&byline=0&portrait=0`}
+                    className="absolute top-0 left-0 w-full h-full rounded-t-xl pointer-events-none"
+                    frameBorder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                  ></iframe>
+
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                     <Play className="w-12 h-12 text-white drop-shadow-lg" />
                   </div>
@@ -277,13 +209,13 @@ export default function MeetingsContent({
 
                 <div className="p-4">
                   <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
-                    {data.title}
+                    {video.title}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                     {dateInfo.full} • {dateInfo.time}
                   </p>
                   <p className="text-xs text-gray-400 mt-1 italic">
-                    {timeAgo(data.created_at)}
+                    {timeAgo(video.created_at)}
                   </p>
                 </div>
               </div>
@@ -291,28 +223,6 @@ export default function MeetingsContent({
           })}
         </div>
       )}
-
-      {/* Próxima reunión */}
-      {/* {nextMeeting ? (
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white mt-6">
-          <h3 className="text-lg font-bold mb-2">📅 Próxima Reunión</h3>
-          <p className="text-blue-100 mb-4">
-            {nextMeeting.title} -{" "}
-            {new Date(nextMeeting.start_at).toLocaleString("es-AR", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-6 text-gray-700">
-          No hay próximas reuniones programadas.
-        </div>
-      )} */}
 
       {selectedVideo && (
         <SelectVideoModal

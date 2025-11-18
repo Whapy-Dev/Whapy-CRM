@@ -32,21 +32,21 @@ export type Meeting = {
   projects: { title: string } | null;
 };
 
-export function useAllMeetingsByProjectId(projectId: string) {
+export function useMeetingsByProjectId(projectId: string) {
+  const supabase = createClient();
+
   return useQuery({
-    queryKey: ["allMeetingsByProjectId", projectId],
+    queryKey: ["meetingsByProjectId", projectId],
     queryFn: async () => {
-      const supabase = createClient();
       const { data, error } = await supabase
-        .from("all_meetings")
-        .select(
-          "*, leads(name), profiles(nombre), projects!inner(title), videos(*)"
-        )
+        .from("videos")
+        .select("*, projects(title)")
         .eq("project_id", projectId)
-        .order("start_at", { ascending: false });
+        .eq("type_video", "Reunion")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Meeting[];
+      return data;
     },
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),

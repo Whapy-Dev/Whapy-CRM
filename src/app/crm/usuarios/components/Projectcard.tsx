@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Client, Document, Meeting, Project } from "../page";
 
-import AssignVideoProjectModal from "./Assignvideoprojectmodal";
-import AssignVideoMeetingModal from "./Assignvideomeetingmodal";
 import ShowVideoMeetingClientModal from "./VideoMeetingClient";
 import ShowVideoProjectClientModal from "./VideoProjectClient";
 import AssignPresupuestoModal from "./Assignpresupuestomodal";
@@ -14,7 +12,7 @@ type ProjectCardProps = {
   client: Client;
   onEditClick: () => void;
   onAssignDocument: () => void;
-  onAssignMeeting: () => void;
+
   refetchProfiles: () => void;
 };
 
@@ -23,7 +21,7 @@ export default function ProjectCard({
   client,
   onEditClick,
   onAssignDocument,
-  onAssignMeeting,
+
   refetchProfiles,
 }: ProjectCardProps) {
   const [showVideoMeetingClient, setShowVideoMeetingClient] = useState(false);
@@ -166,12 +164,6 @@ export default function ProjectCard({
             >
               Subir Video
             </button>
-            <button
-              onClick={onAssignMeeting}
-              className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium cursor-pointer"
-            >
-              + Asignar Reunión
-            </button>
           </div>
         </div>
         {project.all_meetings?.length ? (
@@ -208,7 +200,6 @@ export default function ProjectCard({
       <AssignVideoModal
         show={showAssignVideo}
         project={project}
-        all_meetings={project.all_meetings}
         onClose={() => setShowAssignVideo(false)}
         refetchProfiles={refetchProfiles}
       />

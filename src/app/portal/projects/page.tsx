@@ -2,14 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import {
-  FolderOpen,
-  Calendar,
-  Clock,
-  CheckCircle,
-  ArrowRight,
-  Play,
-} from "lucide-react";
+import { FolderOpen, Calendar, Clock, ArrowRight } from "lucide-react";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { useAuth } from "@/hooks/useAuth";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,7 +26,6 @@ export default function ProjectsPage() {
     error: errorProjects,
   } = useProjectsUser(user);
   if (loading) return <p>Cargando usuario...</p>;
-
   if (isLoadingProjects) return <p>Cargando proyectos...</p>;
   if (!isLoadingProjects && !errorProjects && projectsData.length === 0)
     return <p>No hay proyectos disponibles</p>;
@@ -216,7 +208,7 @@ export default function ProjectsPage() {
                     <div>
                       <h3 className="font-medium text-gray-900">Grabaciones</h3>
                       <p className="text-sm text-gray-500">
-                        {project?.all_meetings?.length || 0} grabaciones
+                        {project?.videos?.length || 0} grabaciones
                       </p>
                     </div>
                   </div>

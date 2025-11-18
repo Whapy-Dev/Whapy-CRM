@@ -32,6 +32,7 @@ export type Video = {
   descripcion: string;
   duration?: string | null;
   created_at: string;
+  type_video: string;
 };
 
 export type Meeting = {

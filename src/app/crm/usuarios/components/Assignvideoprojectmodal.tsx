@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Meeting, Project } from "../page";
+import { Project } from "../page";
 
 type AssignVideoModalProps = {
   show: boolean;
   project: Project | null;
-  all_meetings: Meeting[] | null | undefined;
   onClose: () => void;
   refetchProfiles: () => void;
 };
@@ -17,7 +16,7 @@ type Video = {
   descripcion: string;
   duration: string;
   project_id?: string;
-  meeting_id?: string;
+  type_video: string;
 };
 
 // 🔐 Respuesta tipada del endpoint de Vimeo
@@ -30,7 +29,6 @@ type VimeoSessionResponse = {
 export default function AssignVideoModal({
   show,
   project,
-  all_meetings,
   onClose,
   refetchProfiles,
 }: AssignVideoModalProps) {
@@ -41,7 +39,6 @@ export default function AssignVideoModal({
   const [descripcion, setDescripcion] = useState("");
 
   const [uploadType, setUploadType] = useState<"project" | "meeting" | "">("");
-  const [selectedMeetingId, setSelectedMeetingId] = useState("");
 
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -53,7 +50,6 @@ export default function AssignVideoModal({
     setDuration("");
     setDescripcion("");
     setUploadType("");
-    setSelectedMeetingId("");
     setProgress(0);
     setMessage("");
   };
@@ -64,15 +60,13 @@ export default function AssignVideoModal({
     if (!title) return setMessage("Escribe un título.");
     if (!descripcion) return setMessage("Escribe una descripción.");
     if (!duration) return setMessage("Asigna una duración.");
-    if (uploadType === "meeting" && !selectedMeetingId)
-      return setMessage("Selecciona una reunión.");
 
     try {
       setIsUploading(true);
       setProgress(0);
       setMessage("Creando sesión de subida en Vimeo...");
 
-      // 1️⃣ Crear sesión Vimeo
+      // Crear sesión Vimeo
       const sessionRes = await fetch("/api/create-vimeo-upload-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -84,13 +78,12 @@ export default function AssignVideoModal({
       });
 
       const sessionJson: VimeoSessionResponse = await sessionRes.json();
-
       if (sessionJson.error) throw new Error(sessionJson.error);
 
       const { upload_link, uri } = sessionJson;
       if (!upload_link || !uri) throw new Error("Respuesta inválida de Vimeo.");
 
-      // 2️⃣ Subir video a Vimeo
+      // Subir video a Vimeo
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("PATCH", upload_link, true);
@@ -114,24 +107,24 @@ export default function AssignVideoModal({
         xhr.send(file);
       });
 
-      // 3️⃣ Guardar en la DB
+      // Guardar en DB
       const vimeoId = uri.split("/").pop() ?? "";
       const vimeoUrl = `https://vimeo.com/${vimeoId}`;
 
-      const videoData: Video = {
+      const videoData = {
         vimeo_id: vimeoId,
         vimeo_url: vimeoUrl,
         title,
         descripcion,
         duration,
-        ...(uploadType === "project"
-          ? { project_id: project.id }
-          : { meeting_id: selectedMeetingId }),
+        project_id: project.id,
+        type_video: uploadType === "project" ? "Video informativo" : "Reunion",
       };
 
       const { error: dbError } = await supabase
         .from("videos")
         .insert([videoData]);
+
       if (dbError) throw dbError;
 
       setMessage("✅ Video subido correctamente.");
@@ -167,21 +160,6 @@ export default function AssignVideoModal({
           <option value="project">📁 Video Informativo (Proyecto)</option>
           <option value="meeting">📅 Video para Reunión</option>
         </select>
-
-        {uploadType === "meeting" && (
-          <select
-            value={selectedMeetingId}
-            onChange={(e) => setSelectedMeetingId(e.target.value)}
-            className="w-full mb-4 border p-3 rounded-xl"
-          >
-            <option value="">— Seleccionar Reunión —</option>
-            {all_meetings?.map((m) => (
-              <option key={m.meeting_id} value={m.meeting_id}>
-                {m.title}
-              </option>
-            ))}
-          </select>
-        )}
 
         <input
           type="text"

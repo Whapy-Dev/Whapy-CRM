@@ -12,6 +12,8 @@ type Video = {
   descripcion: string;
   duration: string;
   created_at: string;
+  projects?: { title: string };
+  type_video: string;
 };
 
 const supabase = createClient();
@@ -21,7 +23,7 @@ export function useVideosByProjectId(projectId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("videos")
-        .select("*")
+        .select("*, projects!inner(title)")
         .eq("project_id", projectId)
         .order("created_at", { ascending: true });
       if (error) throw error;
