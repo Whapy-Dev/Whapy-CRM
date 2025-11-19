@@ -49,24 +49,6 @@ export default function MeetingsContent({ projectId, videos }: Props) {
     if (minutes > 0) return rtf.format(-minutes, "minute");
     return "hace unos segundos";
   };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      full: date.toLocaleDateString("es-AR", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      time: date.toLocaleTimeString("es-AR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-  };
-
-  // 🔥 SOLO FILTRO VIDEOS YA QUE NO HAY REUNIONES
   const filteredVideos =
     selectedCategory === "Todos"
       ? videos
@@ -174,7 +156,6 @@ export default function MeetingsContent({ projectId, videos }: Props) {
               "player.vimeo.com/video/"
             );
 
-            const dateInfo = formatDate(video.created_at);
             const isMeeting = video.type_video === "Reunion";
             const borderColor = isMeeting
               ? "border-blue-500"
@@ -211,9 +192,7 @@ export default function MeetingsContent({ projectId, videos }: Props) {
                   <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
                     {video.title}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                    {dateInfo.full} • {dateInfo.time}
-                  </p>
+
                   <p className="text-xs text-gray-400 mt-1 italic">
                     {timeAgo(video.created_at)}
                   </p>
