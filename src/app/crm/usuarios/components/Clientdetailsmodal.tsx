@@ -7,6 +7,7 @@ import EditDetallesModal from "./EditDetallesModal";
 import AssignDocumentModal from "./Assigndocumentmodal";
 import AssignMeetingModal from "./Assignmeetingmodal";
 import EditPasosClient from "./editPasosModal";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 type ClientDetailsModalProps = {
   show: boolean;
@@ -29,13 +30,13 @@ export default function ClientDetailsModal({
   const [showEditPasosClientModal, setShowEditPasosClientModal] =
     useState(false);
   const [showEditDetalles, setShowEditDetalles] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [currentDetalles, setCurrentDetalles] = useState(
     client?.detalles || ""
   );
 
   // nuevos estados para documentos y reuniones
   const [showDocumentModal, setShowDocumentModal] = useState(false);
-  const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   if (!show || !client) return null;
@@ -55,12 +56,21 @@ export default function ClientDetailsModal({
             </h3>
             <div className="flex gap-2">
               <button
+                type="button"
+                className="px-4 py-1 bg-red-600 text-white rounded-2xl hover:bg-red-700 font-medium cursor-pointer"
+                onClick={() => setShowDeleteAccount(true)}
+              >
+                Eliminar cuenta
+              </button>
+              <button
+                type="button"
                 onClick={() => setShowEditPasosClientModal(true)}
                 className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
               >
                 Editar pasos
               </button>
               <button
+                type="button"
                 onClick={() => setShowEditClientModal(true)}
                 className="px-4 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
               >
@@ -172,6 +182,13 @@ export default function ClientDetailsModal({
         show={showEditPasosClientModal}
         client={client}
         onClose={() => setShowEditPasosClientModal(false)}
+        refetchProfiles={refetchProfiles}
+      />
+      <DeleteAccountModal
+        show={showDeleteAccount}
+        client={client}
+        onClose={() => setShowDeleteAccount(false)}
+        onDeleteSuccess={onClose}
         refetchProfiles={refetchProfiles}
       />
 

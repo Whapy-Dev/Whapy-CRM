@@ -61,6 +61,15 @@ export default function CreateAccountModal({
       setEmailInput("");
       setPasswordInput("");
       setNameInput("");
+      setGeneroInput("");
+      setFechaInput("");
+      setTelefonoInput("");
+      setEmpresaInput("");
+      setCiudadInput("");
+      setCodigoPostal("");
+      setPaisInput("");
+      setTypeInput("");
+      setDetalleInput("");
 
       // ✅ Usar refetchProfiles
       await refetchProfiles();
