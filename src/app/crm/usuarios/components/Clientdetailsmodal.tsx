@@ -42,11 +42,26 @@ export default function ClientDetailsModal({
   if (!show || !client) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl p-6 w-full overflow-y-auto max-h-[90vh] shadow-2xl border border-gray-200">
-        <h2 className="text-3xl font-bold mb-6 text-gray-900">
-          {client?.nombre || "—"}
-        </h2>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-3xl p-6 w-full overflow-y-auto max-h-[90vh] shadow-2xl border border-gray-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center">
+          <h2 className="text-3xl font-bold mb-6 text-gray-900">
+            {client?.nombre || "—"}
+          </h2>
+
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-300 rounded-2xl hover:bg-gray-400 font-medium cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
 
         {/* Datos Personales */}
         <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow-md border border-blue-200">
@@ -166,15 +181,6 @@ export default function ClientDetailsModal({
         ) : (
           <p className="text-gray-500">No tiene proyectos</p>
         )}
-
-        <div className="flex justify-end mt-6">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-300 rounded-2xl hover:bg-gray-400 font-medium cursor-pointer"
-          >
-            Cerrar
-          </button>
-        </div>
       </div>
 
       {/* Modales secundarios */}

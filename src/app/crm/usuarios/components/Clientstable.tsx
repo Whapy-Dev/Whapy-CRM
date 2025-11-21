@@ -27,6 +27,7 @@ export default function ClientsTable({
           <thead className="bg-gray-100">
             <tr>
               {[
+                "Acciones",
                 "Nombre",
                 "Email",
                 "Teléfono",
@@ -39,7 +40,6 @@ export default function ClientsTable({
                 "Tipo",
                 "Estado",
                 "Fecha de creación",
-                "Acciones",
               ].map((head) => (
                 <th
                   key={head}
@@ -56,7 +56,15 @@ export default function ClientsTable({
                 key={client.id}
                 className="hover:bg-gray-50 transition-colors"
               >
-                <td className="px-4 py-4 text-sm text-gray-900">
+                <td className="text-center">
+                  <button
+                    onClick={() => onClientClick(client)}
+                    className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+                </td>
+                <td className="px-4 py-4 text-sm text-gray-900 text-pretty">
                   {client.nombre || "—"}
                 </td>
                 <td className="px-4 py-4 text-sm text-gray-700">
@@ -65,13 +73,13 @@ export default function ClientsTable({
                 <td className="px-4 py-4 text-sm text-gray-700 text-nowrap">
                   {client.telefono || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700 text-pretty">
                   {client.empresa || "—"}
                 </td>
                 <td className="px-4 py-4 text-sm text-gray-700 text-nowrap">
                   {client.ciudad || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700">
+                <td className="px-4 py-4 text-sm text-gray-700 text-pretty">
                   {client.codigoPostal || "—"}
                 </td>
                 <td className="px-4 py-4 text-sm text-gray-700">
@@ -86,9 +94,9 @@ export default function ClientsTable({
                 <td className="px-4 py-4 text-sm text-gray-700">
                   {client.type || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm">
+                <td className="px-2 py-4 text-sm">
                   <span
-                    className={`px-4 py-1 text-xs font-semibold rounded-full text-nowrap ${
+                    className={`px-2 py-1 text-xs font-semibold rounded-full text-nowrap ${
                       client.estado === "Activo"
                         ? "bg-green-100 text-green-700"
                         : client.estado === "Inactivo"
@@ -107,14 +115,6 @@ export default function ClientsTable({
                         year: "numeric",
                       })
                     : "—"}
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-right">
-                  <button
-                    onClick={() => onClientClick(client)}
-                    className="text-gray-400 hover:text-gray-600 cursor-pointer"
-                  >
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
                 </td>
               </tr>
             ))}
