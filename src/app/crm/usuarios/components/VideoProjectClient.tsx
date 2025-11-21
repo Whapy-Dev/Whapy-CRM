@@ -126,48 +126,54 @@ export default function ShowVideoProjectClientModal({
 
       {/* 📹 Modal de video seleccionado */}
       {selectedVideo && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-[1500px] shadow-2xl border border-gray-200 flex flex-col md:flex-row gap-6 min-h-[750px]">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div
+            className="bg-white rounded-3xl p-6 w-full max-w-[1500px] shadow-2xl border border-gray-200 
+                    flex flex-col md:flex-row gap-6 max-h-[90vh] overflow-hidden"
+          >
             {/* Izquierda */}
-            <div className="w-full md:w-1/4 flex flex-col gap-4 overflow-y-auto pr-2">
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold">{selectedVideo.title}</h3>
-                  <button
-                    onClick={() => setSelectedVideo(null)}
-                    className="px-4 py-2 bg-gray-300 rounded-xl hover:bg-gray-400 font-medium cursor-pointer"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-                <p className="mb-2">
+            <div className="w-full md:w-1/4 flex flex-col overflow-hidden">
+              {/* Header fijo */}
+              <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                <h3 className="text-xl font-bold">{selectedVideo.title}</h3>
+                <button
+                  onClick={() => setSelectedVideo(null)}
+                  className="px-4 py-2 bg-gray-300 rounded-xl hover:bg-gray-400 font-medium cursor-pointer"
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              {/* Contenido scrolleable */}
+              <div className="flex-1 overflow-y-auto pr-2">
+                <p className="mb-2 text-pretty">
                   <strong>Descripción:</strong>{" "}
                   {selectedVideo.descripcion || "Sin descripción"}
                 </p>
+
                 <p className="mb-2">
                   <strong>Status:</strong> {selectedVideo.status}
                 </p>
+
                 <p className="mb-2">
                   <strong>Duración:</strong>{" "}
                   {selectedVideo.duration || "No disponible"}
                 </p>
               </div>
 
-              <div className="mt-auto">
+              {/* Botón eliminar fijo abajo */}
+              <div className="mt-4 flex-shrink-0">
                 <button
                   onClick={() => eliminarVideo(selectedVideo)}
-                  className="mt-4 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 w-full cursor-pointer"
+                  className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 w-full cursor-pointer"
                 >
                   Eliminar Video
                 </button>
               </div>
             </div>
 
-            {/* Derecha */}
-            <div
-              className="w-full md:w-3/4 relative flex-shrink-0"
-              style={{ minHeight: "400px" }}
-            >
+            {/* Derecha - Video */}
+            <div className="w-full md:w-3/4 relative flex-shrink-0 min-h-[400px]">
               <iframe
                 src={`https://player.vimeo.com/video/${selectedVideo.vimeo_id}`}
                 className="absolute top-0 left-0 w-full h-full"
