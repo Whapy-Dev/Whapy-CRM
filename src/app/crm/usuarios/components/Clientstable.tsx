@@ -64,34 +64,34 @@ export default function ClientsTable({
                     <MoreVertical className="w-5 h-5" />
                   </button>
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-900 text-pretty">
+                <td className="px-2 py-4 text-sm text-gray-900 text-pretty">
                   {client.nombre || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700">
+                <td className="px-2 py-4 text-sm text-gray-700">
                   {client.email}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700 text-nowrap">
+                <td className="px-2 py-4 text-sm text-gray-700 text-nowrap">
                   {client.telefono || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700 text-pretty">
+                <td className="px-2 py-4 text-sm text-gray-700 text-pretty">
                   {client.empresa || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700 text-nowrap">
+                <td className="px-2 py-4 text-sm text-gray-700 text-nowrap">
                   {client.ciudad || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700 text-pretty">
+                <td className="px-2 py-4 text-sm text-gray-700 text-pretty">
                   {client.codigoPostal || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700">
+                <td className="px-2 py-4 text-sm text-gray-700">
                   {client.genero || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700">
+                <td className="px-2 py-4 text-sm text-gray-700">
                   {client.fechaNacimiento || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700">
+                <td className="px-2 py-4 text-sm text-gray-700">
                   {client.pais || "—"}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-700">
+                <td className="px-2 py-4 text-sm text-gray-700">
                   {client.type || "—"}
                 </td>
                 <td className="px-2 py-4 text-sm">
@@ -107,7 +107,7 @@ export default function ClientsTable({
                     {client.estado}
                   </span>
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-500">
+                <td className="px-2 py-4 text-sm text-gray-500">
                   {client.created_at
                     ? new Date(client.created_at).toLocaleDateString("es-AR", {
                         day: "2-digit",
