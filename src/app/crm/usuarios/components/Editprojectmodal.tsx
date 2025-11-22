@@ -2,22 +2,20 @@ import { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Project } from "../page";
-import { useQueryClient } from "@tanstack/react-query";
 
 type EditProjectModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 export default function EditProjectModal({
   show,
   project,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: EditProjectModalProps) {
-  const queryClient = useQueryClient();
   const [editProjectTitle, setEditProjectTitle] = useState("");
   const [editProjectDescripcion, setEditProjectDescripcion] = useState("");
   const [editProjectEstado, setEditProjectEstado] = useState("");
@@ -66,7 +64,7 @@ export default function EditProjectModal({
       } else {
         setSuccessFormEditProject(true);
 
-        await refetchProfiles();
+        await refetchProfile();
         // 📹 Cerrar el modal automáticamente tras 1.5 segundos
         setTimeout(() => {
           setSuccessFormEditProject(false);
@@ -86,7 +84,7 @@ export default function EditProjectModal({
   if (!show || !project) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-200">
         <h3 className="text-xl font-bold mb-4">
           Editar proyecto: {project.title}
@@ -165,7 +163,7 @@ export default function EditProjectModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded-lg font-medium hover:bg-gray-400"
+              className="px-4 py-2 bg-gray-300 rounded-lg font-medium hover:bg-gray-400 cursor-pointer"
             >
               Cancelar
             </button>
@@ -175,7 +173,7 @@ export default function EditProjectModal({
               className={`px-4 py-2 rounded-lg text-white font-medium ${
                 loadingEditProject
                   ? "bg-blue-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
               }`}
             >
               {loadingEditProject ? "Actualizando..." : "Guardar cambios"}

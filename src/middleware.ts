@@ -87,6 +87,15 @@ export async function middleware(request: NextRequest) {
       .single();
 
     const userRole = profile?.role;
+    // Si hay usuario logeado y está en "/" → enviar según su rol
+    if (request.nextUrl.pathname === "/") {
+      if (userRole === "admin") {
+        return NextResponse.redirect(new URL("/crm", request.url));
+      }
+      if (userRole === "cliente") {
+        return NextResponse.redirect(new URL("/portal", request.url));
+      }
+    }
 
     // Si está en login y ya está autenticado, redirigir según rol
     if (isPublicPath) {

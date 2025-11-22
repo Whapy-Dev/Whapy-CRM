@@ -1,15 +1,13 @@
 import { MoreVertical } from "lucide-react";
 import { Client } from "../page";
+import Link from "next/link";
 
 type ClientsTableProps = {
   clients: Client[];
   onClientClick: (client: Client) => void;
 };
 
-export default function ClientsTable({
-  clients,
-  onClientClick,
-}: ClientsTableProps) {
+export default function ClientsTable({ clients }: ClientsTableProps) {
   if (clients.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -57,12 +55,12 @@ export default function ClientsTable({
                 className="hover:bg-gray-50 transition-colors"
               >
                 <td className="text-center">
-                  <button
-                    onClick={() => onClientClick(client)}
-                    className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                  <Link
+                    href={`/crm/usuarios/${client.id}/client`}
+                    className="text-gray-400 hover:text-gray-600 cursor-pointer p-2 inline-block"
                   >
                     <MoreVertical className="w-5 h-5" />
-                  </button>
+                  </Link>
                 </td>
                 <td className="px-2 py-4 text-sm text-gray-900 text-pretty">
                   {client.nombre || "—"}

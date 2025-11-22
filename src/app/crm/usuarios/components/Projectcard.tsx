@@ -6,14 +6,14 @@ import ShowVideoProjectClientModal from "./VideoProjectClient";
 import AssignPresupuestoModal from "./Assignpresupuestomodal";
 import ShowDocumentsClientModal from "./Showdocuments";
 import AssignVideoModal from "./Assignvideoprojectmodal";
+import DeleteProjectModal from "./Deleteprojectmodal";
 
 type ProjectCardProps = {
   project: Project;
   client: Client;
   onEditClick: () => void;
   onAssignDocument: () => void;
-
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 export default function ProjectCard({
@@ -21,8 +21,7 @@ export default function ProjectCard({
   client,
   onEditClick,
   onAssignDocument,
-
-  refetchProfiles,
+  refetchProfile,
 }: ProjectCardProps) {
   const [showVideoMeetingClient, setShowVideoMeetingClient] = useState(false);
   const [showVideoProjectClient, setShowVideoProjectClient] = useState(false);
@@ -32,6 +31,7 @@ export default function ProjectCard({
     useState(false);
   const [showDocumentsClientModal, setShowDocumentsClientModal] =
     useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   let statusColor = "bg-gray-100 text-gray-800";
   if (project.status === "En progreso")
     statusColor = "bg-yellow-100 text-yellow-800";
@@ -71,7 +71,13 @@ export default function ProjectCard({
           >
             Ver Videos Informativos
           </button>
-
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            type="button"
+            className="px-4 py-2 bg-gray-300 rounded-lg font-medium hover:bg-gray-400 cursor-pointer"
+          >
+            Borrar proyecto
+          </button>
           <button
             type="button"
             onClick={onEditClick}
@@ -189,19 +195,19 @@ export default function ProjectCard({
         show={showVideoMeetingClient}
         project={project}
         onClose={() => setShowVideoMeetingClient(false)}
-        refetchProfiles={refetchProfiles}
+        refetchProfile={refetchProfile}
       />
       <ShowVideoProjectClientModal
         show={showVideoProjectClient}
         project={project}
         onClose={() => setShowVideoProjectClient(false)}
-        refetchProfiles={refetchProfiles}
+        refetchProfile={refetchProfile}
       />
       <AssignVideoModal
         show={showAssignVideo}
         project={project}
         onClose={() => setShowAssignVideo(false)}
-        refetchProfiles={refetchProfiles}
+        refetchProfile={refetchProfile}
       />
 
       <AssignPresupuestoModal
@@ -209,13 +215,19 @@ export default function ProjectCard({
         client={client}
         project={project}
         onClose={() => setShowNewPresupuestoClientModal(false)}
-        refetchProfiles={refetchProfiles}
+        refetchProfile={refetchProfile}
       />
       <ShowDocumentsClientModal
         show={showDocumentsClientModal}
         project={project}
         onClose={() => setShowDocumentsClientModal(false)}
-        refetchProfiles={refetchProfiles}
+        refetchProfile={refetchProfile}
+      />
+      <DeleteProjectModal
+        project={project}
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        refetchProfile={refetchProfile}
       />
     </div>
   );

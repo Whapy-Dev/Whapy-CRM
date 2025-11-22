@@ -3,12 +3,27 @@
 import { useState, useEffect } from "react";
 import { Client } from "../page";
 import { createClient } from "@/lib/supabase/client";
+function formatDate(dateString: string) {
+  if (!dateString) return "";
+
+  // Si viene como YYYY-MM-DD → ya sirve para input type="date"
+  if (dateString.includes("-")) {
+    return dateString;
+  }
+
+  // Si viene como DD/MM/YYYY
+  const parts = dateString.split("/");
+  if (parts.length !== 3) return ""; // evitar errores
+
+  const [day, month, year] = parts;
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
 
 type ClientEditModalProps = {
   show: boolean;
   client: Client | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 const supabase = createClient();
@@ -17,7 +32,7 @@ export default function ShowEditClientModal({
   show,
   client,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: ClientEditModalProps) {
   const [formData, setFormData] = useState({
     nombre: "",
@@ -44,7 +59,9 @@ export default function ShowEditClientModal({
         codigoPostal: client.codigoPostal || "",
         type: client.type || "",
         genero: client.genero || "",
-        fechaNacimiento: client.fechaNacimiento || "",
+        fechaNacimiento: client.fechaNacimiento
+          ? formatDate(client.fechaNacimiento)
+          : "",
         pais: client.pais || "",
         detalles: client.detalles || "",
       });
@@ -52,7 +69,6 @@ export default function ShowEditClientModal({
   }, [client]);
 
   if (!show || !client) return null;
-
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -88,10 +104,7 @@ export default function ShowEditClientModal({
     }
 
     if (!error) {
-      alert("Cliente actualizado correctamente");
-
-      // ✅ Usar refetchProfiles
-      await refetchProfiles();
+      await refetchProfile();
 
       setFormData({
         nombre: "",

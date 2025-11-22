@@ -10,7 +10,7 @@ type AssignPresupuestoModalProps = {
   client: Client | null;
   project: Project | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 const supabase = createClient();
@@ -20,7 +20,7 @@ export default function AssignPresupuestoModal({
   client,
   project,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: AssignPresupuestoModalProps) {
   const [status, setStatus] = useState("");
   const [title, setTitle] = useState("");
@@ -76,7 +76,7 @@ export default function AssignPresupuestoModal({
       setSuccess(true);
 
       // ✅ Usar refetchProfiles
-      await refetchProfiles();
+      await refetchProfile();
 
       setStatus("");
       setTitle("");

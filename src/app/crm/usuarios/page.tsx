@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { useProfiles } from "@/hooks/admin/useProfiles";
-import EditProjectModal from "./components/Editprojectmodal";
-import ClientDetailsModal from "./components/Clientdetailsmodal";
-import CreateAccountModal from "./components/Createaccountmodal";
-import ClientsTable from "./components/Clientstable";
 
 import { Plus, Search } from "lucide-react";
+import ClientsTable from "./components/Clientstable";
+import CreateAccountModal from "./components/Createaccountmodal";
+
 export type Document = {
   id: string;
   user_id: string;
@@ -145,12 +144,9 @@ export default function ClientsPageUnsafe() {
 
   // Estados de selección
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-
   // Estados de modales
   const [showModal, setShowModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
-  const [showEditProject, setShowEditProject] = useState(false);
   // Estados de búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTipo, setSelectedTipo] = useState("");
@@ -254,28 +250,6 @@ export default function ClientsPageUnsafe() {
           onClose={() => setShowModal(false)}
           refetchProfiles={refetchProfiles}
         />
-
-        {/* Modal Detalles del Cliente */}
-        <ClientDetailsModal
-          show={showClientModal}
-          client={selectedClient}
-          onClose={() => setShowClientModal(false)}
-          onEditProject={(project) => {
-            setSelectedProject(project);
-            setShowEditProject(true);
-          }}
-          refetchProfiles={refetchProfiles}
-        />
-
-        {/* Modal Editar Proyecto */}
-        <EditProjectModal
-          show={showEditProject}
-          project={selectedProject}
-          onClose={() => setShowEditProject(false)}
-          refetchProfiles={refetchProfiles}
-        />
-
-        {/* Modal Asignar Documento */}
       </div>
     </>
   );

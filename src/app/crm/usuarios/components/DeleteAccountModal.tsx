@@ -1,26 +1,25 @@
 import { useState } from "react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { Client } from "../page";
+import { useRouter } from "next/navigation";
 
 type DeleteAccountModalProps = {
   show: boolean;
   client: Client | null;
   onClose: () => void;
-  refetchProfiles: () => void;
-  onDeleteSuccess: () => void;
+  refetchProfile: () => void;
 };
 
 export default function DeleteAccountModal({
   show,
   client,
   onClose,
-  onDeleteSuccess,
-  refetchProfiles,
+  refetchProfile,
 }: DeleteAccountModalProps) {
   const [loading, setLoading] = useState(false);
   const [errorForm, setErrorForm] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
+  const router = useRouter();
   const handleDelete = async () => {
     if (!client) return;
 
@@ -42,15 +41,15 @@ export default function DeleteAccountModal({
 
       setSuccessMessage(`La cuenta de ${client.nombre} fue eliminada`);
 
-      await refetchProfiles();
+      await refetchProfile();
 
       setTimeout(() => {
-        onClose();
-        onDeleteSuccess();
+        router.push("/crm/usuariosprueba");
       }, 1000);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setErrorForm(err.message);
+        console.log(err);
       } else {
         setErrorForm("Error desconocido");
       }
@@ -62,7 +61,7 @@ export default function DeleteAccountModal({
   if (!show || !client) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl border border-gray-200">
         <h2 className="text-xl font-bold mb-4 text-red-600">Eliminar cuenta</h2>
 

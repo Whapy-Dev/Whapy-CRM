@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Client } from "../page";
-import { useQueryClient } from "@tanstack/react-query";
 
 type ClientStepsEditModalProps = {
   show: boolean;
   client: Client | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 const supabase = createClient();
@@ -18,9 +17,8 @@ export default function EditClientStepsModal({
   show,
   client,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: ClientStepsEditModalProps) {
-  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     titulo1: "",
     detalles1: "",
@@ -88,8 +86,6 @@ export default function EditClientStepsModal({
         alert("Error al actualizar los pasos.");
         return;
       }
-
-      alert("Pasos actualizados correctamente.");
     } else {
       // Si no tiene pasos, creamos una nueva fila
       const { error } = await supabase.from("pasos").insert([
@@ -111,7 +107,7 @@ export default function EditClientStepsModal({
       }
     }
 
-    await refetchProfiles();
+    await refetchProfile();
     onClose();
   };
 

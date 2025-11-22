@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import DocumentsContent from "./documents.content";
 import { use } from "react";
-import { useDocumentsByProjectId, Documents } from "@/hooks/user/useDocuments";
+import { useDocumentsByProjectId } from "@/hooks/user/useDocuments";
 
 export default function ProjectDocumentsPage({
   params,

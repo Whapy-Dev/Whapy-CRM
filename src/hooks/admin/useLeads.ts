@@ -50,8 +50,9 @@ export function useLeadsRecent() {
     queryKey: ["leadsRecent"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("leads")
+        .from("profiles")
         .select("*")
+        .eq("type", "Lead")
         .order("created_at", { ascending: false })
         .limit(3);
 
@@ -69,8 +70,9 @@ export function useLeadsUltimateMonth() {
       fechaHace30Dias.setDate(fechaHace30Dias.getDate() - 30);
 
       const { data, error } = await supabase
-        .from("leads")
+        .from("profiles")
         .select("*")
+        .eq("type", "Lead")
         .gte("created_at", fechaHace30Dias.toISOString())
         .order("created_at", { ascending: false });
 

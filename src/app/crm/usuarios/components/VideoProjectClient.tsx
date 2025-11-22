@@ -3,22 +3,20 @@
 import { useState } from "react";
 import { Project, Video } from "../page";
 import { createClient } from "@/lib/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 
 type ClientVideoDetailsProjectModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 export default function ShowVideoProjectClientModal({
   show,
   project,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: ClientVideoDetailsProjectModalProps) {
-  const queryClient = useQueryClient();
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
@@ -56,7 +54,7 @@ export default function ShowVideoProjectClientModal({
       if (error) {
         console.error("Error eliminando en Supabase:", error);
       } else {
-        await refetchProfiles();
+        await refetchProfile();
         setSelectedVideo(null);
       }
     } catch (err) {

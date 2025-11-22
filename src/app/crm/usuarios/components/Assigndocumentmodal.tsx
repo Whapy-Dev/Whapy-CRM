@@ -10,7 +10,7 @@ type AssignDocumentModalProps = {
   project: Project | null;
   client: Client | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 export default function AssignDocumentModal({
@@ -18,7 +18,7 @@ export default function AssignDocumentModal({
   project,
   client,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: AssignDocumentModalProps) {
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -82,7 +82,7 @@ export default function AssignDocumentModal({
       setErrorFormDocument("Error al asignar documento");
     } else {
       setSuccessDocument(true);
-      await refetchProfiles();
+      await refetchProfile();
 
       // Reset
       setTitle("");
@@ -102,7 +102,7 @@ export default function AssignDocumentModal({
   if (!show || !project) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-200">
         <h3 className="text-xl font-bold mb-4">
           Asignar Documento a {project.title}

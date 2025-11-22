@@ -23,7 +23,6 @@ export default function CRMDashboard() {
   const { data: budgetsActive = [] } = useBudgetsActive();
   const { data: AllMeetingFromToday = [] } = useAllMeetingsFromToday();
   const { data: budgets = [] } = useBudgets();
-
   const en_revision = budgets.filter((b) => b.status === "en revision");
   const presentado = budgets.filter((b) => b.status === "presentado");
   const aceptado = budgets.filter((b) => b.status === "aceptado");
@@ -261,21 +260,13 @@ export default function CRMDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-medium text-gray-900 mb-1">
-                      {lead.name}
+                      {lead.nombre}
                     </h3>
                     <p className="text-sm text-gray-600">{lead.empresa}</p>
                   </div>
                   <div className="text-right">
-                    <span
-                      className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                        lead.status === "nuevo"
-                          ? "bg-blue-100 text-blue-800"
-                          : lead.status === "contactado"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-purple-100 text-purple-800"
-                      }`}
-                    >
-                      {lead.status}
+                    <span className="inline-block px-2 py-1 text-xs font-medium rounded-full">
+                      {lead.telefono}
                     </span>
                     <p className="text-xs text-gray-500 mt-1">
                       {new Date(lead.created_at).toLocaleDateString("es-AR")}

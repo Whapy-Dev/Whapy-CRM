@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { Project, Video } from "../page";
 import { createClient } from "@/lib/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 
 type ClientVideoDetailsMeetingModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 const supabase = createClient();
@@ -18,9 +17,8 @@ export default function ShowVideoMeetingClientModal({
   show,
   project,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: ClientVideoDetailsMeetingModalProps) {
-  const queryClient = useQueryClient();
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
@@ -57,7 +55,7 @@ export default function ShowVideoMeetingClientModal({
         console.error("Error en Supabase:", error);
       } else {
         // ✅ Invalidar queries para actualización automática
-        await refetchProfiles();
+        await refetchProfile();
         setSelectedVideo(null);
       }
     } catch (err) {

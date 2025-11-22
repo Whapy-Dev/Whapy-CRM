@@ -6,7 +6,7 @@ type AssignVideoModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 type Video = {
@@ -30,7 +30,7 @@ export default function AssignVideoModal({
   show,
   project,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: AssignVideoModalProps) {
   const supabase = createClient();
   const [file, setFile] = useState<File | null>(null);
@@ -128,7 +128,7 @@ export default function AssignVideoModal({
       if (dbError) throw dbError;
 
       setMessage("✅ Video subido correctamente.");
-      await refetchProfiles();
+      await refetchProfile();
 
       setTimeout(() => {
         resetForm();

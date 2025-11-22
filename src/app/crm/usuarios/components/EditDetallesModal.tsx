@@ -1,31 +1,26 @@
 // components/EditDetallesModal.tsx
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Client } from "../page";
-import { useQueryClient } from "@tanstack/react-query";
 
 type EditDetallesModalProps = {
   show: boolean;
   client: Client;
   onClose: () => void;
-  onUpdate: (newDetalles: string) => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 export default function EditDetallesModal({
   show,
   client,
   onClose,
-  onUpdate,
-  refetchProfiles,
+
+  refetchProfile,
 }: EditDetallesModalProps) {
-  const queryClient = useQueryClient();
   const [detalles, setDetalles] = useState(client.detalles || "");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
-
-  if (!show) return null;
 
   const handleSave = async () => {
     setLoading(true);
@@ -37,9 +32,7 @@ export default function EditDetallesModal({
 
       if (error) throw error;
 
-      onUpdate(detalles);
-
-      await refetchProfiles();
+      await refetchProfile();
 
       onClose();
     } catch (err) {
@@ -49,7 +42,10 @@ export default function EditDetallesModal({
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    setDetalles(client.detalles || "");
+  }, [client]);
+  if (!show) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-5xl h-[80vh] shadow-2xl border border-gray-200 flex flex-col">

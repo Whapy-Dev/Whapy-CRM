@@ -4,13 +4,12 @@ import { useState } from "react";
 import { Document, Project } from "../page";
 import { createClient } from "@/lib/supabase/client";
 import { AlertCircle, X } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 
 type ClientDocumentsModalProps = {
   show: boolean;
   project: Project | null;
   onClose: () => void;
-  refetchProfiles: () => void;
+  refetchProfile: () => void;
 };
 
 const supabase = createClient();
@@ -19,7 +18,7 @@ export default function ShowDocumentsClientModal({
   show,
   project,
   onClose,
-  refetchProfiles,
+  refetchProfile,
 }: ClientDocumentsModalProps) {
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
@@ -47,7 +46,7 @@ export default function ShowDocumentsClientModal({
         console.error("Error en Supabase:", error);
         setError("Error eliminando el documento.");
       } else {
-        await refetchProfiles();
+        await refetchProfile();
         setSelectedDocument(null);
       }
     } catch (err) {

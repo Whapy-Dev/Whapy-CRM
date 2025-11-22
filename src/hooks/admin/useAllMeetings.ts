@@ -54,8 +54,9 @@ export function useAllMeetingsUltimateWeek() {
       fechaHace30Dias.setDate(fechaHace30Dias.getDate() - 30);
 
       const { data, error } = await supabase
-        .from("all_meetings")
-        .select("*, leads(name), profiles(nombre)")
+        .from("videos")
+        .select("*")
+        .eq("type_video", "Reunion")
         .gte("created_at", fechaHace30Dias.toISOString())
         .order("created_at", { ascending: false });
 
@@ -73,8 +74,9 @@ export function useAllMeetingsFromToday() {
       const hoy = new Date();
 
       const { data, error } = await supabase
-        .from("all_meetings")
-        .select("*, leads(name), profiles(nombre)")
+        .from("videos")
+        .select("*")
+        .eq("type_video", "Reunion")
         .gte("start_at", hoy.toISOString())
         .order("start_at", { ascending: true });
 

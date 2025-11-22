@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Meeting } from "../page";
-import { useQueryClient } from "@tanstack/react-query";
 
 type AssignVideoMeetingsModalProps = {
   show: boolean;
@@ -26,7 +25,6 @@ export default function AssignVideoMeetingModal({
   onClose,
   refetchProfiles,
 }: AssignVideoMeetingsModalProps) {
-  const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
