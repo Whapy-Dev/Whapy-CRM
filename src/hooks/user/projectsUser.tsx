@@ -11,7 +11,7 @@ export function useProjectsUser(user: User | null) {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("projects")
-        .select(`*, all_meetings!left(*), documents(*), videos(*)`)
+        .select(`*, documents(*), videos(*)`)
         .eq("user_id", user?.id);
 
       if (error) throw error;

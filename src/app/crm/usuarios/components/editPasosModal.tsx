@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Client } from "../page";
+import { useAuth } from "@/hooks/useAuth";
 
 type ClientStepsEditModalProps = {
   show: boolean;
@@ -19,6 +20,7 @@ export default function EditClientStepsModal({
   onClose,
   refetchProfile,
 }: ClientStepsEditModalProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     titulo1: "",
     detalles1: "",
@@ -86,6 +88,19 @@ export default function EditClientStepsModal({
         alert("Error al actualizar los pasos.");
         return;
       }
+
+      const { error: errorDb } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Creó pasos de un cliente",
+            usuario_modificado: client?.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+      if (errorDb) throw errorDb;
     } else {
       // Si no tiene pasos, creamos una nueva fila
       const { error } = await supabase.from("pasos").insert([
@@ -105,6 +120,19 @@ export default function EditClientStepsModal({
         alert("Error al crear los pasos.");
         return;
       }
+
+      const { error: errorDb } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Editó pasos de un cliente",
+            usuario_modificado: client?.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+      if (errorDb) throw errorDb;
     }
 
     await refetchProfile();

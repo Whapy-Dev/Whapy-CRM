@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Client } from "../page";
+import { useAuth } from "@/hooks/useAuth";
 
 type EditDetallesModalProps = {
   show: boolean;
@@ -18,6 +19,7 @@ export default function EditDetallesModal({
 
   refetchProfile,
 }: EditDetallesModalProps) {
+  const { user } = useAuth();
   const [detalles, setDetalles] = useState(client.detalles || "");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
@@ -31,6 +33,19 @@ export default function EditDetallesModal({
         .eq("id", client.id);
 
       if (error) throw error;
+
+      const { error: errorDb } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Edito los detalles de un cliente",
+            usuario_modificado: client?.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+      if (errorDb) throw errorDb;
 
       await refetchProfile();
 

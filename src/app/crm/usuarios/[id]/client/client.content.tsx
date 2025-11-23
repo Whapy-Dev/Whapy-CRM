@@ -90,8 +90,8 @@ export default function ClientContentPage({
             Datos Personales
           </h3>
 
-          <div className="grid grid-cols-2 gap-10 text-gray-800">
-            <div className="flex flex-col gap-1">
+          <div className="grid grid-cols-6 gap-10 text-gray-800">
+            <div className="flex flex-col gap-1 col-span-1">
               <p>
                 <strong>Email:</strong> {client.email}
               </p>
@@ -109,7 +109,7 @@ export default function ClientContentPage({
               </p>
             </div>
 
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 col-span-1">
               <p>
                 <strong>Tipo:</strong> {client.type || "—"}
               </p>
@@ -123,26 +123,20 @@ export default function ClientContentPage({
               <p>
                 <strong>País:</strong> {client.pais || "—"}
               </p>
-
-              <div
-                className="cursor-pointer mt-1 max-w-[300px]"
-                onClick={() => setShowEditDetalles(true)}
+            </div>
+            <div className="mt-1 col-span-4 ">
+              <p className="overflow-hidden text-gray-800 whitespace-normal max-h-48">
+                <strong>Detalles:</strong> {client.detalles || "—"}
+              </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowEditDetalles(true);
+                }}
+                className="text-blue-600 underline mt-1 cursor-pointer"
               >
-                <p className="overflow-hidden text-ellipsis whitespace-nowrap inline-block align-middle">
-                  <strong>Detalles:</strong>{" "}
-                  {client.detalles
-                    ? client.detalles.length > 50
-                      ? client.detalles.slice(0, 50) + "..."
-                      : client.detalles
-                    : "—"}
-                </p>
-
-                {client.detalles && client.detalles.length > 50 && (
-                  <span className="text-gray-500 text-xs ml-1 align-middle">
-                    ({client.detalles.length} caracteres)
-                  </span>
-                )}
-              </div>
+                Ver más
+              </button>
             </div>
           </div>
         </div>

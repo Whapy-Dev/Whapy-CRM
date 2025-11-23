@@ -91,10 +91,7 @@ export default function ProjectsPage() {
             </div>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            {projectsData?.reduce(
-              (sum, p) => sum + (p.all_meetings?.length || 0),
-              0
-            )}
+            {projectsData?.reduce((sum, p) => sum + (p.videos?.length || 0), 0)}
           </p>
           <p className="text-sm text-gray-600">Reuniones Totales</p>
         </div>
@@ -165,7 +162,7 @@ export default function ProjectsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {project?.all_meetings?.length || 0} grabaciones
+                      {project?.videos?.length || 0} grabaciones
                     </div>
                   </div>
                 </div>

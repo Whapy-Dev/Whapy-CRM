@@ -5,31 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 
 const supabase = createClient();
 
-export function useLeads() {
-  return useQuery({
-    queryKey: ["leads"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("leads")
-        .select(
-          `
-          *,
-          projects:projects(
-            *,
-            documents(*),
-            all_meetings(*)
-            )
-            budgets(*)
-        `
-        )
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-
 export function useLeadsLead() {
   return useQuery({
     queryKey: ["leadsLead"],

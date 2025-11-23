@@ -54,7 +54,6 @@ export type Project = {
   status: "En progreso" | "Terminado" | "Cancelado" | "Pausado";
   progress: number;
   documents?: Document[] | null;
-  all_meetings?: Meeting[] | null;
   videos?: Video[] | null;
 };
 

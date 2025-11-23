@@ -15,6 +15,14 @@ export async function POST(req: Request) {
     console.log("Auth delete error:", authError);
     return NextResponse.json({ error: authError.message }, { status: 400 });
   }
+  const { error: dbErrorPasos } = await supabase
+    .from("pasos")
+    .delete()
+    .eq("user_id", userId);
+  if (dbErrorPasos) {
+    console.log("Profiles delete error:", dbErrorPasos);
+    return NextResponse.json({ error: dbErrorPasos.message }, { status: 400 });
+  }
   // 2. Borrar de tu tabla "profiles"
   const { error: dbError } = await supabase
     .from("profiles")

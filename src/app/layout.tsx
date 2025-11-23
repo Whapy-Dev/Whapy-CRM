@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import { useAuthSync } from "@/hooks/useAuthSync";
+import { UploadProvider } from "@/context/UploadContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,7 +51,9 @@ export default function RootLayout({
 
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Providers>
-          <AuthSyncWrapper>{children}</AuthSyncWrapper>
+          <AuthSyncWrapper>
+            <UploadProvider>{children}</UploadProvider>
+          </AuthSyncWrapper>
         </Providers>
       </body>
     </html>

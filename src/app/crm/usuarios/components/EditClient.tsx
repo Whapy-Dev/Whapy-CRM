@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Client } from "../page";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 function formatDate(dateString: string) {
   if (!dateString) return "";
 
@@ -34,6 +35,7 @@ export default function ShowEditClientModal({
   onClose,
   refetchProfile,
 }: ClientEditModalProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
@@ -102,7 +104,18 @@ export default function ShowEditClientModal({
       console.error("Error actualizando cliente:", error);
       return;
     }
+    const { error: errorDb } = await supabase
+      .from("historial_actividad")
+      .insert([
+        {
+          usuario_modificador_id: user?.id,
+          accion: "Editó los datos de un cliente",
+          usuario_modificado: client?.nombre,
+          seccion: "Usuarios",
+        },
+      ]);
 
+    if (errorDb) throw errorDb;
     if (!error) {
       await refetchProfile();
 

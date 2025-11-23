@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
 
 type Lead = {
   name: string;
@@ -48,26 +47,6 @@ export function useMeetingsByProjectId(projectId: string) {
       if (error) throw error;
       return data;
     },
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useAllMeetingsUser(user: User | null) {
-  return useQuery({
-    queryKey: ["AllMeetingsUser", user?.id],
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("all_meetings")
-        .select("*")
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     staleTime: 5 * 60 * 1000,

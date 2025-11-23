@@ -63,7 +63,6 @@ export type Project = {
   status: "En progreso" | "Terminado" | "Cancelado" | "Pausado";
   progress: number;
   documents?: Document[] | null;
-  all_meetings?: Meeting[] | null;
   videos?: Video[] | null;
 };
 
@@ -218,12 +217,7 @@ export default function ClientsPageUnsafe() {
             <option value="Inactivo">Inactivo</option>
             <option value="Sin proyectos">Sin proyectos</option>
           </select>
-          <button
-            onClick={() => refetchProfiles()}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
-          >
-            Actualizar
-          </button>
+
           <button
             onClick={() => {
               setShowModal(true);

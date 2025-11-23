@@ -93,7 +93,7 @@ export default function AssignDocumentModal({
       setTimeout(() => {
         onClose();
         setSuccessDocument(false);
-      }, 1000);
+      }, 500);
     }
 
     setLoadingDocument(false);

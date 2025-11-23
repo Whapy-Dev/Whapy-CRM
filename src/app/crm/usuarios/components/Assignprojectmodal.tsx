@@ -12,8 +12,6 @@ type AssignProjectModalProps = {
   refetchProfile: () => void;
 };
 
-const supabase = createClient();
-
 export default function AssignProjectModal({
   show,
   client,
@@ -30,6 +28,7 @@ export default function AssignProjectModal({
 
   const handleNewProject = async (e: React.FormEvent) => {
     e.preventDefault();
+    const supabase = createClient();
     setErrorForm("");
     setLoading(true);
     setSuccess(false);
@@ -70,6 +69,17 @@ export default function AssignProjectModal({
         console.error(error);
         setErrorForm("Error al asignar proyecto");
       } else {
+        const { error } = await supabase.from("historial_actividad").insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Creo un nuevo proyecto",
+            usuario_modificado: client?.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+        if (error) throw error;
+
         setSuccess(true);
 
         // ✅ Usar refetchProfiles
@@ -82,7 +92,7 @@ export default function AssignProjectModal({
 
         setTimeout(() => {
           onClose();
-        }, 1000);
+        }, 500);
       }
 
       setLoading(false);

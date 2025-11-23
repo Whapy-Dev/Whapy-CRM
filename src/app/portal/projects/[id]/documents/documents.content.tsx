@@ -48,10 +48,10 @@ export default function DocumentsContent({ documents, projectId }: Props) {
   };
 
   const getTypeIcon = (type: string) => {
-    if (type === "PDF") {
+    if (type === "PDF" || type === "pdf") {
       return <FileText className="w-8 h-8 text-red-600" />;
     }
-    if (type === "Figma") {
+    if (type === "Figma" || type === "figma") {
       return (
         <svg
           className="w-8 h-8 text-purple-600"

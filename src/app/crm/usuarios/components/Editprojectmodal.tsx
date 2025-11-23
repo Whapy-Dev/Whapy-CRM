@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Project } from "../page";
+import { Client, Project } from "../page";
+import { useAuth } from "@/hooks/useAuth";
 
 type EditProjectModalProps = {
   show: boolean;
+  client: Client | null;
   project: Project | null;
   onClose: () => void;
   refetchProfile: () => void;
@@ -12,10 +14,12 @@ type EditProjectModalProps = {
 
 export default function EditProjectModal({
   show,
+  client,
   project,
   onClose,
   refetchProfile,
 }: EditProjectModalProps) {
+  const { user } = useAuth();
   const [editProjectTitle, setEditProjectTitle] = useState("");
   const [editProjectDescripcion, setEditProjectDescripcion] = useState("");
   const [editProjectEstado, setEditProjectEstado] = useState("");
@@ -62,6 +66,17 @@ export default function EditProjectModal({
         console.error(error);
         setErrorFormEditProject("Error al editar proyecto");
       } else {
+        const { error } = await supabase.from("historial_actividad").insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Actualizó un proyecto",
+            usuario_modificado: client?.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+        if (error) throw error;
+
         setSuccessFormEditProject(true);
 
         await refetchProfile();
@@ -69,7 +84,7 @@ export default function EditProjectModal({
         setTimeout(() => {
           setSuccessFormEditProject(false);
           onClose();
-        }, 1500);
+        }, 500);
       }
     } catch (err) {
       console.error("Error al editar proyecto:", err);

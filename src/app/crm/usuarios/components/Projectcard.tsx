@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Client, Document, Meeting, Project } from "../page";
+import { Client, Project } from "../page";
 
-import ShowVideoMeetingClientModal from "./VideoMeetingClient";
-import ShowVideoProjectClientModal from "./VideoProjectClient";
-import AssignPresupuestoModal from "./Assignpresupuestomodal";
+import ShowVideoClientModal from "./VideoClientModal";
 import ShowDocumentsClientModal from "./Showdocuments";
 import AssignVideoModal from "./Assignvideoprojectmodal";
 import DeleteProjectModal from "./Deleteprojectmodal";
@@ -23,12 +21,8 @@ export default function ProjectCard({
   onAssignDocument,
   refetchProfile,
 }: ProjectCardProps) {
-  const [showVideoMeetingClient, setShowVideoMeetingClient] = useState(false);
-  const [showVideoProjectClient, setShowVideoProjectClient] = useState(false);
+  const [showVideoClient, setShowVideoClient] = useState(false);
   const [showAssignVideo, setShowAssignVideo] = useState(false);
-
-  const [showNewPresupuestoClientModal, setShowNewPresupuestoClientModal] =
-    useState(false);
   const [showDocumentsClientModal, setShowDocumentsClientModal] =
     useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -38,23 +32,27 @@ export default function ProjectCard({
   if (project.status === "Terminado")
     statusColor = "bg-green-100 text-green-800";
   if (project.status === "Cancelado") statusColor = "bg-red-100 text-red-800";
-  const categories = [
-    "Varios",
-    "Contractual",
-    "Presentacion visual",
-    "Presupuesto",
+  const documentTypes = [
+    "Presupuestos",
+    "Contratos",
+    "Diseño",
+    "Repositorio",
+    "Accesos",
+    "Otros Recursos",
   ];
 
-  const groupedDocs = categories.map((category) => {
-    const docs = project.documents
-      ?.filter((doc: Document) => doc.category_document === category)
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
-      .slice(0, 3);
-    return { category, docs };
-  });
+  const documentsCount = documentTypes.map((type) => ({
+    type,
+    count: (project.documents ?? []).filter(
+      (doc) => doc.category_document === type
+    ).length,
+  }));
+  const videoTypes = ["Reunion", "Video informativo"];
+
+  const videosCount = videoTypes.map((type) => ({
+    type,
+    count: (project.videos ?? []).filter((v) => v.type_video === type).length,
+  }));
 
   return (
     <div className="p-4 rounded-2xl shadow-md border border-gray-200 bg-gradient-to-r from-white to-gray-50 hover:border hover:border-black">
@@ -65,12 +63,6 @@ export default function ProjectCard({
           {project.status}
         </p>
         <div className="flex items-center justify-between gap-2">
-          <button
-            onClick={() => setShowVideoProjectClient(true)}
-            className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 font-medium cursor-pointer transition-colors duration-150"
-          >
-            Ver Videos Informativos
-          </button>
           <button
             onClick={() => setShowDeleteModal(true)}
             type="button"
@@ -100,12 +92,6 @@ export default function ProjectCard({
           <h5 className="font-semibold text-blue-700">Documentos</h5>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowNewPresupuestoClientModal(true)}
-              className="px-4 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium cursor-pointer"
-            >
-              Crear Presupuesto
-            </button>
-            <button
               onClick={() => setShowDocumentsClientModal(true)}
               className="px-4 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium cursor-pointer"
             >
@@ -115,106 +101,85 @@ export default function ProjectCard({
               onClick={onAssignDocument}
               className="px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium cursor-pointer"
             >
-              + Asignar Documento
+              + Subir Documento
             </button>
           </div>
         </div>
         {project.documents?.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            {groupedDocs.map(({ category, docs }) => (
-              <div key={category} className="w-auto">
-                <h6 className="font-semibold capitalize text-blue-800 mb-1">
-                  {category}
-                </h6>
-                {docs && docs.length > 0 ? (
-                  <ul className="list-disc ml-5 space-y-1 text-blue-800">
-                    {docs.map((doc: Document) => (
-                      <li key={doc.id}>
-                        <a
-                          href={doc.document_url}
-                          target="_blank"
-                          className="underline hover:text-blue-900"
-                        >
-                          {doc.title}
-                        </a>{" "}
-                        <span className="text-xs text-gray-500">
-                          ({new Date(doc.created_at).toLocaleDateString()})
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-blue-600 text-sm">No hay documentos</p>
-                )}
-              </div>
-            ))}
-          </div>
+          <>
+            {/* Cards de cantidades por tipo */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+              {documentsCount.map(({ type, count }) => (
+                <div
+                  key={type}
+                  className="bg-white border border-blue-200 rounded-xl py-3 shadow-sm text-center"
+                >
+                  <p className="text-sm text-blue-700 font-medium text-nowrap text-center">
+                    {type}
+                  </p>
+                  <p className="text-2xl font-bold text-blue-900">{count}</p>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <p className="text-blue-600">No hay documentos</p>
         )}
       </div>
       {/* Reuniones */}
+      {/* Reuniones / Videos */}
       <div className="p-4 bg-green-50 rounded-xl shadow-inner border border-green-100">
         <div className="flex justify-between items-center mb-2">
-          <h5 className="font-semibold text-green-700">Videos</h5>
+          <h5 className="font-semibold text-green-700">Grabaciones</h5>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowVideoMeetingClient(true)}
+              onClick={() => setShowVideoClient(true)}
               className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium cursor-pointer"
             >
-              Ver Videos
+              Ver Grabaciones
             </button>
             <button
               onClick={() => setShowAssignVideo(true)}
               className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium cursor-pointer"
             >
-              Subir Video
+              Subir Grabaciones
             </button>
           </div>
         </div>
-        {project.all_meetings?.length ? (
-          <ul className="list-disc ml-5 space-y-1 text-green-800">
-            {project.all_meetings.map((meeting: Meeting) => (
-              <li key={meeting.meeting_id}>
-                {meeting.title} ({meeting.type}) -{" "}
-                <a
-                  href={meeting.meet_url}
-                  target="_blank"
-                  className="underline hover:text-green-900"
+
+        {(project.videos?.length ?? 0) > 0 ? (
+          <>
+            {/* Cards por tipo de video */}
+            <div className="grid grid-cols-2  gap-3 mb-4">
+              {videosCount.map(({ type, count }) => (
+                <div
+                  key={type}
+                  className="bg-white border border-green-200 rounded-xl py-3 shadow-sm text-center"
                 >
-                  Ver reunión
-                </a>
-              </li>
-            ))}
-          </ul>
+                  <p className="text-sm text-green-700 font-medium text-nowrap">
+                    {type}
+                  </p>
+                  <p className="text-2xl font-bold text-green-900">{count}</p>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
-          <p className="text-green-600">No hay reuniones</p>
+          <p className="text-green-600">No hay grabaciones</p>
         )}
       </div>
-      <ShowVideoMeetingClientModal
-        show={showVideoMeetingClient}
+
+      <ShowVideoClientModal
+        show={showVideoClient}
+        client={client}
         project={project}
-        onClose={() => setShowVideoMeetingClient(false)}
-        refetchProfile={refetchProfile}
-      />
-      <ShowVideoProjectClientModal
-        show={showVideoProjectClient}
-        project={project}
-        onClose={() => setShowVideoProjectClient(false)}
+        onClose={() => setShowVideoClient(false)}
         refetchProfile={refetchProfile}
       />
       <AssignVideoModal
         show={showAssignVideo}
         project={project}
         onClose={() => setShowAssignVideo(false)}
-        refetchProfile={refetchProfile}
-      />
-
-      <AssignPresupuestoModal
-        show={showNewPresupuestoClientModal}
-        client={client}
-        project={project}
-        onClose={() => setShowNewPresupuestoClientModal(false)}
         refetchProfile={refetchProfile}
       />
       <ShowDocumentsClientModal
@@ -225,6 +190,7 @@ export default function ProjectCard({
       />
       <DeleteProjectModal
         project={project}
+        client={client}
         show={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         refetchProfile={refetchProfile}

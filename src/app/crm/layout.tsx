@@ -11,10 +11,12 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  Calendar1Icon,
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
+import { useUpload } from "@/context/UploadContext";
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -29,10 +31,32 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
     { name: "Reuniones", href: "/crm/meetings", icon: Calendar },
     { name: "Usuarios", href: "/crm/usuarios", icon: Users },
     { name: "Proyectos", href: "/crm/proyectos", icon: FileText },
+    {
+      name: "Historial de Actividad",
+      href: "/crm/actividad",
+      icon: Calendar1Icon,
+    },
   ].map((item) => ({
     ...item,
     current: pathname === item.href,
   }));
+  function GlobalUploadWidget() {
+    const { isUploading, progress, message } = useUpload();
+
+    if (!isUploading) return null;
+
+    return (
+      <div className="fixed bottom-4 right-4 bg-white shadow-xl p-4 rounded-xl w-64 border">
+        <p className="text-sm">{message}</p>
+        <div className="w-full bg-gray-200 h-2 rounded mt-2">
+          <div
+            className="h-2 bg-blue-600 rounded"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -130,7 +154,10 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           </button>
         </header>
 
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto">
+          {children}
+          <GlobalUploadWidget />
+        </main>
       </div>
     </div>
   );

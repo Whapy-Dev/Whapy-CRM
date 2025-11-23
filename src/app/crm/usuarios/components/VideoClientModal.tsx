@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { Project, Video } from "../page";
 import { createClient } from "@/lib/supabase/client";
+import { Client } from "@/utils/types";
+import { useAuth } from "@/hooks/useAuth";
 
 type ClientVideoDetailsMeetingModalProps = {
   show: boolean;
+  client: Client | null;
   project: Project | null;
   onClose: () => void;
   refetchProfile: () => void;
@@ -13,25 +16,33 @@ type ClientVideoDetailsMeetingModalProps = {
 
 const supabase = createClient();
 
-export default function ShowVideoMeetingClientModal({
+export default function ShowVideoClientModal({
   show,
+  client,
   project,
   onClose,
   refetchProfile,
 }: ClientVideoDetailsMeetingModalProps) {
+  const { user } = useAuth();
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-
+  const [videoTypeFilter, setVideoTypeFilter] = useState<
+    "all" | "Reunion" | "Video informativo"
+  >("all");
   if (!show || !project) return null;
-  // 📹 Obtener todos los videos de los meetings del proyecto
-  // 📹 Obtener solo videos de tipo "Reunion" del proyecto
-  const allVideos: Video[] =
-    project.videos?.filter((v) => v.type_video === "Reunion") || [];
 
-  // 📹 Filtrar solo por título
-  const videosToShow = allVideos.filter((v) =>
+  const filteredByType =
+    videoTypeFilter === "all"
+      ? project.videos?.filter((v) =>
+          ["Reunion", "Video informativo"].includes(v.type_video)
+        ) || []
+      : project.videos?.filter((v) => v.type_video === videoTypeFilter) || [];
+
+  // Filtrar por texto
+  const videosToShow = filteredByType.filter((v) =>
     v.title.toLowerCase().includes(searchTitle.toLowerCase())
   );
+
   const eliminarVideo = async (video: Video) => {
     try {
       const res = await fetch("/api/delete-video-vimeo", {
@@ -54,7 +65,16 @@ export default function ShowVideoMeetingClientModal({
       if (error) {
         console.error("Error en Supabase:", error);
       } else {
-        // ✅ Invalidar queries para actualización automática
+        const { error } = await supabase.from("historial_actividad").insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Eliminó un video",
+            usuario_modificado: client?.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+        if (error) throw error;
         await refetchProfile();
         setSelectedVideo(null);
       }
@@ -88,6 +108,41 @@ export default function ShowVideoMeetingClientModal({
             onChange={(e) => setSearchTitle(e.target.value)}
             className="border rounded-lg p-2 w-full max-w-sm"
           />
+        </div>
+        {/* Botones de tipo */}
+        <div className="flex gap-3 justify-center mb-4">
+          <button
+            onClick={() => setVideoTypeFilter("all")}
+            className={`px-4 py-2 rounded-xl border cursor-pointer ${
+              videoTypeFilter === "all"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-blue-300"
+            }`}
+          >
+            Todos
+          </button>
+
+          <button
+            onClick={() => setVideoTypeFilter("Reunion")}
+            className={`px-4 py-2 rounded-xl border cursor-pointer ${
+              videoTypeFilter === "Reunion"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-blue-300"
+            }`}
+          >
+            Reunión
+          </button>
+
+          <button
+            onClick={() => setVideoTypeFilter("Video informativo")}
+            className={`px-4 py-2 rounded-xl border cursor-pointer ${
+              videoTypeFilter === "Video informativo"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-blue-300"
+            }`}
+          >
+            Video informativo
+          </button>
         </div>
 
         {/* Galería de videos */}
@@ -126,43 +181,54 @@ export default function ShowVideoMeetingClientModal({
 
       {/* Modal de video seleccionado */}
       {selectedVideo && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-[1500px] shadow-2xl border border-gray-200 flex flex-col md:flex-row gap-6 min-h-[750px]">
-            {/* Izquierda: detalles */}
-            <div className="w-full md:w-1/4 flex flex-col gap-4 overflow-y-auto pr-2">
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold">{selectedVideo.title}</h3>
-                  <button
-                    onClick={() => setSelectedVideo(null)}
-                    className="px-4 py-2 bg-gray-300 rounded-xl hover:bg-gray-400 font-medium cursor-pointer"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-                <p className="mb-2">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div
+            className="bg-white rounded-3xl p-6 w-full max-w-[1500px] shadow-2xl border border-gray-200 
+                    flex flex-col md:flex-row gap-6 max-h-[90vh] overflow-hidden"
+          >
+            {/* Izquierda */}
+            <div className="w-full md:w-1/4 flex flex-col overflow-hidden">
+              {/* Header fijo */}
+              <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                <h3 className="text-xl font-bold">{selectedVideo.title}</h3>
+                <button
+                  onClick={() => setSelectedVideo(null)}
+                  className="px-4 py-2 bg-gray-300 rounded-xl hover:bg-gray-400 font-medium cursor-pointer"
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              {/* Contenido scrolleable */}
+              <div className="flex-1 overflow-y-auto pr-2">
+                <p className="mb-2 text-pretty">
                   <strong>Descripción:</strong>{" "}
                   {selectedVideo.descripcion || "Sin descripción"}
                 </p>
+
                 <p className="mb-2">
                   <strong>Status:</strong> {selectedVideo.status}
                 </p>
+
                 <p className="mb-2">
                   <strong>Duración:</strong>{" "}
                   {selectedVideo.duration || "No disponible"}
                 </p>
               </div>
 
-              <button
-                onClick={() => eliminarVideo(selectedVideo)}
-                className="mt-auto px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 w-full cursor-pointer"
-              >
-                Eliminar Video
-              </button>
+              {/* Botón eliminar fijo abajo */}
+              <div className="mt-4 flex-shrink-0">
+                <button
+                  onClick={() => eliminarVideo(selectedVideo)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 w-full cursor-pointer"
+                >
+                  Eliminar Video
+                </button>
+              </div>
             </div>
 
-            {/* Derecha: video grande */}
-            <div className="w-full md:w-3/4 relative flex-shrink-0">
+            {/* Derecha - Video */}
+            <div className="w-full md:w-3/4 relative flex-shrink-0 min-h-[400px]">
               <iframe
                 src={`https://player.vimeo.com/video/${selectedVideo.vimeo_id}`}
                 className="absolute top-0 left-0 w-full h-full"

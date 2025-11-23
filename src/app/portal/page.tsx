@@ -10,9 +10,9 @@ import {
 } from "lucide-react";
 import { useDatosUser } from "@/hooks/user/datosUser";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
-import { useAllMeetingsUser } from "@/hooks/user/useAllMeetings";
 import { useAuth } from "@/hooks/useAuth";
 import { usePasosUser } from "@/hooks/user/usePasosUser";
+import { Document } from "@/utils/types";
 
 export default function PortalDashboard() {
   const { user, loading: authLoading, name } = useAuth();
@@ -20,11 +20,6 @@ export default function PortalDashboard() {
   const { data: userData, isLoading: isLoadingUserData } = useDatosUser(user);
   const { data: projectsData = [], isLoading: isLoadingProjects } =
     useProjectsUser(user);
-  const {
-    data: allMeetingsData = [],
-    isLoading: isLoadingAllMeetingsData,
-    error: errorAllMeetingsData,
-  } = useAllMeetingsUser(user);
   const { data: pasos, isLoading: isLoadingPasos } = usePasosUser(user);
   const loading = authLoading || isLoadingUserData || isLoadingProjects;
 
@@ -39,75 +34,44 @@ export default function PortalDashboard() {
     );
   }
 
-  if (isLoadingAllMeetingsData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando proyectos...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (errorAllMeetingsData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <p className="text-red-800">Error: {errorAllMeetingsData.message}</p>
-        </div>
-      </div>
-    );
-  }
-
   const activeProjects = projectsData.filter(
     (project) => project.status !== "pausado" && project.status !== "cancelado"
   ).length;
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      date: date.toLocaleDateString("es-AR", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      time: date.toLocaleTimeString("es-AR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-  };
-
   // Obtener la próxima reunión
-  const now = new Date();
-  const upcomingMeetings = allMeetingsData
-    ?.filter((meeting) => new Date(meeting.start_at) > now)
-    .sort(
-      (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
-    );
 
-  const nextMeeting = upcomingMeetings?.[0];
-  const nextMeetingFormatted = nextMeeting
-    ? formatDate(nextMeeting.start_at)
-    : null;
+  // Fecha límite: últimos 30 días
   const fechaLimite = new Date();
   fechaLimite.setDate(fechaLimite.getDate() - 30);
 
+  // 1) PROYECTOS nuevos
   const proyectosUltimos30Dias = projectsData.filter((project) => {
     const createdAt = new Date(project.created_at);
     return createdAt >= fechaLimite;
   });
-
-  const meetingsUltimos30Dias = allMeetingsData?.filter((meeting) => {
-    const startAt = new Date(meeting.start_at);
-    return startAt >= fechaLimite;
-  });
-
   const totalProyectos30Dias = proyectosUltimos30Dias.length;
-  const totalMeetings30Dias = meetingsUltimos30Dias?.length ?? 0;
-  const totalActividad30Dias = totalProyectos30Dias + totalMeetings30Dias;
+
+  // 2) VIDEOS en los últimos 30 días
+  const videosUltimos30Dias = projectsData
+    .flatMap((project) => project.videos || [])
+    .filter((video) => {
+      const fechaVideo = new Date(video.created_at);
+      return fechaVideo >= fechaLimite && video.type_video === "Reunion";
+    });
+  const totalVideos30Dias = videosUltimos30Dias.length;
+
+  // 3) DOCUMENTOS en los últimos 30 días
+  const documentosUltimos30Dias = projectsData.flatMap((project) =>
+    (project.documents ?? []).filter((doc: Document) => {
+      if (!doc?.created_at) return false;
+      return new Date(doc.created_at) >= fechaLimite;
+    })
+  );
+  const totalDocumentos30Dias = documentosUltimos30Dias.length;
+
+  // 4) TOTAL ACTIVIDAD = proyectos + videos + documentos
+  const totalActividad30Dias =
+    totalProyectos30Dias + totalVideos30Dias + totalDocumentos30Dias;
 
   // Usar el nombre del hook useAuth o el de userData
   const displayName = name || userData?.nombre || "Usuario";
@@ -149,7 +113,7 @@ export default function PortalDashboard() {
         </Link>
 
         <a
-          href="https://calendly.com/admin-whapy/40min/2025-09-12T16:00:00-03:00"
+          href="https://calendly.com/admin-whapy/40min"
           className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 hover:shadow-md transition-shadow border border-purple-200"
           target="_blank"
           rel="noopener noreferrer"
@@ -168,34 +132,37 @@ export default function PortalDashboard() {
       </div>
 
       {/* Próximos pasos */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Próximos Pasos</h2>
+      {items.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Próximos Pasos
+          </h2>
 
-        <div className="space-y-3">
-          {items.map((p, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg"
-            >
-              <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                {i + 1}
+          <div className="space-y-3">
+            {items.map((p, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg"
+              >
+                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  {i + 1}
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-1">{p.titulo}</h3>
+                  <p className="text-sm text-gray-600">{p.detalle}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-medium text-gray-900 mb-1">{p.titulo}</h3>
-                <p className="text-sm text-gray-600">{p.detalle}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-
+      )}
       {/* Actividad reciente */}
       {totalActividad30Dias > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             Actividad de los últimos 30 días
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
                 <FolderOpen className="w-5 h-5 text-blue-600" />
@@ -210,12 +177,22 @@ export default function PortalDashboard() {
             <div className="bg-green-50 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
                 <Video className="w-5 h-5 text-green-600" />
-                <h3 className="font-medium text-gray-900">Reuniones</h3>
+                <h3 className="font-medium text-gray-900">Videos</h3>
               </div>
               <p className="text-3xl font-bold text-green-600">
-                {totalMeetings30Dias}
+                {totalVideos30Dias}
               </p>
-              <p className="text-sm text-gray-600">Reuniones realizadas</p>
+              <p className="text-sm text-gray-600">Videos subidos</p>
+            </div>
+            <div className="bg-yellow-50 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <FolderOpen className="w-5 h-5 text-yellow-600" />
+                <h3 className="font-medium text-gray-900">Documentos</h3>
+              </div>
+              <p className="text-3xl font-bold text-yellow-600">
+                {totalDocumentos30Dias}
+              </p>
+              <p className="text-sm text-gray-600">Documentos subidos</p>
             </div>
 
             <div className="bg-purple-50 rounded-lg p-4">

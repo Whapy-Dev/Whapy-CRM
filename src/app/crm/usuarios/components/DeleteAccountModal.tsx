@@ -2,6 +2,8 @@ import { useState } from "react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { Client } from "../page";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { createClient } from "@/lib/supabase/client";
 
 type DeleteAccountModalProps = {
   show: boolean;
@@ -16,13 +18,14 @@ export default function DeleteAccountModal({
   onClose,
   refetchProfile,
 }: DeleteAccountModalProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorForm, setErrorForm] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
   const handleDelete = async () => {
     if (!client) return;
-
+    const supabase = createClient();
     setLoading(true);
     setErrorForm("");
     setSuccessMessage("");
@@ -38,14 +41,18 @@ export default function DeleteAccountModal({
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al eliminar usuario");
+      const { error } = await supabase.from("historial_actividad").insert([
+        {
+          usuario_modificador_id: user?.id,
+          accion: "Eliminó una cuenta de usuario",
+          usuario_modificado: client.nombre,
+          seccion: "Usuarios",
+        },
+      ]);
 
+      if (error) throw error;
       setSuccessMessage(`La cuenta de ${client.nombre} fue eliminada`);
-
-      await refetchProfile();
-
-      setTimeout(() => {
-        router.push("/crm/usuariosprueba");
-      }, 1000);
+      router.push("/crm/usuarios");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setErrorForm(err.message);

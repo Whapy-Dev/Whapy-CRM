@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Project } from "../page";
+import { Client, Project } from "../page";
 import { createClient } from "@/lib/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
+import { useAuth } from "@/hooks/useAuth";
 
 type DeleteProjectModalProps = {
   project: Project;
+  client: Client;
   show: boolean;
   onClose: () => void;
   refetchProfile: () => void;
@@ -12,10 +14,12 @@ type DeleteProjectModalProps = {
 
 export default function DeleteProjectModal({
   project,
+  client,
   show,
   onClose,
   refetchProfile,
 }: DeleteProjectModalProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const supabase = createClient();
@@ -47,7 +51,18 @@ export default function DeleteProjectModal({
         .eq("id", project.id);
 
       if (projectError) throw projectError;
+      const { error: errorDb } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Editó los datos de un cliente",
+            usuario_modificado: client?.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
 
+      if (errorDb) throw errorDb;
       refetchProfile();
       onClose();
     } catch (err) {

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { createClient } from "@/lib/supabase/client";
 
 type CreateAccountModalProps = {
   show: boolean;
@@ -12,6 +14,7 @@ export default function CreateAccountModal({
   onClose,
   refetchProfiles,
 }: CreateAccountModalProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorForm, setErrorForm] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -29,6 +32,7 @@ export default function CreateAccountModal({
   const [detalleInput, setDetalleInput] = useState("");
 
   const handleCreateAccount = async (e: React.FormEvent) => {
+    const supabase = createClient();
     e.preventDefault();
     setLoading(true);
     setErrorForm("");
@@ -57,6 +61,17 @@ export default function CreateAccountModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error desconocido");
 
+      const { error } = await supabase.from("historial_actividad").insert([
+        {
+          usuario_modificador_id: user?.id,
+          accion: "Creó una cuenta de usuario",
+          usuario_modificado: nameInput,
+          seccion: "Usuarios",
+        },
+      ]);
+
+      if (error) throw error;
+
       setSuccessMessage(`Usuario creado: ${data.user.email}`);
       setEmailInput("");
       setPasswordInput("");
@@ -76,7 +91,7 @@ export default function CreateAccountModal({
 
       setTimeout(() => {
         onClose();
-      }, 1500);
+      }, 500);
     } catch (err: unknown) {
       console.log(err);
 

@@ -57,7 +57,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                 <td className="text-center">
                   <Link
                     href={`/crm/usuarios/${client.id}/client`}
-                    className="text-gray-400 hover:text-gray-600 cursor-pointer p-2 inline-block"
+                    className="text-gray-400 hover:text-gray-600 cursor-pointer p-2 inline-block rotate-90"
                   >
                     <MoreVertical className="w-5 h-5" />
                   </Link>

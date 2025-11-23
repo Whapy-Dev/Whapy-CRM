@@ -44,7 +44,8 @@ export default function PortalBudgetsPage() {
   };
 
   const getTypeIcon = (type: string) => {
-    if (type === "PDF") return <FileText className="w-5 h-5 text-red-600" />;
+    if (type === "PDF" || type === "pdf")
+      return <FileText className="w-5 h-5 text-red-600" />;
     return <FileText className="w-5 h-5 text-gray-600" />;
   };
 
