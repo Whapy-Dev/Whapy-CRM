@@ -213,6 +213,7 @@ export default function ClientContentPage({
       />
       <EditProjectModal
         show={showEditProject}
+        client={client}
         project={selectedProject}
         onClose={() => setShowEditProject(false)}
         refetchProfile={refetchProfile}
