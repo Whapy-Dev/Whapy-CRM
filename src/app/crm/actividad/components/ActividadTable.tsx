@@ -9,7 +9,7 @@ type Log = {
   usuario_modificador_id: {
     id: string;
     nombre: string;
-  }[] | null;
+  } | null;
 };
 
 interface Props {
@@ -42,7 +42,7 @@ export default function ActividadTable({ logs }: Props) {
               <tr key={log.id} className="border-b hover:bg-gray-50">
                 <td className="p-3">{new Date(log.fecha).toLocaleString()}</td>
 
-                <td className="p-3">{log.usuario_modificador_id?.[0].nombre}</td>
+                <td className="p-3">{log.usuario_modificador_id?.nombre}</td>
                 <td className="p-3">{log.accion}</td>
 
                 <td className="p-3">{log.usuario_modificado}</td>

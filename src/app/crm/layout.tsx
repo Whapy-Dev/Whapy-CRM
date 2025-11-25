@@ -21,8 +21,7 @@ import { useUpload } from "@/context/UploadContext";
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const { user, role, name, loading, signOut } = useAuth();
-
+  const { user, roleAdmin, role, name, loading, signOut } = useAuth();
   if (loading) return null;
   const navigation = [
     { name: "Dashboard", href: "/crm", icon: LayoutDashboard },
@@ -36,10 +35,15 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       href: "/crm/actividad",
       icon: Calendar1Icon,
     },
+    { name: "Accesos", href: "/crm/accesos", icon: Users },
   ].map((item) => ({
     ...item,
     current: pathname === item.href,
   }));
+  const filteredNavigation = navigation.filter((item) => {
+    if (item.name === "Accesos" && roleAdmin !== "CEO") return false;
+    return true;
+  });
   function GlobalUploadWidget() {
     const { isUploading, progress, message } = useUpload();
 
@@ -78,7 +82,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-1">
-          {navigation.map((item) => {
+          {filteredNavigation.map((item) => {
             const Icon = item.icon;
             return (
               <Link
@@ -110,7 +114,9 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
                 <p className="text-sm font-medium text-gray-900">
                   {name || "Usuario"}
                 </p>
-                <p className="text-xs text-gray-500">{role || "Sin rol"}</p>
+                <p className="text-xs text-gray-500">
+                  {roleAdmin || "Sin rol"}
+                </p>
               </div>
               <ChevronDown
                 className={`w-4 h-4 text-gray-400 transition-transform ${

@@ -18,6 +18,7 @@ type UserRole = "admin" | "cliente" | null;
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole>(null);
+  const [roleAdmin, setRoleAdmin] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,7 +65,7 @@ export function useAuth() {
         try {
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
-            .select("role, nombre")
+            .select("role, nombre, roles(rol)")
             .eq("id", session.user.id)
             .single();
 
@@ -85,6 +86,7 @@ export function useAuth() {
                   session.user.email?.split("@")[0] ||
                   "Usuario"
               );
+              setRoleAdmin(profile?.roles?.rol || null);
             }
           }
         } catch (profileError) {
@@ -139,6 +141,7 @@ export function useAuth() {
 
   return {
     user,
+    roleAdmin,
     role,
     name,
     loading,
