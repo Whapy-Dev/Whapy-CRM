@@ -41,7 +41,7 @@ export function useActividadLogs({
           accion,
           usuario_modificado,
           seccion,
-          usuario_modificador_id:profiles!inner (
+          usuario_modificador_id:profiles (
             id,
             nombre
           )

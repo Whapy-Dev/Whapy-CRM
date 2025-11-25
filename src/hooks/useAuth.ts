@@ -86,6 +86,8 @@ export function useAuth() {
                   session.user.email?.split("@")[0] ||
                   "Usuario"
               );
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
               setRoleAdmin(profile?.roles?.rol || null);
             }
           }

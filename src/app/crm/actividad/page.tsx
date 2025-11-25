@@ -12,6 +12,7 @@ const secciones = [
   "Reuniones",
   "Leads",
 ];
+
 export default function ActividadPage() {
   const [page, setPage] = useState(1);
   const limit = 20;
@@ -34,15 +35,15 @@ export default function ActividadPage() {
     filtroModificador: debouncedModificador,
     filtroModificado: debouncedModificado,
   });
-
-  const logs = data?.data ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / limit);
+  console.log(data?.data);
 
   if (isLoading)
     return <p className="p-4 text-gray-500">Cargando historial...</p>;
   if (error)
     return <p className="p-4 text-red-500">Error al cargar el historial.</p>;
+  const logs = data?.data;
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="p-6 space-y-6">
