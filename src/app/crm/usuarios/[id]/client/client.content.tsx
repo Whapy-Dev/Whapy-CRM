@@ -11,6 +11,7 @@ import EditDetallesModal from "../../components/EditDetallesModal";
 import AssignDocumentModal from "../../components/Assigndocumentmodal";
 import EditProjectModal from "../../components/Editprojectmodal";
 import AccessModal from "../../components/AccessModal";
+import { useAuth } from "@/hooks/useAuth";
 
 type ClientDetailsPageProps = {
   client: Client;
@@ -36,6 +37,7 @@ export default function ClientContentPage({
   client,
   refetchProfile,
 }: ClientDetailsPageProps) {
+  const { roleAdmin } = useAuth();
   const [showEditClientModal, setShowEditClientModal] = useState(false);
   const [showNewProjectClientModal, setShowNewProjectClientModal] =
     useState(false);
@@ -126,13 +128,15 @@ export default function ClientContentPage({
               <p>
                 <strong>País:</strong> {client.pais || "—"}
               </p>
-              <button
-                type="button"
-                onClick={() => setShowAccessModal(true)}
-                className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mt-2 cursor-pointer"
-              >
-                Accesos
-              </button>
+              {roleAdmin === "CEO" && (
+                <button
+                  type="button"
+                  onClick={() => setShowAccessModal(true)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mt-2 cursor-pointer"
+                >
+                  Accesos
+                </button>
+              )}
             </div>
             {/* Detalles como card independiente */}
             <div className="p-6 bg-white rounded-2xl shadow-md border border-gray-200 col-span-4">

@@ -34,6 +34,7 @@ export async function POST(req: Request) {
         email: email,
         nombre: nombre,
         role: "cliente",
+        has_project_access: "1",
       },
     ]);
 
