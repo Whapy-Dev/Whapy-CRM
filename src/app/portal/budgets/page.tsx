@@ -5,16 +5,22 @@ import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { Download, Eye, FileText, Calendar, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
-import { Document, Project } from "@/utils/types";
+import { Document, Project, Video } from "@/utils/types";
+type ProjectRow = {
+  project: Project;
+  documents: Document[];
+  videos: Video[];
+};
 const supabase = createClient();
+
 export default function PortalBudgetsPage() {
-  const { user, role, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
+
   const {
     data: projectsData = [],
     isLoading: isLoadingProjects,
     error: errorProjects,
   } = useProjectsUser(user);
-
   if (loading) return <p>Cargando usuario...</p>;
   if (isLoadingProjects) return <p>Cargando proyectos...</p>;
   if (errorProjects) return <p>Error: {errorProjects.message}</p>;
@@ -51,7 +57,6 @@ export default function PortalBudgetsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Mis Documentos</h1>
         <p className="mt-2 text-gray-600">
@@ -59,17 +64,26 @@ export default function PortalBudgetsPage() {
         </p>
       </div>
 
-      {/* Lista de proyectos */}
+      {/* LISTA DE PROYECTOS */}
       <div className="space-y-8">
-        {projectsData.map((project: Project) => (
-          <ProjectCard
-            key={project.id}
-            project={project}
-            categories={categories}
-            getTypeIcon={getTypeIcon}
-            getCategoryColor={getCategoryColor}
-          />
-        ))}
+        {projectsData.map((row: ProjectRow) => {
+          const project = row.project;
+
+          if (!project) return null;
+
+          return (
+            <ProjectCard
+              key={row.project.id}
+              project={row.project}
+              documents={row.documents}
+              categories={categories}
+              getTypeIcon={getTypeIcon}
+              getCategoryColor={getCategoryColor}
+            />
+          );
+        })}
+
+        {/* Si ningún proyecto tiene documentos */}
         {projectsData.every(
           (p) => !p.documents || p.documents.length === 0
         ) && (
@@ -79,50 +93,28 @@ export default function PortalBudgetsPage() {
               No hay documentos disponibles
             </h3>
             <p className="text-sm text-gray-500 max-w-md">
-              Aún no se han subido documentos a tus proyectos. Cuando se
-              agreguen, aparecerán aquí para que puedas verlos o descargarlos.
+              Aún no se han subido documentos a tus proyectos.
             </p>
           </div>
         )}
-      </div>
-
-      {/* Información adicional */}
-      <div className="bg-blue-50 rounded-lg p-6 mt-10">
-        <h3 className="text-lg font-bold text-gray-900 mb-2">
-          ¿Tienes preguntas sobre un documento?
-        </h3>
-        <p className="text-gray-700 mb-4">
-          Estamos aquí para aclarar cualquier duda. No dudes en contactarnos.
-        </p>
-        <div className="flex gap-3">
-          <a
-            href="mailto:admin@whapy.com"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Enviar Email
-          </a>
-          <a
-            href="https://wa.me/5493442665131"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-          >
-            WhatsApp
-          </a>
-        </div>
       </div>
     </div>
   );
 }
 
-// --- COMPONENTE DE CADA PROYECTO ---
+/* -----------------------
+   COMPONENTE POR PROYECTO
+------------------------*/
+
 function ProjectCard({
   project,
+  documents,
   categories,
   getTypeIcon,
   getCategoryColor,
 }: {
   project: Project;
+  documents: Document[];
   categories: string[];
   getTypeIcon: (type: string) => React.ReactNode;
   getCategoryColor: (cat: string) => string;
@@ -132,14 +124,11 @@ function ProjectCard({
 
   const filteredDocs =
     selectedCategory === "Todos"
-      ? project.documents
-      : project.documents?.filter(
-          (doc: Document) => doc.category_document === selectedCategory
-        );
+      ? documents
+      : documents.filter((doc) => doc.category_document === selectedCategory);
 
   return (
     <div className="border border-gray-200 rounded-2xl p-6 shadow-sm bg-white relative">
-      {/* Modal PDF */}
       {pdfUrl && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg relative w-full max-w-6xl h-[90vh] flex flex-col">
@@ -165,12 +154,10 @@ function ProjectCard({
         </div>
       )}
 
-      {/* Nombre del proyecto */}
       <h2 className="text-xl font-semibold mb-4 text-gray-800">
         {project.title}
       </h2>
 
-      {/* Filtros por categoría */}
       <div className="flex flex-wrap gap-2 mb-4">
         {categories.map((category) => (
           <button
@@ -187,7 +174,6 @@ function ProjectCard({
         ))}
       </div>
 
-      {/* Documentos filtrados */}
       {!filteredDocs || filteredDocs.length === 0 ? (
         <p className="text-gray-500 text-sm">
           No hay documentos en esta categoría.
@@ -227,7 +213,6 @@ function ProjectCard({
                       const url = supabase.storage
                         .from("contracts")
                         .getPublicUrl(doc.document_url).data.publicUrl;
-
                       setPdfUrl(url);
                     }}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
@@ -237,26 +222,21 @@ function ProjectCard({
                   </button>
                 )}
 
-                {/* 🔽 Botón de descarga → SIEMPRE visible */}
                 <button
                   onClick={async () => {
                     const { data, error } = await supabase.storage
                       .from("contracts")
                       .download(doc.document_url);
 
-                    if (error) {
-                      console.error(error);
-                      return;
-                    }
+                    if (error) return;
 
                     let fileName = doc.title || "archivo";
-                    if (!fileName.toLowerCase().endsWith(".html")) {
-                      if (
-                        doc.type_document === "HTML" ||
-                        doc.document_url.includes(".html")
-                      ) {
-                        fileName = `${fileName}.html`;
-                      }
+                    if (
+                      !fileName.toLowerCase().endsWith(".html") &&
+                      (doc.type_document === "HTML" ||
+                        doc.document_url.includes(".html"))
+                    ) {
+                      fileName = `${fileName}.html`;
                     }
 
                     const url = window.URL.createObjectURL(data);

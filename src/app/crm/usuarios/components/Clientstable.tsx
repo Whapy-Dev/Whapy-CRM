@@ -30,10 +30,9 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                 "Email",
                 "Teléfono",
                 "Empresa",
-                "Ciudad",
-                "Código Postal",
+
                 "Género",
-                "Fecha de Nacimiento",
+
                 "País",
                 "Tipo",
                 "Estado",
@@ -74,22 +73,15 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                 <td className="px-2 py-4 text-sm text-gray-700 text-pretty">
                   {client.empresa || "—"}
                 </td>
-                <td className="px-2 py-4 text-sm text-gray-700 text-nowrap">
-                  {client.ciudad || "—"}
-                </td>
-                <td className="px-2 py-4 text-sm text-gray-700 text-pretty">
-                  {client.codigoPostal || "—"}
-                </td>
-                <td className="px-2 py-4 text-sm text-gray-700">
+
+                <td className="px-2 py-4 text-sm text-gray-700 text-center">
                   {client.genero || "—"}
                 </td>
-                <td className="px-2 py-4 text-sm text-gray-700">
-                  {client.fechaNacimiento || "—"}
-                </td>
-                <td className="px-2 py-4 text-sm text-gray-700">
+
+                <td className="px-2 py-4 text-sm text-gray-700 text-center">
                   {client.pais || "—"}
                 </td>
-                <td className="px-2 py-4 text-sm text-gray-700">
+                <td className="px-2 py-4 text-sm text-gray-700 text-center">
                   {client.type || "—"}
                 </td>
                 <td className="px-2 py-4 text-sm">
@@ -105,7 +97,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                     {client.estado}
                   </span>
                 </td>
-                <td className="px-2 py-4 text-sm text-gray-500">
+                <td className="px-2 py-4 text-sm text-gray-500 text-center">
                   {client.created_at
                     ? new Date(client.created_at).toLocaleDateString("es-AR", {
                         day: "2-digit",

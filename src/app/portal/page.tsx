@@ -33,36 +33,42 @@ export default function PortalDashboard() {
       </div>
     );
   }
-
+  console.log(projectsData);
   const activeProjects = projectsData.filter(
-    (project) => project.status !== "pausado" && project.status !== "cancelado"
+    (row) =>
+      row.project.status?.toLowerCase() !== "pausado" &&
+      row.project.status?.toLowerCase() !== "cancelado"
   ).length;
 
-  // Obtener la próxima reunión
-
-  // Fecha límite: últimos 30 días
+  // Últimos 30 días
   const fechaLimite = new Date();
   fechaLimite.setDate(fechaLimite.getDate() - 30);
 
-  // 1) PROYECTOS nuevos
-  const proyectosUltimos30Dias = projectsData.filter((project) => {
-    const createdAt = new Date(project.created_at);
-    return createdAt >= fechaLimite;
+  // 1) Proyectos creados en últimos 30 días
+  const proyectosUltimos30Dias = projectsData.filter((row) => {
+    const createdAt = row.project?.created_at;
+    if (!createdAt) return false;
+    return new Date(createdAt) >= fechaLimite;
   });
   const totalProyectos30Dias = proyectosUltimos30Dias.length;
 
-  // 2) VIDEOS en los últimos 30 días
+  // 2) Videos en los últimos 30 días (SOLO si existen)
   const videosUltimos30Dias = projectsData
-    .flatMap((project) => project.videos || [])
+    .flatMap((row) => row.videos ?? [])
     .filter((video) => {
+      if (!video?.created_at) return false;
       const fechaVideo = new Date(video.created_at);
-      return fechaVideo >= fechaLimite && video.type_video === "Reunion";
+      return (
+        fechaVideo >= fechaLimite &&
+        video.type_video?.toLowerCase() === "reunion"
+      );
     });
+
   const totalVideos30Dias = videosUltimos30Dias.length;
 
-  // 3) DOCUMENTOS en los últimos 30 días
+  // 3) Documentos últimos 30 días
   const documentosUltimos30Dias = projectsData.flatMap((project) =>
-    (project.documents ?? []).filter((doc: Document) => {
+    (project.documents ?? []).filter((doc) => {
       if (!doc?.created_at) return false;
       return new Date(doc.created_at) >= fechaLimite;
     })

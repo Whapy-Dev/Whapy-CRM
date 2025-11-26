@@ -55,20 +55,35 @@ export default function AssignProjectModal({
         return;
       }
 
-      const { error } = await supabase.from("projects").insert([
-        {
-          user_id: client?.id,
-          title: title,
-          descripcion: descripcion,
-          status: status,
-          progress: progress,
-        },
-      ]);
+      const { data, error } = await supabase
+        .from("projects")
+        .insert([
+          {
+            user_id: client?.id,
+            title: title,
+            descripcion: descripcion,
+            status: status,
+            progress: progress,
+          },
+        ])
+        .select(); // Esto devuelve el registro insertado
 
       if (error) {
-        console.error(error);
-        setErrorForm("Error al asignar proyecto");
-      } else {
+        console.error("Error al crear el proyecto:", error);
+      } else if (data && data.length > 0) {
+        const newProjectId = data[0].id;
+
+        // Asignar el proyecto al cliente en project_users
+        const { error: assignError } = await supabase
+          .from("project_users")
+          .insert([
+            {
+              project_id: newProjectId,
+              user_id: client?.id,
+              type: "Principal",
+            },
+          ]);
+        if (assignError) throw assignError;
         const { error } = await supabase.from("historial_actividad").insert([
           {
             usuario_modificador_id: user?.id,
@@ -91,6 +106,7 @@ export default function AssignProjectModal({
         setProgress("");
 
         setTimeout(() => {
+          setSuccess(false);
           onClose();
         }, 500);
       }

@@ -28,7 +28,15 @@ export default function DeleteProjectModal({
     setError("");
 
     try {
-      // 1️⃣ Eliminar videos
+      // 1️⃣ Borrar relaciones del proyecto en project_users
+      const { error: projectUsersError } = await supabase
+        .from("project_users")
+        .delete()
+        .eq("project_id", project.id);
+
+      if (projectUsersError) throw projectUsersError;
+
+      // 2️⃣ Eliminar videos
       const { error: videoError } = await supabase
         .from("videos")
         .delete()
@@ -36,7 +44,7 @@ export default function DeleteProjectModal({
 
       if (videoError) throw videoError;
 
-      // 2️⃣ Eliminar documentos
+      // 3️⃣ Eliminar documentos
       const { error: docError } = await supabase
         .from("documents")
         .delete()
@@ -44,25 +52,28 @@ export default function DeleteProjectModal({
 
       if (docError) throw docError;
 
-      // 3️⃣ Eliminar proyecto
+      // 4️⃣ Eliminar proyecto
       const { error: projectError } = await supabase
         .from("projects")
         .delete()
         .eq("id", project.id);
 
       if (projectError) throw projectError;
+
+      // 5️⃣ Registrar en historial
       const { error: errorDb } = await supabase
         .from("historial_actividad")
         .insert([
           {
             usuario_modificador_id: user?.id,
-            accion: "Editó los datos de un cliente",
+            accion: "Eliminó un proyecto",
             usuario_modificado: client?.nombre,
-            seccion: "Usuarios",
+            seccion: "Proyectos",
           },
         ]);
 
       if (errorDb) throw errorDb;
+
       refetchProfile();
       onClose();
     } catch (err) {

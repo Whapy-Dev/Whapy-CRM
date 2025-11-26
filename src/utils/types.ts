@@ -55,6 +55,7 @@ export type Project = {
   progress: number;
   documents?: Document[] | null;
   videos?: Video[] | null;
+  consumo?: string | null;
 };
 
 export type Pasos = {

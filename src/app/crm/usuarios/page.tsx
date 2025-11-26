@@ -86,6 +86,7 @@ export type Client = {
   codigoPostal: string;
   created_at: string;
   projects?: Project[] | null;
+  project_users?: { project: Project }[];
   type: string;
   genero: string;
   fechaNacimiento: string;
@@ -126,15 +127,17 @@ export default function ClientsPageUnsafe() {
     error: errorProfiles,
     refetch: refetchProfiles,
   } = useProfiles();
-
   const normalizedProfiles = dataProfiles.map((client: Client) => {
-    const proyectos = client.projects || [];
-    const isActivo = proyectos.some((p) => p.status === "En progreso");
-    const isInactivo = proyectos.some((p) => p.status === "Pausado");
+    const proyectos = client.project_users || [];
+
+    const isActivo = proyectos.some((p) => p.project?.status === "En progreso");
+
+    const isInactivo = proyectos.some((p) => p.project?.status === "Pausado");
 
     let estado: "Activo" | "Inactivo" | "Sin proyectos" = "Sin proyectos";
     if (isActivo) estado = "Activo";
     else if (isInactivo) estado = "Inactivo";
+
     return {
       ...client,
       estado,

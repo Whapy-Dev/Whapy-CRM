@@ -10,6 +10,7 @@ import AssignProjectModal from "../../components/Assignprojectmodal";
 import EditDetallesModal from "../../components/EditDetallesModal";
 import AssignDocumentModal from "../../components/Assigndocumentmodal";
 import EditProjectModal from "../../components/Editprojectmodal";
+import AccessModal from "../../components/AccessModal";
 
 type ClientDetailsPageProps = {
   client: Client;
@@ -46,11 +47,13 @@ export default function ClientContentPage({
 
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [showAccessModal, setShowAccessModal] = useState(false);
   const onEditProject = (project: Project) => {
     setSelectedProject(project);
     setShowEditProject(true);
   };
-
+  const projects: Project[] =
+    client.project_users?.map((pu) => pu.project) || [];
   return (
     <>
       <div className="p-6 space-y-8">
@@ -123,20 +126,38 @@ export default function ClientContentPage({
               <p>
                 <strong>País:</strong> {client.pais || "—"}
               </p>
-            </div>
-            <div className="mt-1 col-span-4 ">
-              <p className="overflow-hidden text-gray-800 whitespace-normal max-h-48">
-                <strong>Detalles:</strong> {client.detalles || "—"}
-              </p>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowEditDetalles(true);
-                }}
-                className="text-blue-600 underline mt-1 cursor-pointer"
+                type="button"
+                onClick={() => setShowAccessModal(true)}
+                className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mt-2 cursor-pointer"
               >
-                Ver más
+                Accesos
               </button>
+            </div>
+            {/* Detalles como card independiente */}
+            <div className="p-6 bg-white rounded-2xl shadow-md border border-gray-200 col-span-4">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Detalles
+              </h3>
+
+              <div className="flex flex-col">
+                <p className="text-gray-800 overflow-hidden whitespace-normal max-h-48">
+                  {client.detalles || "—"}
+                </p>
+
+                {/* Contenedor del botón al final */}
+                <div className="flex justify-end mt-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowEditDetalles(true);
+                    }}
+                    className="text-blue-600 underline cursor-pointer"
+                  >
+                    Ver más
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -152,9 +173,9 @@ export default function ClientContentPage({
           </button>
         </div>
 
-        {client.projects?.length ? (
+        {projects.length ? (
           <div className="grid grid-cols-2 gap-5">
-            {client.projects.map((project: Project) => (
+            {projects.map((project: Project) => (
               <ProjectCard
                 key={project.id}
                 project={project}
@@ -216,6 +237,13 @@ export default function ClientContentPage({
         client={client}
         project={selectedProject}
         onClose={() => setShowEditProject(false)}
+        refetchProfile={refetchProfile}
+      />
+      <AccessModal
+        show={showAccessModal}
+        client={client}
+        projects={projects}
+        onClose={() => setShowAccessModal(false)}
         refetchProfile={refetchProfile}
       />
     </>

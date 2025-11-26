@@ -30,7 +30,7 @@ export default function ProjectsPage() {
   if (!isLoadingProjects && !errorProjects && projectsData.length === 0)
     return <p>No hay proyectos disponibles</p>;
   if (errorProjects) return <p>Error: {errorProjects.message}</p>;
-
+  console.log(projectsData);
   const statusConfig = {
     en_progreso: {
       color: "bg-blue-100 text-blue-800",
@@ -99,7 +99,7 @@ export default function ProjectsPage() {
 
       {/* Projects List */}
       <div className="space-y-4">
-        {projectsData?.map((project) => (
+        {projectsData.map(({ project }) => (
           <div
             key={project.id}
             className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
@@ -153,7 +153,7 @@ export default function ProjectsPage() {
                       );
                     })()}
                   </div>
-                  <p className="text-gray-600 mb-3">{project.description}</p>
+
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />

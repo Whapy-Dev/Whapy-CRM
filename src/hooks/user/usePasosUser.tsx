@@ -14,7 +14,7 @@ export function usePasosUser(user: User | null) {
         .from("pasos")
         .select("*")
         .eq("user_id", user?.id)
-        .single();
+        .maybeSingle();
 
       if (errorPasos) throw errorPasos;
 
