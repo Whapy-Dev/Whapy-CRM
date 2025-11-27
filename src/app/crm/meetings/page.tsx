@@ -1,14 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Calendar, Video, Clock, MapPin, User } from "lucide-react";
 import { useAllMeetings } from "@/hooks/admin/useAllMeetings";
-
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
+const allowedRoles = ["CEO", "COO"];
 export default function MeetingsPage() {
+  const { roleAdmin } = useAuth();
+  const router = useRouter();
+  const {
+    data: roles,
+    isLoading: loadingRoles,
+    isError: errorRoles,
+  } = useRoles();
+  const {
+    data: users,
+    refetch: refetchUsers,
+    isLoading: loadingUsers,
+    isError: errorUsers,
+  } = useUserRolProfiles();
   const { data: dataAllMeetings = [] } = useAllMeetings();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (roleAdmin) {
+      if (roleAdmin === "Diseñador" || roleAdmin === "Desarrollador") {
+        router.replace("/crm/proyectos");
+        return;
+      }
+      if (roleAdmin === "Sales manager") {
+        router.replace("/crm/usuarios");
+        return;
+      }
 
+      if (!allowedRoles.includes(roleAdmin)) {
+        setHasAccess(false);
+        router.replace("/crm");
+      } else {
+        setHasAccess(true);
+      }
+    }
+  }, [roleAdmin, router]);
+
+  if (hasAccess === null || loadingRoles || loadingUsers) {
+    return <p className="p-6 text-blue-600">Validando datos...</p>;
+  }
+  if (errorRoles || errorUsers) {
+    return <p className="p-6 text-red-600">Error al cargar datos</p>;
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
   const typeConfig = {
     lead: { color: "bg-blue-100 text-blue-800", label: "Lead" },
     proyecto: { color: "bg-purple-100 text-purple-800", label: "Proyecto" },

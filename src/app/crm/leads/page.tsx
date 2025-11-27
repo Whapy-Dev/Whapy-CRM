@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useLeadsLead } from "@/hooks/admin/useLeads";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
 
 // Tipos
 type LeadLead = {
@@ -24,8 +27,21 @@ type LeadLead = {
   source: string;
   created_at: string;
 };
-
+const allowedRoles = ["CEO", "COO"];
 export default function LeadsPage() {
+  const { roleAdmin } = useAuth();
+  const router = useRouter();
+  const {
+    data: roles,
+    isLoading: loadingRoles,
+    isError: errorRoles,
+  } = useRoles();
+  const {
+    data: users,
+    refetch: refetchUsers,
+    isLoading: loadingUsers,
+    isError: errorUsers,
+  } = useUserRolProfiles();
   const { data: leads = [], refetch } = useLeadsLead();
 
   const [showModal, setShowModal] = useState(false);
@@ -58,7 +74,37 @@ export default function LeadsPage() {
   const [errorForm, setErrorForm] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (roleAdmin) {
+      if (roleAdmin === "Diseñador" || roleAdmin === "Desarrollador") {
+        router.replace("/crm/proyectos");
+        return;
+      }
+      if (roleAdmin === "Sales manager") {
+        router.replace("/crm/usuarios");
+        return;
+      }
 
+      if (!allowedRoles.includes(roleAdmin)) {
+        setHasAccess(false);
+        router.replace("/crm");
+      } else {
+        setHasAccess(true);
+      }
+    }
+  }, [roleAdmin, router]);
+
+  if (hasAccess === null || loadingRoles || loadingUsers) {
+    return <p className="p-6 text-blue-600">Validando datos...</p>;
+  }
+  if (errorRoles || errorUsers) {
+    return <p className="p-6 text-red-600">Error al cargar datos</p>;
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
   const handleNewLead = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorForm("");

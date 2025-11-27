@@ -6,7 +6,7 @@ import { UserTable } from "./components/AccesosTable";
 import { CreateAccessModal } from "./components/CreateAccessModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-
+const allowedRoles = ["CEO", "COO"];
 export default function Page() {
   const { roleAdmin } = useAuth();
   const router = useRouter();
@@ -27,19 +27,26 @@ export default function Page() {
   const [filtroRol, setFiltroRol] = useState("");
   const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = todavía no sabemos
 
-  // 🔒 Verificación de acceso
   useEffect(() => {
     if (roleAdmin) {
-      if (roleAdmin !== "CEO") {
+      if (roleAdmin === "Diseñador" || roleAdmin === "Desarrollador") {
+        router.replace("/crm/proyectos");
+        return;
+      }
+      if (roleAdmin === "Sales manager") {
+        router.replace("/crm/usuarios");
+        return;
+      }
+
+      if (!allowedRoles.includes(roleAdmin)) {
         setHasAccess(false);
-        router.replace("/crm"); // redirige inmediatamente
+        router.replace("/crm");
       } else {
         setHasAccess(true);
       }
     }
   }, [roleAdmin, router]);
 
-  // Mientras no sabemos si tiene acceso, no renderizamos nada
   if (hasAccess === null || loadingRoles || loadingUsers) {
     return <p className="p-6 text-blue-600">Validando datos...</p>;
   }
@@ -48,7 +55,7 @@ export default function Page() {
   }
 
   if (!hasAccess) {
-    return null; // nunca debería llegar aquí, porque redirigimos
+    return null;
   }
 
   // Filtrado de usuarios

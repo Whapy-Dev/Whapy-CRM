@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -13,6 +13,9 @@ import {
 import { useBudgets } from "@/hooks/admin/useBudgets";
 import { createClient } from "@/lib/supabase/client";
 import { useProfiles } from "@/hooks/admin/useProfiles";
+import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 type Budget = {
   id: string;
@@ -37,8 +40,21 @@ const formatCurrency = (amount: number) => {
     minimumFractionDigits: 0,
   }).format(amount);
 };
-
+const allowedRoles = ["CEO", "COO"];
 export default function BudgetsPage() {
+  const { roleAdmin } = useAuth();
+  const router = useRouter();
+  const {
+    data: roles,
+    isLoading: loadingRoles,
+    isError: errorRoles,
+  } = useRoles();
+  const {
+    data: users,
+    refetch: refetchUsers,
+    isLoading: loadingUsers,
+    isError: errorUsers,
+  } = useUserRolProfiles();
   const { data: budgets = [], refetch } = useBudgets();
   const { data: clients = [] } = useProfiles();
   const [viewCreatePresupuesto, setViewCreatePresupuesto] = useState(false);
@@ -46,6 +62,48 @@ export default function BudgetsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterAmount, setFilterAmount] = useState("");
+  const [idClient, setIdClient] = useState("");
+  const [status, setStatus] = useState("");
+  const [title, setTitle] = useState("");
+  const [amountTotal, setAmountTotal] = useState("");
+  const [duracionEstimada, setDuracionEstimada] = useState("");
+  const [modalidadPago, setModalidadPago] = useState("");
+  const [pdfUrl, setPdfUrl] = useState("");
+  const [currency, setCurrency] = useState("");
+  const [errorForm, setErrorForm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (roleAdmin) {
+      if (roleAdmin === "Diseñador" || roleAdmin === "Desarrollador") {
+        router.replace("/crm/proyectos");
+        return;
+      }
+      if (roleAdmin === "Sales manager") {
+        router.replace("/crm/usuarios");
+        return;
+      }
+
+      if (!allowedRoles.includes(roleAdmin)) {
+        setHasAccess(false);
+        router.replace("/crm");
+      } else {
+        setHasAccess(true);
+      }
+    }
+  }, [roleAdmin, router]);
+
+  if (hasAccess === null || loadingRoles || loadingUsers) {
+    return <p className="p-6 text-blue-600">Validando datos...</p>;
+  }
+  if (errorRoles || errorUsers) {
+    return <p className="p-6 text-red-600">Error al cargar datos</p>;
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
 
   const filteredBudgets = budgets.filter((budget) => {
     const titleMatch = budget.title
@@ -66,18 +124,6 @@ export default function BudgetsPage() {
       .filter((b) => b.status === status)
       .reduce((sum, b) => sum + b.amount_total, 0);
   };
-
-  const [idClient, setIdClient] = useState("");
-  const [status, setStatus] = useState("");
-  const [title, setTitle] = useState("");
-  const [amountTotal, setAmountTotal] = useState("");
-  const [duracionEstimada, setDuracionEstimada] = useState("");
-  const [modalidadPago, setModalidadPago] = useState("");
-  const [pdfUrl, setPdfUrl] = useState("");
-  const [currency, setCurrency] = useState("");
-  const [errorForm, setErrorForm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const handleNewPresupuesto = async (e: React.FormEvent) => {
     e.preventDefault();

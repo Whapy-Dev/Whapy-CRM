@@ -6,6 +6,8 @@ import {
 } from "@/hooks/admin/useAllMeetings";
 import { useBudgets, useBudgetsActive } from "@/hooks/admin/useBudgets";
 import { useLeadsRecent, useLeadsUltimateMonth } from "@/hooks/admin/useLeads";
+import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Users,
   FileText,
@@ -15,14 +17,63 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+const allowedRoles = ["CEO", "COO"];
 export default function CRMDashboard() {
+  const { roleAdmin } = useAuth();
+  const router = useRouter();
+  const {
+    data: roles,
+    isLoading: loadingRoles,
+    isError: errorRoles,
+  } = useRoles();
+  const {
+    data: users,
+    refetch: refetchUsers,
+    isLoading: loadingUsers,
+    isError: errorUsers,
+  } = useUserRolProfiles();
   const { data: leadsUltimateMonth = [] } = useLeadsUltimateMonth();
   const { data: leadsRecent = [] } = useLeadsRecent();
   const { data: AllMeetingsUltimateWeek = [] } = useAllMeetingsUltimateWeek();
   const { data: budgetsActive = [] } = useBudgetsActive();
   const { data: AllMeetingFromToday = [] } = useAllMeetingsFromToday();
   const { data: budgets = [] } = useBudgets();
+
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = todavía no sabemos
+
+  useEffect(() => {
+    if (roleAdmin) {
+      if (roleAdmin === "Diseñador" || roleAdmin === "Desarrollador") {
+        router.replace("/crm/proyectos");
+        return;
+      }
+      if (roleAdmin === "Sales manager") {
+        router.replace("/crm/usuarios");
+        return;
+      }
+
+      if (!allowedRoles.includes(roleAdmin)) {
+        setHasAccess(false);
+        router.replace("/crm");
+      } else {
+        setHasAccess(true);
+      }
+    }
+  }, [roleAdmin, router]);
+
+  if (hasAccess === null || loadingRoles || loadingUsers) {
+    return <p className="p-6 text-blue-600">Validando datos...</p>;
+  }
+  if (errorRoles || errorUsers) {
+    return <p className="p-6 text-red-600">Error al cargar datos</p>;
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
+
   const en_revision = budgets.filter((b) => b.status === "en revision");
   const presentado = budgets.filter((b) => b.status === "presentado");
   const aceptado = budgets.filter((b) => b.status === "aceptado");

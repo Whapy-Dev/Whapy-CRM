@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useProfiles } from "@/hooks/admin/useProfiles";
 
 import { Plus, Search } from "lucide-react";
 import ClientsTable from "./components/Clientstable";
 import CreateAccountModal from "./components/Createaccountmodal";
+import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export type Document = {
   id: string;
@@ -120,13 +123,66 @@ export type InsertMeetingData = {
   lead_id?: string;
   user_id?: string;
 };
+const allowedRoles = ["CEO", "COO", "Sales manager"];
 export default function ClientsPageUnsafe() {
+  const { roleAdmin } = useAuth();
+  const router = useRouter();
+  const {
+    data: roles,
+    isLoading: loadingRoles,
+    isError: errorRoles,
+  } = useRoles();
+  const {
+    data: users,
+    refetch: refetchUsers,
+    isLoading: loadingUsers,
+    isError: errorUsers,
+  } = useUserRolProfiles();
   const {
     data: dataProfiles = [],
     isLoading: isLoadingProfiles,
     error: errorProfiles,
     refetch: refetchProfiles,
   } = useProfiles();
+
+  // Estados de selección
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  // Estados de modales
+  const [showModal, setShowModal] = useState(false);
+  const [showClientModal, setShowClientModal] = useState(false);
+  // Estados de búsqueda y filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTipo, setSelectedTipo] = useState("");
+  const [selectedEstado, setSelectedEstado] = useState("");
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (roleAdmin) {
+      if (roleAdmin === "Diseñador" || roleAdmin === "Desarrollador") {
+        router.replace("/crm/proyectos");
+        return;
+      }
+
+      if (!allowedRoles.includes(roleAdmin)) {
+        setHasAccess(false);
+        router.replace("/crm");
+      } else {
+        setHasAccess(true);
+      }
+    }
+  }, [roleAdmin, router]);
+
+  if (hasAccess === null || loadingRoles || loadingUsers) {
+    return <p className="p-6 text-blue-600">Validando datos...</p>;
+  }
+
+  if (errorRoles || errorUsers) {
+    return <p className="p-6 text-red-600">Error al cargar datos</p>;
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
   const normalizedProfiles = dataProfiles.map((client: Client) => {
     const proyectos = client.project_users || [];
 
@@ -143,16 +199,6 @@ export default function ClientsPageUnsafe() {
       estado,
     };
   });
-
-  // Estados de selección
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  // Estados de modales
-  const [showModal, setShowModal] = useState(false);
-  const [showClientModal, setShowClientModal] = useState(false);
-  // Estados de búsqueda y filtros
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTipo, setSelectedTipo] = useState("");
-  const [selectedEstado, setSelectedEstado] = useState("");
 
   // Filtrado de clientes
   const term = searchTerm.toLowerCase();

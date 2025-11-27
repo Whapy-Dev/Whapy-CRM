@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useActividadLogs } from "@/hooks/admin/useActividad";
 import ActividadTable from "./components/ActividadTable";
 import { useDebounce } from "@/hooks/admin/useDebounce";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
+
 const secciones = [
   "",
   "Usuarios",
@@ -12,8 +16,22 @@ const secciones = [
   "Reuniones",
   "Leads",
 ];
-
+const allowedRoles = ["CEO", "COO"];
 export default function ActividadPage() {
+  const { roleAdmin } = useAuth();
+  const router = useRouter();
+  const {
+    data: roles,
+    isLoading: loadingRoles,
+    isError: errorRoles,
+  } = useRoles();
+  const {
+    data: users,
+    refetch: refetchUsers,
+    isLoading: loadingUsers,
+    isError: errorUsers,
+  } = useUserRolProfiles();
+
   const [page, setPage] = useState(1);
   const limit = 20;
 
@@ -35,7 +53,38 @@ export default function ActividadPage() {
     filtroModificador: debouncedModificador,
     filtroModificado: debouncedModificado,
   });
-  console.log(data?.data);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = todavía no sabemos
+
+  useEffect(() => {
+    if (roleAdmin) {
+      if (roleAdmin === "Diseñador" || roleAdmin === "Desarrollador") {
+        router.replace("/crm/proyectos");
+        return;
+      }
+      if (roleAdmin === "Sales manager") {
+        router.replace("/crm/usuarios");
+        return;
+      }
+
+      if (!allowedRoles.includes(roleAdmin)) {
+        setHasAccess(false);
+        router.replace("/crm");
+      } else {
+        setHasAccess(true);
+      }
+    }
+  }, [roleAdmin, router]);
+
+  if (hasAccess === null || loadingRoles || loadingUsers) {
+    return <p className="p-6 text-blue-600">Validando datos...</p>;
+  }
+  if (errorRoles || errorUsers) {
+    return <p className="p-6 text-red-600">Error al cargar datos</p>;
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
 
   if (isLoading)
     return <p className="p-4 text-gray-500">Cargando historial...</p>;
