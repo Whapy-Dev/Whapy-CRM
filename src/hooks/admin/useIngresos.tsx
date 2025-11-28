@@ -11,7 +11,7 @@ export function useIngresos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("Ingresos")
-        .select("*,projects(nombre)")
+        .select("*,projects(title)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
