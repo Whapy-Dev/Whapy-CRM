@@ -1,7 +1,17 @@
 "use client";
 
+type Egresos = {
+  id: string;
+  profiles?: {
+    nombre: string;
+  };
+  Egreso?: number;
+  Descripcion?: string;
+  created_at: string;
+};
+
 type Props = {
-  egresos: any[];
+  egresos: Egresos[];
   isLoading: boolean;
 };
 
@@ -48,9 +58,7 @@ export function TableEgresos({ egresos, isLoading }: Props) {
                     i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
                   }`}
                 >
-                  <td className="p-3">
-                    {item.Descripcion || item.descripcion || "-"}
-                  </td>
+                  <td className="p-3">{item.Descripcion || "-"}</td>
                   <td className="p-3">{item.profiles?.nombre || "-"}</td>
                   <td className="text-right font-semibold text-red-600 p-3">
                     ${Number(item.Egreso || 0).toLocaleString()}

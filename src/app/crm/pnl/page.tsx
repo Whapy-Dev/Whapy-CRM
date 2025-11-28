@@ -110,7 +110,7 @@ export default function FinanzasPage() {
 
     return coincideTexto && coincideFecha;
   });
-
+  console.log(ingresos);
   return (
     <main className="min-h-screen bg-gray-100 p-8 space-y-8">
       {/* ======== RESUMEN FINANCIERO ======== */}

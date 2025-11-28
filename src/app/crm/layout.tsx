@@ -1,5 +1,6 @@
 "use client";
 
+import { useUpload } from "@/context/UploadContext";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Bell,
@@ -112,7 +113,23 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
 
   // FILTRADO según permisos
   const filteredNavigation = navigation.filter((item) => item.permission);
+  function GlobalUploadWidget() {
+    const { isUploading, progress, message } = useUpload();
 
+    if (!isUploading) return null;
+
+    return (
+      <div className="fixed bottom-4 right-4 bg-white shadow-xl p-4 rounded-xl w-64 border">
+        <p className="text-sm">{message}</p>
+        <div className="w-full bg-gray-200 h-2 rounded mt-2">
+          <div
+            className="h-2 bg-blue-600 rounded"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex h-screen bg-gray-50">
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
@@ -207,7 +224,10 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           </button>
         </header>
 
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto">
+          {children}
+          <GlobalUploadWidget />
+        </main>
       </div>
     </div>
   );

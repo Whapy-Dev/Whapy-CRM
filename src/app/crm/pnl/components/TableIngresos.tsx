@@ -1,15 +1,28 @@
 "use client";
 
+type Ingresos = {
+  id: string;
+  projects?: {
+    title: string;
+  };
+  Ingreso?: number;
+  Descripcion?: string;
+  created_at: string;
+};
+
 type Props = {
-  ingresos: any[];
+  ingresos: Ingresos[];
   isLoading: boolean;
 };
 
 export function TableIngresos({ ingresos, isLoading }: Props) {
   return (
     <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-      <div className="p-4 border-b bg-gray-50">
+      <div className="flex justify-between p-4 border-b bg-gray-50">
         <h3 className="text-lg font-semibold text-gray-800">Ingresos</h3>
+        <button type="button" className="text-lg font-semibold text-gray-800">
+          Agregar Egreso
+        </button>
       </div>
 
       <div className="overflow-x-auto">
