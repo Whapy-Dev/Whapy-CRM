@@ -29,6 +29,9 @@ export default function ShowVideoClientModal({
   const [videoTypeFilter, setVideoTypeFilter] = useState<
     "all" | "Reunion" | "Video informativo"
   >("all");
+
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [descValue, setDescValue] = useState("");
   if (!show || !project) return null;
 
   const filteredByType =
@@ -82,7 +85,23 @@ export default function ShowVideoClientModal({
       console.error("Error eliminando video:", err);
     }
   };
+  const guardarDescripcion = async () => {
+    if (!selectedVideo) return;
 
+    try {
+      const { error } = await supabase
+        .from("videos")
+        .update({ descripcion: descValue })
+        .eq("id", selectedVideo.id);
+
+      if (error) throw error;
+
+      await refetchProfile();
+      setIsEditingDesc(false);
+    } catch (err) {
+      console.error("Error guardando descripción:", err);
+    }
+  };
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-auto">
       <div className="bg-white rounded-3xl p-6 w-full max-w-7xl min-h-[48rem] shadow-2xl border border-gray-200">
@@ -99,7 +118,7 @@ export default function ShowVideoClientModal({
           </button>
         </div>
 
-        {/* Filtro por título */}
+        {/* Buscar */}
         <div className="flex justify-center mb-6">
           <input
             type="text"
@@ -109,43 +128,8 @@ export default function ShowVideoClientModal({
             className="border rounded-lg p-2 w-full max-w-sm"
           />
         </div>
-        {/* Botones de tipo */}
-        <div className="flex gap-3 justify-center mb-4">
-          <button
-            onClick={() => setVideoTypeFilter("all")}
-            className={`px-4 py-2 rounded-xl border cursor-pointer ${
-              videoTypeFilter === "all"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-blue-300"
-            }`}
-          >
-            Todos
-          </button>
 
-          <button
-            onClick={() => setVideoTypeFilter("Reunion")}
-            className={`px-4 py-2 rounded-xl border cursor-pointer ${
-              videoTypeFilter === "Reunion"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-blue-300"
-            }`}
-          >
-            Reunión
-          </button>
-
-          <button
-            onClick={() => setVideoTypeFilter("Video informativo")}
-            className={`px-4 py-2 rounded-xl border cursor-pointer ${
-              videoTypeFilter === "Video informativo"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-blue-300"
-            }`}
-          >
-            Video informativo
-          </button>
-        </div>
-
-        {/* Galería de videos */}
+        {/* Galería */}
         {videosToShow.length ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
             {videosToShow.map((v) => (
@@ -179,55 +163,90 @@ export default function ShowVideoClientModal({
         )}
       </div>
 
-      {/* Modal de video seleccionado */}
+      {/* Video seleccionado */}
       {selectedVideo && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div
-            className="bg-white rounded-3xl p-6 w-full max-w-[1500px] shadow-2xl border border-gray-200 
-                    flex flex-col md:flex-row gap-6 max-h-[90vh] overflow-hidden"
-          >
+          <div className="bg-white rounded-3xl p-6 w-full max-w-[1500px] shadow-2xl border border-gray-200 flex flex-col md:flex-row gap-6 max-h-[90vh] overflow-hidden">
             {/* Izquierda */}
             <div className="w-full md:w-1/4 flex flex-col overflow-hidden">
-              {/* Header fijo */}
               <div className="flex justify-between items-center mb-4 flex-shrink-0">
                 <h3 className="text-xl font-bold">{selectedVideo.title}</h3>
                 <button
-                  onClick={() => setSelectedVideo(null)}
+                  onClick={() => {
+                    setIsEditingDesc(false);
+                    setSelectedVideo(null);
+                  }}
                   className="px-4 py-2 bg-gray-300 rounded-xl hover:bg-gray-400 font-medium cursor-pointer"
                 >
                   Cerrar
                 </button>
               </div>
 
-              {/* Contenido scrolleable */}
-              <div className="flex-1 overflow-y-auto pr-2">
-                <p className="mb-2 text-pretty">
-                  <strong>Descripción:</strong>{" "}
-                  {selectedVideo.descripcion || "Sin descripción"}
-                </p>
+              <div className="flex-1 overflow-y-auto pr-2 break-words whitespace-pre-wrap">
+                <div className="mt-2 max-h-[60vh] overflow-y-auto">
+                  <strong>Descripción:</strong>
 
-                <p className="mb-2">
-                  <strong>Status:</strong> {selectedVideo.status}
-                </p>
+                  {/* Si NO está editando */}
+                  {!isEditingDesc && (
+                    <div className="mt-2">
+                      <p className="mb-3 break-words whitespace-pre-wrap max-w-full">
+                        {selectedVideo.descripcion || "Sin descripción"}
+                      </p>
 
-                <p className="mb-2">
-                  <strong>Duración:</strong>{" "}
-                  {selectedVideo.duration || "No disponible"}
-                </p>
+                      <button
+                        onClick={() => {
+                          setDescValue(selectedVideo.descripcion || "");
+                          setIsEditingDesc(true);
+                        }}
+                        className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                      >
+                        Editar descripción
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Si está editando */}
+                  {isEditingDesc && (
+                    <div className="mt-2 flex flex-col gap-3">
+                      <textarea
+                        value={descValue}
+                        onChange={(e) => setDescValue(e.target.value)}
+                        className="border rounded-lg p-2 min-h-[140px] h-[400px] w-full"
+                        placeholder="Editá la descripción..."
+                      />
+
+                      <button
+                        onClick={guardarDescripcion}
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  )}
+
+                  <p className="mt-4">
+                    <strong>Status:</strong> {selectedVideo.status}
+                  </p>
+                  <p>
+                    <strong>Duración:</strong>{" "}
+                    {selectedVideo.duration || "No disponible"}
+                  </p>
+                </div>
               </div>
-
-              {/* Botón eliminar fijo abajo */}
-              <div className="mt-4 flex-shrink-0">
-                <button
-                  onClick={() => eliminarVideo(selectedVideo)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 w-full cursor-pointer"
-                >
-                  Eliminar Video
-                </button>
-              </div>
+              {/* Eliminar */}
+              {!isEditingDesc && (
+                <div className="mt-4 flex-shrink-0">
+                  <button
+                    onClick={() => eliminarVideo(selectedVideo)}
+                    className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 w-full cursor-pointer"
+                  >
+                    Eliminar Video
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Derecha - Video */}
+            {/* Derecha - Player */}
             <div className="w-full md:w-3/4 relative flex-shrink-0 min-h-[400px]">
               <iframe
                 src={`https://player.vimeo.com/video/${selectedVideo.vimeo_id}`}

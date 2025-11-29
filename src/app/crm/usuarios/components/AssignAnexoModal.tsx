@@ -1,7 +1,6 @@
 "use client";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import { argentinaNow } from "../../pnl/components/AgregarIngresoModal";
 
 type AssignBudgetModalProps = {
   show: boolean;
@@ -40,7 +39,6 @@ export default function AssignAnexoModal({
 
     setLoading(true);
     try {
-      // Actualizamos el proyecto en Supabase
       const { error } = await supabase
         .from("projects")
         .update({ presupuesto: presupuestoTotal })
@@ -48,7 +46,6 @@ export default function AssignAnexoModal({
 
       if (error) throw error;
 
-      // Insertamos el ingreso correspondiente solo con el anexo
       const { error: ingresoError } = await supabase
         .from("Ingresos")
         .update({
@@ -58,7 +55,6 @@ export default function AssignAnexoModal({
 
       if (ingresoError) throw ingresoError;
 
-      // Limpiar inputs y cerrar modal
       setSelectedProjectId("");
       setAnexo("");
       onClose();
