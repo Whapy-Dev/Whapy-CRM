@@ -3,9 +3,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useEgresos } from "@/hooks/admin/useEgresos";
 import { useIngresos } from "@/hooks/admin/useIngresos";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TableEgresos } from "./components/TableEgresos";
 import { TableIngresos } from "./components/TableIngresos";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
 
 /** Relación con tabla Projects */
 interface ProjectRelation {
@@ -49,7 +52,21 @@ function getLocalDayBounds(dateString: string) {
 
   return { from, to };
 }
+const allowedRoles = ["CEO", "COO"];
 export default function FinanzasPage() {
+  const { roleAdmin } = useAuth();
+  const router = useRouter();
+  const {
+    data: roles,
+    isLoading: loadingRoles,
+    isError: errorRoles,
+  } = useRoles();
+  const {
+    data: users,
+    refetch: refetchUsers,
+    isLoading: loadingUsers,
+    isError: errorUsers,
+  } = useUserRolProfiles();
   const {
     data: ingresos = [],
     isLoading: loadingIngresos,
@@ -74,7 +91,38 @@ export default function FinanzasPage() {
   const [searchEgresos, setSearchEgresos] = useState<string>("");
   const [dateFromEgresos, setDateFromEgresos] = useState<string>("");
   const [dateToEgresos, setDateToEgresos] = useState<string>("");
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = todavía no sabemos
 
+  useEffect(() => {
+    if (roleAdmin) {
+      if (roleAdmin === "Diseñador" || roleAdmin === "Desarrollador") {
+        router.replace("/crm/proyectos");
+        return;
+      }
+      if (roleAdmin === "Sales manager") {
+        router.replace("/crm/usuarios");
+        return;
+      }
+
+      if (!allowedRoles.includes(roleAdmin)) {
+        setHasAccess(false);
+        router.replace("/crm");
+      } else {
+        setHasAccess(true);
+      }
+    }
+  }, [roleAdmin, router]);
+
+  if (hasAccess === null || loadingRoles || loadingUsers) {
+    return <p className="p-6 text-blue-600">Validando datos...</p>;
+  }
+  if (errorRoles || errorUsers) {
+    return <p className="p-6 text-red-600">Error al cargar datos</p>;
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
   // ======== TOTALES ========
   const totalIngresos = ingresosTyped.reduce(
     (acc, row) => acc + (Number(row.Ingreso) || 0),
