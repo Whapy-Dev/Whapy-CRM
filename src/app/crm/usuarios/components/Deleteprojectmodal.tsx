@@ -22,8 +22,8 @@ export default function DeleteProjectModal({
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const supabase = createClient();
   const handleDelete = async () => {
+    const supabase = createClient();
     setLoading(true);
     setError("");
 

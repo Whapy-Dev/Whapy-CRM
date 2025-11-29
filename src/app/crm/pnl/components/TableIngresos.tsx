@@ -1,5 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { ModalAgregarEgreso } from "./AgregarEgresoModal";
+import { ModalAgregarIngreso } from "./AgregarIngresoModal";
+
 type Ingresos = {
   id: string;
   projects?: {
@@ -13,15 +17,21 @@ type Ingresos = {
 type Props = {
   ingresos: Ingresos[];
   isLoading: boolean;
+  refetchIngresos: () => void;
 };
 
-export function TableIngresos({ ingresos, isLoading }: Props) {
+export function TableIngresos({ ingresos, isLoading, refetchIngresos }: Props) {
+  const [viewIngresoModal, setViewIngresoModal] = useState(false);
   return (
     <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
       <div className="flex justify-between p-4 border-b bg-gray-50">
         <h3 className="text-lg font-semibold text-gray-800">Ingresos</h3>
-        <button type="button" className="text-lg font-semibold text-gray-800">
-          Agregar Egreso
+        <button
+          type="button"
+          className="text-lg font-semibold text-gray-800 border border-gray-300 rounded-lg px-3 hover:bg-gray-100 cursor-pointer"
+          onClick={() => setViewIngresoModal(true)}
+        >
+          Agregar Ingreso
         </button>
       </div>
 
@@ -74,6 +84,12 @@ export function TableIngresos({ ingresos, isLoading }: Props) {
           </tbody>
         </table>
       </div>
+      {viewIngresoModal && (
+        <ModalAgregarIngreso
+          onClose={() => setViewIngresoModal(false)}
+          refetchIngresos={refetchIngresos}
+        />
+      )}
     </div>
   );
 }

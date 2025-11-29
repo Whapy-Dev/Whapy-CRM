@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { ModalAgregarEgreso } from "./AgregarEgresoModal";
+
 type Egresos = {
   id: string;
   profiles?: {
@@ -13,13 +16,22 @@ type Egresos = {
 type Props = {
   egresos: Egresos[];
   isLoading: boolean;
+  refetchEgresos: () => void;
 };
 
-export function TableEgresos({ egresos, isLoading }: Props) {
+export function TableEgresos({ egresos, isLoading, refetchEgresos }: Props) {
+  const [viewEgresoModal, setViewEgresoModal] = useState(false);
   return (
     <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-      <div className="p-4 border-b bg-gray-50">
+      <div className="flex justify-between p-4 border-b bg-gray-50">
         <h3 className="text-lg font-semibold text-gray-800">Egresos</h3>
+        <button
+          type="button"
+          className="text-lg font-semibold text-gray-800 border border-gray-300 rounded-lg px-3 hover:bg-gray-100 cursor-pointer"
+          onClick={() => setViewEgresoModal(true)}
+        >
+          Agregar Egreso
+        </button>
       </div>
 
       <div className="overflow-x-auto">
@@ -71,6 +83,12 @@ export function TableEgresos({ egresos, isLoading }: Props) {
           </tbody>
         </table>
       </div>
+      {viewEgresoModal && (
+        <ModalAgregarEgreso
+          onClose={() => setViewEgresoModal(false)}
+          refetchEgresos={refetchEgresos}
+        />
+      )}
     </div>
   );
 }

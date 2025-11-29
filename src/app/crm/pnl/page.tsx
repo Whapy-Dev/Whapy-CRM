@@ -38,10 +38,28 @@ interface Egreso {
   Egreso?: number;
   profiles?: ProfileRelation;
 }
+function getLocalDayBounds(dateString: string) {
+  const date = new Date(dateString + "T00:00:00");
 
+  const from = new Date(date);
+  from.setHours(0, 0, 0, 0);
+
+  const to = new Date(date);
+  to.setHours(23, 59, 59, 999);
+
+  return { from, to };
+}
 export default function FinanzasPage() {
-  const { data: ingresos = [], isLoading: loadingIngresos } = useIngresos();
-  const { data: egresos = [], isLoading: loadingEgresos } = useEgresos();
+  const {
+    data: ingresos = [],
+    isLoading: loadingIngresos,
+    refetch: refetchIngresos,
+  } = useIngresos();
+  const {
+    data: egresos = [],
+    isLoading: loadingEgresos,
+    refetch: refetchEgresos,
+  } = useEgresos();
 
   /** ↑ IMPORTANT: forzado a `Ingreso[]` y `Egreso[]` */
   const ingresosTyped = ingresos as Ingreso[];
@@ -70,47 +88,49 @@ export default function FinanzasPage() {
 
   const balanceFinal = totalIngresos - totalEgresos;
 
-  // ======== LOGS PROFESIONALES ========
-  console.info("Ingresos recibidos:", ingresosTyped);
-  console.info("Egresos recibidos:", egresosTyped);
-
   // ======== FILTRADO REAL ========
   const ingresosFiltrados = ingresosTyped.filter((row) => {
-    const ingresoTexto = (
-      row.Descripcion ||
-      row.descripcion ||
-      ""
-    ).toLowerCase();
-    const coincideTexto = ingresoTexto.includes(searchIngresos.toLowerCase());
+    const texto = (row.Descripcion || row.descripcion || "").toLowerCase();
+    const coincideTexto = texto.includes(searchIngresos.toLowerCase());
 
-    const fechaIngreso = new Date(row.created_at);
-    const desde = dateFromIngresos ? new Date(dateFromIngresos) : null;
-    const hasta = dateToIngresos ? new Date(dateToIngresos) : null;
+    const fecha = new Date(row.created_at);
 
-    const coincideFecha =
-      (!desde || fechaIngreso >= desde) && (!hasta || fechaIngreso <= hasta);
+    let coincideFecha = true;
+
+    if (dateFromIngresos) {
+      const { from } = getLocalDayBounds(dateFromIngresos);
+      coincideFecha = coincideFecha && fecha >= from;
+    }
+
+    if (dateToIngresos) {
+      const { to } = getLocalDayBounds(dateToIngresos);
+      coincideFecha = coincideFecha && fecha <= to;
+    }
 
     return coincideTexto && coincideFecha;
   });
 
   const egresosFiltrados = egresosTyped.filter((row) => {
-    const egresoTexto = (
-      row.Descripcion ||
-      row.descripcion ||
-      ""
-    ).toLowerCase();
-    const coincideTexto = egresoTexto.includes(searchEgresos.toLowerCase());
+    const texto = (row.Descripcion || row.descripcion || "").toLowerCase();
+    const coincideTexto = texto.includes(searchEgresos.toLowerCase());
 
-    const fechaEgreso = new Date(row.created_at);
-    const desde = dateFromEgresos ? new Date(dateFromEgresos) : null;
-    const hasta = dateToEgresos ? new Date(dateToEgresos) : null;
+    const fecha = new Date(row.created_at);
 
-    const coincideFecha =
-      (!desde || fechaEgreso >= desde) && (!hasta || fechaEgreso <= hasta);
+    let coincideFecha = true;
+
+    if (dateFromEgresos) {
+      const { from } = getLocalDayBounds(dateFromEgresos);
+      coincideFecha = coincideFecha && fecha >= from;
+    }
+
+    if (dateToEgresos) {
+      const { to } = getLocalDayBounds(dateToEgresos);
+      coincideFecha = coincideFecha && fecha <= to;
+    }
 
     return coincideTexto && coincideFecha;
   });
-  console.log(ingresos);
+
   return (
     <main className="min-h-screen bg-gray-100 p-8 space-y-8">
       {/* ======== RESUMEN FINANCIERO ======== */}
@@ -246,10 +266,15 @@ export default function FinanzasPage() {
 
       {/* ======== TABLAS ======== */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TableEgresos egresos={egresosFiltrados} isLoading={loadingEgresos} />
+        <TableEgresos
+          egresos={egresosFiltrados}
+          isLoading={loadingEgresos}
+          refetchEgresos={refetchEgresos}
+        />
         <TableIngresos
           ingresos={ingresosFiltrados}
           isLoading={loadingIngresos}
+          refetchIngresos={refetchIngresos}
         />
       </section>
     </main>

@@ -12,6 +12,8 @@ import AssignDocumentModal from "../../components/Assigndocumentmodal";
 import EditProjectModal from "../../components/Editprojectmodal";
 import AccessModal from "../../components/AccessModal";
 import { useAuth } from "@/hooks/useAuth";
+import AssignBudgetModal from "../../components/AssignBudgetModal";
+import AssignAnexoModal from "../../components/AssignAnexoModal";
 
 type ClientDetailsPageProps = {
   client: Client;
@@ -48,6 +50,8 @@ export default function ClientContentPage({
   const [showEditProject, setShowEditProject] = useState(false);
 
   const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [showNewPresupuesto, setShowNewPresupuesto] = useState(false);
+  const [showAnexoModal, setShowAnexoModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showAccessModal, setShowAccessModal] = useState(false);
   const onEditProject = (project: Project) => {
@@ -72,7 +76,23 @@ export default function ClientContentPage({
             >
               Eliminar cuenta
             </button>
+            {(roleAdmin === "CEO" || roleAdmin === "COO") && (
+              <>
+                <button
+                  className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+                  onClick={() => setShowAnexoModal(true)}
+                >
+                  Anexo presupuesto
+                </button>
 
+                <button
+                  className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
+                  onClick={() => setShowNewPresupuesto(true)}
+                >
+                  Asignar presupuesto
+                </button>
+              </>
+            )}
             <button
               className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
               onClick={() => setShowEditPasosClientModal(true)}
@@ -128,7 +148,7 @@ export default function ClientContentPage({
               <p>
                 <strong>País:</strong> {client.pais || "—"}
               </p>
-              {roleAdmin === "CEO" && (
+              {(roleAdmin === "CEO" || roleAdmin === "COO") && (
                 <button
                   type="button"
                   onClick={() => setShowAccessModal(true)}
@@ -250,6 +270,17 @@ export default function ClientContentPage({
         onClose={() => setShowAccessModal(false)}
         refetchProfile={refetchProfile}
       />
+      <AssignBudgetModal
+        show={showNewPresupuesto}
+        projects={projects}
+        onClose={() => setShowNewPresupuesto(false)}
+      />
+      <AssignAnexoModal
+        show={showAnexoModal}
+        projects={projects}
+        onClose={() => setShowAnexoModal(false)}
+      />
+      ;
     </>
   );
 }

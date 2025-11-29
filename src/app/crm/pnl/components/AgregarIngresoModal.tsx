@@ -1,40 +1,41 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useEmplooyes } from "@/hooks/admin/useEmployees";
-import { argentinaNow } from "./AgregarIngresoModal";
+import { useClientProject } from "@/hooks/admin/useClients";
 
 type Props = {
   onClose: () => void;
-  refetchEgresos: () => void;
+  refetchIngresos: () => Promise<void> | void;
 };
-
-export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
-  const { data: dataProfiles = [], isLoading } = useEmplooyes();
+export const argentinaNow = new Date().toLocaleString("en-US", {
+  timeZone: "America/Argentina/Buenos_Aires",
+});
+export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
+  const { data: dataClientProject = [], isLoading } = useClientProject();
 
   const [monto, setMonto] = useState(0);
   const [descripcion, setDescripcion] = useState("");
-  const [user, setUser] = useState("");
+  const [project, setProject] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [open, setOpen] = useState(false);
 
-  const ref = useRef<HTMLDivElement>(null);
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // ✅ cerrar dropdown al hacer click afuera
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    function handleClickOutside(e: MouseEvent) {
       if (
-        ref.current &&
-        !ref.current.contains(e.target as Node) &&
-        btnRef.current &&
-        !btnRef.current.contains(e.target as Node)
+        panelRef.current &&
+        !panelRef.current.contains(e.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
       ) {
         setOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   if (isLoading)
@@ -46,19 +47,23 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
       </div>
     );
 
-  // ✅ Filtrar por nombre según el input interno del select
-  const filtrados = dataProfiles.filter((p) =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  const filtrados = dataClientProject.filter((p) =>
+    p.title.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   async function agregarEgreso() {
     const supabase = createClient();
-    if (!descripcion.trim() || monto <= 0) return;
+
+    // ✅ validación nueva que pediste: solo descripción y monto > 0
+    if (!descripcion.trim() || monto <= 0) {
+      console.warn("Falta descripción o monto inválido");
+      return;
+    }
 
     try {
-      const { error } = await supabase.from("Egresos").insert({
-        user_id: user || null,
-        Egreso: monto,
+      const { error } = await supabase.from("Ingresos").insert({
+        project_id: project || null, // si está vacío, se guarda null ✅
+        Ingreso: monto,
         Descripcion: descripcion,
         created_at: new Date(argentinaNow).toISOString(),
       });
@@ -67,9 +72,9 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
 
       setMonto(0);
       setDescripcion("");
-      setUser("");
+      setProject("");
       setBusqueda("");
-      await refetchEgresos();
+      await refetchIngresos();
       onClose();
     } catch (error) {
       console.error("Error al agregar egreso:", error);
@@ -81,26 +86,25 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
       <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-gray-200">
         <h2 className="text-xl font-semibold mb-4">Agregar Egreso</h2>
 
-        {/* ✅ SELECT CUSTOM */}
+        {/* ✅ SELECT OPCIONAL */}
         <div className="relative w-full mb-3">
           <button
-            ref={btnRef}
+            ref={buttonRef}
             onClick={() => setOpen(!open)}
             className="w-full border border-gray-300 rounded-lg p-2 text-left bg-white flex justify-between items-center"
           >
             <span>
-              {dataProfiles.find((p) => p.id === user)?.nombre ||
-                "Seleccionar usuario"}
+              {dataClientProject.find((p) => p.id === project)?.title ||
+                "Seleccionar proyecto (opcional)"}
             </span>
             <span className="text-gray-400 text-sm">▼</span>
           </button>
 
           {open && (
             <div
-              ref={ref}
-              className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg p-2"
+              ref={panelRef}
+              className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg p-2"
             >
-              {/* ✅ Buscador dentro del select */}
               <input
                 autoFocus
                 type="text"
@@ -115,13 +119,13 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
                   <button
                     key={p.id}
                     onClick={() => {
-                      setUser(p.id);
+                      setProject(p.id);
                       setOpen(false);
                       setBusqueda("");
                     }}
                     className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded-lg"
                   >
-                    {p.nombre}
+                    {p.title}
                   </button>
                 ))}
 
@@ -134,9 +138,17 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
             </div>
           )}
         </div>
-        {/* ✅ FIN SELECT CUSTOM */}
 
+        {/* ✅ INPUTS OBLIGATORIOS */}
         <div className="space-y-3">
+          <input
+            type="number"
+            placeholder="Monto"
+            value={monto || ""}
+            onChange={(e) => setMonto(Number(e.target.value))}
+            className="w-full border border-gray-300 rounded-lg p-2"
+          />
+
           <input
             type="text"
             placeholder="Descripción"
@@ -144,15 +156,9 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
             onChange={(e) => setDescripcion(e.target.value)}
             className="w-full border border-gray-300 rounded-lg p-2"
           />
-          <input
-            type="number"
-            placeholder="Monto"
-            value={monto}
-            onChange={(e) => setMonto(Number(e.target.value))}
-            className="w-full border border-gray-300 rounded-lg p-2"
-          />
         </div>
 
+        {/* ✅ BOTONES */}
         <div className="flex justify-end gap-2 mt-5">
           <button
             type="button"
@@ -162,10 +168,11 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
             Cancelar
           </button>
 
+          {/* ✅ Solo validar monto y descripción */}
           <button
             type="button"
             onClick={agregarEgreso}
-            disabled={!descripcion.trim() || monto <= 0}
+            disabled={!descripcion.trim() || monto <= 0} // 👈 ya no depende del select ✅
             className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:bg-gray-400 cursor-pointer"
           >
             Agregar

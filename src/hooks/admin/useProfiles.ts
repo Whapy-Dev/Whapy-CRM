@@ -35,15 +35,7 @@ export function useProfiles() {
         .select(
           `
           *,
-          pasos(*),
-          project_users(
-            project:projects(
-              *,
-              videos(*),
-              documents(*)
-            )
-          ),
-          budgets(*)
+          projects!left(presupuesto)
         `
         )
         .eq("role", "cliente")
