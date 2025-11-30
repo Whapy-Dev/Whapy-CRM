@@ -41,17 +41,32 @@ interface Egreso {
   Egreso?: number;
   profiles?: ProfileRelation;
 }
-function getLocalDayBounds(dateString: string) {
-  const date = new Date(dateString + "T00:00:00");
+function getDateRange(filtro: "hoy" | "semana" | "mes") {
+  const now = new Date();
+  const start = new Date(now);
+  const end = new Date(now);
 
-  const from = new Date(date);
-  from.setHours(0, 0, 0, 0);
+  if (filtro === "hoy") {
+    start.setHours(0, 0, 0, 0);
+  }
 
-  const to = new Date(date);
-  to.setHours(23, 59, 59, 999);
+  if (filtro === "semana") {
+    // Retrocede 6 días para incluir los últimos 7 días
+    start.setDate(now.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+  }
 
-  return { from, to };
+  if (filtro === "mes") {
+    // Retrocede 29 días para incluir los últimos 30 días
+    start.setDate(now.getDate() - 29);
+    start.setHours(0, 0, 0, 0);
+  }
+
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
 }
+
 const allowedRoles = ["CEO", "COO"];
 export default function FinanzasPage() {
   const { roleAdmin } = useAuth();
@@ -84,13 +99,14 @@ export default function FinanzasPage() {
 
   // ======== FILTROS ========
   // Inputs tipados directamente acá, sin reutilizar componentes
+  const [filtroFecha, setFiltroFecha] = useState<"hoy" | "semana" | "mes">(
+    "mes"
+  );
+
   const [searchIngresos, setSearchIngresos] = useState<string>("");
-  const [dateFromIngresos, setDateFromIngresos] = useState<string>("");
-  const [dateToIngresos, setDateToIngresos] = useState<string>("");
 
   const [searchEgresos, setSearchEgresos] = useState<string>("");
-  const [dateFromEgresos, setDateFromEgresos] = useState<string>("");
-  const [dateToEgresos, setDateToEgresos] = useState<string>("");
+
   const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = todavía no sabemos
 
   useEffect(() => {
@@ -123,16 +139,21 @@ export default function FinanzasPage() {
   if (!hasAccess) {
     return null;
   }
+  const { start, end } = getDateRange(filtroFecha);
   // ======== TOTALES ========
-  const totalIngresos = ingresosTyped.reduce(
-    (acc, row) => acc + (Number(row.Ingreso) || 0),
-    0
-  );
+  const totalIngresos = ingresosTyped
+    .filter((row) => {
+      const fecha = new Date(row.created_at);
+      return fecha >= start && fecha <= end;
+    })
+    .reduce((acc, row) => acc + (Number(row.Ingreso) || 0), 0);
 
-  const totalEgresos = egresosTyped.reduce(
-    (acc, row) => acc + (Number(row.Egreso) || 0),
-    0
-  );
+  const totalEgresos = egresosTyped
+    .filter((row) => {
+      const fecha = new Date(row.created_at);
+      return fecha >= start && fecha <= end;
+    })
+    .reduce((acc, row) => acc + (Number(row.Egreso) || 0), 0);
 
   const balanceFinal = totalIngresos - totalEgresos;
 
@@ -142,20 +163,9 @@ export default function FinanzasPage() {
     const coincideTexto = texto.includes(searchIngresos.toLowerCase());
 
     const fecha = new Date(row.created_at);
+    const coincideFiltroGlobal = fecha >= start && fecha <= end;
 
-    let coincideFecha = true;
-
-    if (dateFromIngresos) {
-      const { from } = getLocalDayBounds(dateFromIngresos);
-      coincideFecha = coincideFecha && fecha >= from;
-    }
-
-    if (dateToIngresos) {
-      const { to } = getLocalDayBounds(dateToIngresos);
-      coincideFecha = coincideFecha && fecha <= to;
-    }
-
-    return coincideTexto && coincideFecha;
+    return coincideTexto && coincideFiltroGlobal;
   });
 
   const egresosFiltrados = egresosTyped.filter((row) => {
@@ -163,25 +173,43 @@ export default function FinanzasPage() {
     const coincideTexto = texto.includes(searchEgresos.toLowerCase());
 
     const fecha = new Date(row.created_at);
+    const coincideFiltroGlobal = fecha >= start && fecha <= end;
 
-    let coincideFecha = true;
-
-    if (dateFromEgresos) {
-      const { from } = getLocalDayBounds(dateFromEgresos);
-      coincideFecha = coincideFecha && fecha >= from;
-    }
-
-    if (dateToEgresos) {
-      const { to } = getLocalDayBounds(dateToEgresos);
-      coincideFecha = coincideFecha && fecha <= to;
-    }
-
-    return coincideTexto && coincideFecha;
+    return coincideTexto && coincideFiltroGlobal;
   });
 
   return (
     <main className="min-h-screen bg-gray-100 p-8 space-y-8">
       {/* ======== RESUMEN FINANCIERO ======== */}
+      <section className="flex gap-4 justify-center">
+        <button
+          onClick={() => setFiltroFecha("hoy")}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+            filtroFecha === "hoy" ? "bg-blue-600 text-white" : "bg-gray-50"
+          }`}
+        >
+          Hoy
+        </button>
+
+        <button
+          onClick={() => setFiltroFecha("semana")}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+            filtroFecha === "semana" ? "bg-blue-600 text-white" : "bg-gray-50"
+          }`}
+        >
+          Semana
+        </button>
+
+        <button
+          onClick={() => setFiltroFecha("mes")}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+            filtroFecha === "mes" ? "bg-blue-600 text-white" : "bg-gray-50"
+          }`}
+        >
+          Mes
+        </button>
+      </section>
+
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="rounded-2xl shadow-md border bg-white">
           <CardContent className="p-6">
@@ -246,28 +274,6 @@ export default function FinanzasPage() {
               onChange={(e) => setSearchEgresos(e.target.value)}
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-600">Desde</label>
-              <input
-                type="date"
-                className="border rounded-xl p-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 outline-none"
-                value={dateFromEgresos}
-                onChange={(e) => setDateFromEgresos(e.target.value)}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-600">Hasta</label>
-              <input
-                type="date"
-                className="border rounded-xl p-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 outline-none"
-                value={dateToEgresos}
-                onChange={(e) => setDateToEgresos(e.target.value)}
-              />
-            </div>
-          </div>
         </div>
 
         {/* Ingresos */}
@@ -286,28 +292,6 @@ export default function FinanzasPage() {
               value={searchIngresos}
               onChange={(e) => setSearchIngresos(e.target.value)}
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-600">Desde</label>
-              <input
-                type="date"
-                className="border rounded-xl p-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 outline-none"
-                value={dateFromIngresos}
-                onChange={(e) => setDateFromIngresos(e.target.value)}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-600">Hasta</label>
-              <input
-                type="date"
-                className="border rounded-xl p-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 outline-none"
-                value={dateToIngresos}
-                onChange={(e) => setDateToIngresos(e.target.value)}
-              />
-            </div>
           </div>
         </div>
       </section>
