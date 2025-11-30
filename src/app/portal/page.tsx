@@ -33,7 +33,7 @@ export default function PortalDashboard() {
       </div>
     );
   }
-  console.log(projectsData);
+
   const activeProjects = projectsData.filter(
     (row) =>
       row.project.status?.toLowerCase() !== "pausado" &&

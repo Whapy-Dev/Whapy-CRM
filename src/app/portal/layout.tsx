@@ -13,6 +13,8 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useDatosUser } from "@/hooks/user/datosUser";
 import Image from "next/image";
+import { useContext } from "react";
+import { ThemeContext } from "@/context/ThemeContext";
 
 export default function PortalLayout({
   children,
@@ -20,6 +22,7 @@ export default function PortalLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const { user, role, loading: authLoading, signOut } = useAuth();
 
   const { data: userData, isLoading: isLoadingUserData } = useDatosUser(user);
@@ -52,7 +55,6 @@ export default function PortalLayout({
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -99,45 +101,51 @@ export default function PortalLayout({
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 flex-wrap">
-            <Link href="/portal" className={navLinkClass("/portal")}>
-              <Home className="w-4 h-4" />
-              Inicio
-            </Link>
-
-            <Link
-              href="/portal/projects"
-              className={navLinkClass("/portal/projects")}
-            >
-              <FolderOpen className="w-4 h-4" />
-              Mis Proyectos
-            </Link>
-
-            <Link
-              href="/portal/budgets"
-              className={navLinkClass("/portal/budgets")}
-            >
-              <FileText className="w-4 h-4" />
-              Documentos
-            </Link>
-
-            <Link
-              href="/portal/profile"
-              className={navLinkClass("/portal/profile")}
-            >
-              <User className="w-4 h-4" />
-              Mi Perfil
-            </Link>
-
-            {role === "admin" && (
-              <Link
-                href="/crm"
-                className="flex items-center gap-2 px-4 py-3 text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-b-2 border-transparent hover:border-purple-600 transition-colors ml-auto"
-              >
-                <Calendar className="w-4 h-4" />
-                Ir al CRM
+          <div className="flex justify-between gap-1 flex-wrap">
+            <div className="flex gap-1 flex-wrap">
+              <Link href="/portal" className={navLinkClass("/portal")}>
+                <Home className="w-4 h-4" />
+                Inicio
               </Link>
-            )}
+
+              <Link
+                href="/portal/projects"
+                className={navLinkClass("/portal/projects")}
+              >
+                <FolderOpen className="w-4 h-4" />
+                Mis Proyectos
+              </Link>
+
+              <Link
+                href="/portal/budgets"
+                className={navLinkClass("/portal/budgets")}
+              >
+                <FileText className="w-4 h-4" />
+                Documentos
+              </Link>
+
+              <Link
+                href="/portal/profile"
+                className={navLinkClass("/portal/profile")}
+              >
+                <User className="w-4 h-4" />
+                Mi Perfil
+              </Link>
+            </div>
+            <div className="flex items-center">
+              <button className="cursor-pointer" onClick={toggleTheme}>
+                {theme === "light" ? "🌙 Dark" : "☀️ Light"}
+              </button>
+              {role === "admin" && (
+                <Link
+                  href="/crm"
+                  className="flex items-center gap-2 px-4 py-3 text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-b-2 border-transparent hover:border-purple-600 transition-colors ml-auto"
+                >
+                  <Calendar className="w-4 h-4" />
+                  Ir al CRM
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </nav>

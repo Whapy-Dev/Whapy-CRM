@@ -35,7 +35,7 @@ export function useProfiles() {
         .select(
           `
           *,
-          projects!left(presupuesto)
+          projects!left(presupuesto, status)
         `
         )
         .eq("role", "cliente")

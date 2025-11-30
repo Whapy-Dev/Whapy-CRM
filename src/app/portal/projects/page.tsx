@@ -5,21 +5,9 @@ import Link from "next/link";
 import { FolderOpen, Calendar, Clock, ArrowRight } from "lucide-react";
 import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { useAuth } from "@/hooks/useAuth";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type Project = {
-  id: string;
-  name: string;
-  description: string;
-  status: "en_progreso" | "completado" | "pendiente";
-  progress: number;
-  start_date: string;
-  meetings_count: number;
-  documents_count: number;
-  has_figma: boolean;
-};
 
 export default function ProjectsPage() {
-  const { user, role, loading, signOut } = useAuth();
+  const { user,  loading  } = useAuth();
   const {
     data: projectsData = [],
     isLoading: isLoadingProjects,
@@ -30,7 +18,6 @@ export default function ProjectsPage() {
   if (!isLoadingProjects && !errorProjects && projectsData.length === 0)
     return <p>No hay proyectos disponibles</p>;
   if (errorProjects) return <p>Error: {errorProjects.message}</p>;
-  console.log(projectsData);
   const statusConfig = {
     en_progreso: {
       color: "bg-blue-100 text-blue-800",

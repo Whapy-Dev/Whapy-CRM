@@ -145,7 +145,6 @@ export default function ClientsPageUnsafe() {
     error: errorProfiles,
     refetch: refetchProfiles,
   } = useProfiles();
-  console.log(dataProfiles);
   // Estados de selección
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   // Estados de modales
@@ -184,16 +183,21 @@ export default function ClientsPageUnsafe() {
   if (!hasAccess) {
     return null;
   }
+  if (isLoadingProfiles) return <div>Cargando clientes...</div>;
+  if (errorProfiles) return <div>Error: {errorProfiles.message}</div>;
   const normalizedProfiles = dataProfiles.map((client: Client) => {
-    const proyectos = client.project_users || [];
+    const proyectos = client.projects || [];
 
-    const isActivo = proyectos.some((p) => p.project?.status === "En progreso");
-
-    const isInactivo = proyectos.some((p) => p.project?.status === "Pausado");
+    const isActivo = proyectos.some((p) => p.status === "En progreso");
+    const isInactivo = proyectos.some((p) => p.status === "Pausado");
 
     let estado: "Activo" | "Inactivo" | "Sin proyectos" = "Sin proyectos";
-    if (isActivo) estado = "Activo";
-    else if (isInactivo) estado = "Inactivo";
+
+    if (isActivo) {
+      estado = "Activo";
+    } else if (isInactivo) {
+      estado = "Inactivo";
+    }
 
     return {
       ...client,
@@ -219,9 +223,6 @@ export default function ClientsPageUnsafe() {
 
     return matchesSearch && matchesTipo && matchesEstado;
   });
-
-  if (isLoadingProfiles) return <div>Cargando clientes...</div>;
-  if (errorProfiles) return <div>Error: {errorProfiles.message}</div>;
 
   return (
     <>

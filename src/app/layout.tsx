@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { useAuthSync } from "@/hooks/useAuthSync";
 import { UploadProvider } from "@/context/UploadContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +53,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Providers>
           <AuthSyncWrapper>
-            <UploadProvider>{children}</UploadProvider>
+            <UploadProvider>
+              <ThemeProvider>{children}</ThemeProvider>
+            </UploadProvider>
           </AuthSyncWrapper>
         </Providers>
       </body>

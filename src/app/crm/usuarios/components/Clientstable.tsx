@@ -17,7 +17,6 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
       </div>
     );
   }
-
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="overflow-x-auto">
