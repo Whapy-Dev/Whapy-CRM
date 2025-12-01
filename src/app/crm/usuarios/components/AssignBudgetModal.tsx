@@ -2,18 +2,22 @@
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { argentinaNow } from "../../pnl/components/AgregarIngresoModal";
+import { useAuth } from "@/hooks/useAuth";
 
 type AssignBudgetModalProps = {
   show: boolean;
   projects: { id: string; title: string; presupuesto?: number | null }[];
+  clientNombre: string;
   onClose: () => void;
 };
 
 export default function AssignBudgetModal({
   show,
   projects,
+  clientNombre,
   onClose,
 }: AssignBudgetModalProps) {
+  const { user } = useAuth();
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [presupuesto, setPresupuesto] = useState("");
   const [anexo, setAnexo] = useState("");
@@ -46,8 +50,19 @@ export default function AssignBudgetModal({
         Descripcion: "Proyecto",
         created_at: new Date(argentinaNow).toISOString(),
       });
-
       if (ingresoError) throw ingresoError;
+      const { error: errorHistory } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Creó un presupuesto presupuesto",
+            usuario_modificado: clientNombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+      if (errorHistory) throw errorHistory;
 
       // Limpiar inputs y cerrar modal
       setSelectedProjectId("");

@@ -60,6 +60,30 @@ export default function ClientContentPage({
   };
   const projects: Project[] =
     client.project_users?.map((pu) => pu.project) || [];
+  const projectsAdaptados = projects
+    .filter((p) => (p.presupuestos?.[0]?.monto ?? 0) > 0)
+    .map((p) => ({
+      id: p.id,
+      title: p.title,
+      presupuestos: [
+        {
+          monto: p.presupuestos?.[0]?.monto,
+          estado: p.presupuestos?.[0]?.estado,
+          divisa: p.presupuestos?.[0]?.divisa,
+          profiles: p.presupuestos?.[0]?.profiles
+            ? { nombre: p.presupuestos[0].profiles.nombre }
+            : null,
+        },
+      ] as [
+        {
+          monto: number;
+          estado: string;
+          divisa: string;
+          profiles?: { nombre?: string } | null;
+        }
+      ],
+    }));
+
   return (
     <>
       <div className="p-6 space-y-8">
@@ -273,11 +297,13 @@ export default function ClientContentPage({
       <AssignBudgetModal
         show={showNewPresupuesto}
         projects={projects}
+        clientNombre={client.nombre}
         onClose={() => setShowNewPresupuesto(false)}
       />
       <AssignAnexoModal
         show={showAnexoModal}
-        projects={projects}
+        projects={projectsAdaptados}
+        clientNombre={client.nombre}
         onClose={() => setShowAnexoModal(false)}
       />
       ;

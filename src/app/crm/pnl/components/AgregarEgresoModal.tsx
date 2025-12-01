@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useEmplooyes } from "@/hooks/admin/useEmployees";
 import { argentinaNow } from "./AgregarIngresoModal";
+import { useAuth } from "@/hooks/useAuth";
 
 type Props = {
   onClose: () => void;
@@ -10,11 +11,13 @@ type Props = {
 };
 
 export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
+  const { user } = useAuth();
   const { data: dataProfiles = [], isLoading } = useEmplooyes();
 
   const [monto, setMonto] = useState(0);
   const [descripcion, setDescripcion] = useState("");
-  const [user, setUser] = useState("");
+  const [userId, setUserId] = useState("");
+  const [userNombre, setUserNombre] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -57,17 +60,28 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
 
     try {
       const { error } = await supabase.from("Egresos").insert({
-        user_id: user || null,
+        user_id: userId || null,
         Egreso: monto,
         Descripcion: descripcion,
         created_at: new Date(argentinaNow).toISOString(),
       });
 
       if (error) throw error;
+      const { error: errorHistory } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Añadió un egreso",
+            usuario_modificado: userNombre,
+            seccion: "PNL",
+          },
+        ]);
 
+      if (errorHistory) throw errorHistory;
       setMonto(0);
       setDescripcion("");
-      setUser("");
+      setUserId("");
       setBusqueda("");
       await refetchEgresos();
       onClose();
@@ -115,7 +129,8 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
                   <button
                     key={p.id}
                     onClick={() => {
-                      setUser(p.id);
+                      setUserNombre(p.nombre);
+                      setUserId(p.id);
                       setOpen(false);
                       setBusqueda("");
                     }}

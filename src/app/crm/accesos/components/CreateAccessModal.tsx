@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Roles } from "@/hooks/admin/useRoles";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 type CreateAccessModalProps = {
   roles: Roles[] | undefined;
@@ -14,6 +16,7 @@ export function CreateAccessModal({
   onClose,
   onCreated,
 }: CreateAccessModalProps) {
+  const { user } = useAuth();
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +27,7 @@ export function CreateAccessModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const supabase = createClient();
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -38,7 +42,18 @@ export function CreateAccessModal({
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || "Error al crear usuario");
+      const { error: errorHistory } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Creo un acceso",
+            usuario_modificado: nombre,
+            seccion: "Accesos",
+          },
+        ]);
 
+      if (errorHistory) throw errorHistory;
       setSuccess("Usuario creado correctamente");
       setNombre("");
       setEmail("");

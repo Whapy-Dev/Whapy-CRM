@@ -67,7 +67,16 @@ export type Project = {
   progress: number;
   documents?: Document[] | null;
   videos?: Video[] | null;
-  presupuesto?: number | null;
+  presupuestos?:
+    | {
+        monto: number;
+        estado: string;
+        divisa: string;
+        profiles?: {
+          nombre: string;
+        };
+      }[]
+    | null;
 };
 
 export type Pasos = {
@@ -145,6 +154,7 @@ export default function ClientsPageUnsafe() {
     error: errorProfiles,
     refetch: refetchProfiles,
   } = useProfiles();
+
   // Estados de selección
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   // Estados de modales

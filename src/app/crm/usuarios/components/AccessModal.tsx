@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Client, Project } from "../page";
 import { useSecundarios } from "@/hooks/admin/useProfiles";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 type AccessModalProps = {
   show: boolean;
@@ -20,6 +21,7 @@ export default function AccessModal({
   projects,
   refetchProfile,
 }: AccessModalProps) {
+  const { user } = useAuth();
   const projectIds = projects.map((p) => p.id);
   const {
     data: secundarios,
@@ -73,7 +75,20 @@ export default function AccessModal({
           type: "Secundario",
         },
       ]);
+      if (error) throw error;
 
+      const { error: errorHistory } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Creó un acceso",
+            usuario_modificado: newUser.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+      if (errorHistory) throw errorHistory;
       setNewUser({ nombre: "", email: "", password: "", project_id: "" });
       setShowCreateForm(false);
       refetch();

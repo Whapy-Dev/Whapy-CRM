@@ -7,8 +7,11 @@ type ClientsTableProps = {
   onClientClick: (client: Client) => void;
 };
 
-export default function ClientsTable({ clients }: ClientsTableProps) {
-  if (clients.length === 0) {
+export default function ClientsTable({
+  clients,
+  onClientClick,
+}: ClientsTableProps) {
+  if (!clients || clients.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="p-8 text-center text-gray-500">
@@ -17,48 +20,77 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
       </div>
     );
   }
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              {[
-                "Acciones",
-                "Presupuesto",
-                "Nombre",
-                "Email",
-                "Teléfono",
-                "Empresa",
-                "Género",
-                "País",
-                "Tipo",
-                "Estado",
-                "Fecha de creación",
-              ].map((head) => (
-                <th
-                  key={head}
-                  className="px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"
-                >
-                  {head}
-                </th>
-              ))}
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Acciones
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Presupuesto
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                A realizar por
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Estado Presupuesto
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Nombre
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Email
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Teléfono
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Empresa
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Género
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                País
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Tipo
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Estado
+              </th>
+              <th className="px-4 py-4 text-center text-xs font-semibold text-gray-700 uppercase">
+                Fecha de creación
+              </th>
             </tr>
           </thead>
+
           <tbody className="divide-y divide-gray-200">
             {clients.map((client) => {
-              // 🔥 SUMA DE PRESUPUESTOS
               const presupuestoTotal =
                 client?.projects?.reduce(
-                  (sum, p) => sum + (p.presupuesto || 0),
+                  (sum, p) => sum + (p?.presupuestos?.[0]?.monto || 0),
                   0
                 ) ?? 0;
+
+              const divisa = client?.projects?.[0]?.presupuestos?.[0]?.divisa;
+              const estadoPresupuesto =
+                client?.projects?.[0]?.presupuestos?.[0]?.estado ?? "—";
+              const realizarPor =
+                client?.projects?.[0]?.presupuestos?.[0]?.profiles?.nombre ??
+                "—";
 
               return (
                 <tr
                   key={client.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => onClientClick(client)}
                 >
+                  {/* Acciones */}
                   <td className="text-center">
                     <Link
                       href={`/crm/usuarios/${client.id}/client`}
@@ -68,42 +100,58 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                     </Link>
                   </td>
 
-                  {/* ✅ CELDA CORRECTA DEL PRESUPUESTO TOTAL */}
+                  {/* Presupuesto Total */}
                   <td className="px-2 py-4 text-sm text-gray-900 text-center font-medium">
-                    {presupuestoTotal > 0
-                      ? `${presupuestoTotal.toLocaleString("es-AR")}`
-                      : "0"}
+                    {divisa} {presupuestoTotal.toLocaleString("es-AR") || "0"}
                   </td>
 
-                  <td className="px-2 py-4 text-sm text-gray-900">
+                  {/* A realizar por */}
+                  <td className="px-2 py-4 text-sm text-gray-900 text-center">
+                    {realizarPor}
+                  </td>
+
+                  {/* Estado Presupuesto */}
+                  <td className="px-2 py-4 text-sm text-gray-700 text-center">
+                    {estadoPresupuesto}
+                  </td>
+
+                  {/* Nombre */}
+                  <td className="px-2 py-4 text-sm text-gray-900 text-center">
                     {client.nombre || "—"}
                   </td>
 
-                  <td className="px-2 py-4 text-sm text-gray-700">
-                    {client.email}
+                  {/* Email */}
+                  <td className="px-2 py-4 text-sm text-gray-700 text-center">
+                    {client.email || "—"}
                   </td>
 
-                  <td className="px-2 py-4 text-sm text-gray-700 text-nowrap">
+                  {/* Teléfono */}
+                  <td className="px-2 py-4 text-sm text-gray-700 text-center text-nowrap">
                     {client.telefono || "—"}
                   </td>
 
-                  <td className="px-2 py-4 text-sm text-gray-700 text-pretty">
+                  {/* Empresa */}
+                  <td className="px-2 py-4 text-sm text-gray-700 text-center">
                     {client.empresa || "—"}
                   </td>
 
+                  {/* Género */}
                   <td className="px-2 py-4 text-sm text-gray-700 text-center">
                     {client.genero || "—"}
                   </td>
 
+                  {/* País */}
                   <td className="px-2 py-4 text-sm text-gray-700 text-center">
                     {client.pais || "—"}
                   </td>
 
+                  {/* Tipo */}
                   <td className="px-2 py-4 text-sm text-gray-700 text-center">
                     {client.type || "—"}
                   </td>
 
-                  <td className="px-2 py-4 text-sm">
+                  {/* Estado (Activo / Inactivo) */}
+                  <td className="px-2 py-4 text-sm text-center">
                     <span
                       className={`px-2 py-1 text-xs font-semibold rounded-full text-nowrap ${
                         client.estado === "Activo"
@@ -113,10 +161,11 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                           : "bg-gray-100 text-gray-500"
                       }`}
                     >
-                      {client.estado}
+                      {client.estado || "—"}
                     </span>
                   </td>
 
+                  {/* Fecha de creación */}
                   <td className="px-2 py-4 text-sm text-gray-500 text-center">
                     {client.created_at
                       ? new Date(client.created_at).toLocaleDateString(

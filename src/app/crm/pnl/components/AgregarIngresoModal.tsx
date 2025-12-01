@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useClientProject } from "@/hooks/admin/useClients";
+import { useAuth } from "@/hooks/useAuth";
 
 type Props = {
   onClose: () => void;
@@ -11,11 +12,13 @@ export const argentinaNow = new Date().toLocaleString("en-US", {
   timeZone: "America/Argentina/Buenos_Aires",
 });
 export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
+  const { user } = useAuth();
   const { data: dataClientProject = [], isLoading } = useClientProject();
 
   const [monto, setMonto] = useState(0);
   const [descripcion, setDescripcion] = useState("");
   const [project, setProject] = useState("");
+  const [projectTitle, setProjectTitle] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -68,6 +71,19 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
         created_at: new Date(argentinaNow).toISOString(),
       });
 
+      const { error: errorHistory } = await supabase
+        .from("historial_actividad")
+        .insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Añadió un ingreso",
+            usuario_modificado: projectTitle,
+            seccion: "PNL",
+          },
+        ]);
+
+      if (errorHistory) throw errorHistory;
+
       if (error) throw error;
 
       setMonto(0);
@@ -119,6 +135,7 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
                   <button
                     key={p.id}
                     onClick={() => {
+                      setProjectTitle(p.title);
                       setProject(p.id);
                       setOpen(false);
                       setBusqueda("");

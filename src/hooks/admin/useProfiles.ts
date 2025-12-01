@@ -35,7 +35,7 @@ export function useProfiles() {
         .select(
           `
           *,
-          projects!left(presupuesto, status)
+          projects!left(status, presupuestos(*, profiles(nombre)))
         `
         )
         .eq("role", "cliente")
@@ -61,7 +61,8 @@ export function useProfileById(clientId: string) {
             project:projects(
               *,
               videos(*),
-              documents(*)
+              documents(*),
+              presupuestos(*, profiles(nombre))
             )
           ),
           budgets(*)
