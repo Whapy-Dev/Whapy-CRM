@@ -4,7 +4,7 @@ import {
   useAllMeetingsFromToday,
   useAllMeetingsUltimateWeek,
 } from "@/hooks/admin/useAllMeetings";
-import { useBudgets, useBudgetsActive } from "@/hooks/admin/useBudgets";
+import { useBudgetsActive, usePresupuestos } from "@/hooks/admin/useBudgets";
 import { useLeadsRecent, useLeadsUltimateMonth } from "@/hooks/admin/useLeads";
 import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-const allowedRoles = ["CEO", "COO"];
+const allowedRoles = ["CEO", "COO", "QA"];
 export default function CRMDashboard() {
   const { roleAdmin } = useAuth();
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function CRMDashboard() {
   const { data: AllMeetingsUltimateWeek = [] } = useAllMeetingsUltimateWeek();
   const { data: budgetsActive = [] } = useBudgetsActive();
   const { data: AllMeetingFromToday = [] } = useAllMeetingsFromToday();
-  const { data: budgets = [] } = useBudgets();
+  const { data: budgets = [] } = usePresupuestos();
 
   const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = todavía no sabemos
 
@@ -74,43 +74,31 @@ export default function CRMDashboard() {
     return null;
   }
 
-  const en_revision = budgets.filter((b) => b.status === "en revision");
-  const presentado = budgets.filter((b) => b.status === "presentado");
-  const aceptado = budgets.filter((b) => b.status === "aceptado");
-  const rechazado = budgets.filter((b) => b.status === "rechazado");
+  const en_revision = budgets.filter((b) => b.estado === "En revisión");
+  const presentado = budgets.filter((b) => b.estado === "Presentado");
+  const aceptado = budgets.filter((b) => b.estado === "Aceptado");
+  const rechazado = budgets.filter((b) => b.estado === "Rechazado");
 
   const budgetsPipeline = [
     {
-      status: "en revision",
+      estado: "En revisión",
       count: en_revision.length,
-      amount: en_revision.reduce(
-        (sum: number, b) => sum + (b.amount_total || 0),
-        0
-      ),
+      amount: en_revision.reduce((sum: number, b) => sum + (b.monto || 0), 0),
     },
     {
-      status: "Presentado",
+      estado: "Presentado",
       count: presentado.length,
-      amount: presentado.reduce(
-        (sum: number, b) => sum + (b.amount_total || 0),
-        0
-      ),
+      amount: presentado.reduce((sum: number, b) => sum + (b.monto || 0), 0),
     },
     {
-      status: "Rechazado",
+      estado: "Rechazado",
       count: rechazado.length,
-      amount: rechazado.reduce(
-        (sum: number, b) => sum + (b.amount_total || 0),
-        0
-      ),
+      amount: rechazado.reduce((sum: number, b) => sum + (b.monto || 0), 0),
     },
     {
-      status: "Aceptado",
+      estado: "Aceptado",
       count: aceptado.length,
-      amount: aceptado.reduce(
-        (sum: number, b) => sum + (b.amount_total || 0),
-        0
-      ),
+      amount: aceptado.reduce((sum: number, b) => sum + (b.monto || 0), 0),
     },
   ];
 
@@ -271,7 +259,7 @@ export default function CRMDashboard() {
                 className="border border-gray-200 rounded-lg p-4"
               >
                 <h3 className="text-sm font-medium text-gray-600 mb-3">
-                  {stage.status}
+                  {stage.estado}
                 </h3>
                 <div className="space-y-2">
                   <div className="flex items-baseline gap-2">

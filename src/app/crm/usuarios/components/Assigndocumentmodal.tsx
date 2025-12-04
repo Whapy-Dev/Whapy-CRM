@@ -4,11 +4,13 @@ import { AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Client, InsertData, Project } from "../page";
+import { useAuth } from "@/hooks/useAuth";
 
 type AssignDocumentModalProps = {
   show: boolean;
   project: Project | null;
   client: Client | null;
+
   onClose: () => void;
   refetchProfile: () => void;
 };
@@ -17,9 +19,11 @@ export default function AssignDocumentModal({
   show,
   project,
   client,
+
   onClose,
   refetchProfile,
 }: AssignDocumentModalProps) {
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [categoryDocument, setCategoryDocument] = useState("");
@@ -76,11 +80,20 @@ export default function AssignDocumentModal({
     const { error } = await supabase.from("documents").insert(insertData);
     await queryClient.invalidateQueries({ queryKey: ["profiles"] });
     await queryClient.invalidateQueries({ queryKey: ["leads"] });
-
     if (error) {
       console.error(error);
       setErrorFormDocument("Error al asignar documento");
     } else {
+      const { error } = await supabase.from("historial_actividad").insert([
+        {
+          usuario_modificador_id: user?.id,
+          accion: "Subió un documento",
+          usuario_modificado: client?.nombre,
+          seccion: "Usuarios",
+        },
+      ]);
+
+      if (error) throw error;
       setSuccessDocument(true);
       await refetchProfile();
 
@@ -141,7 +154,7 @@ export default function AssignDocumentModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Archivo PDF
+              Archivo
             </label>
             <input
               type="file"

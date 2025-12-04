@@ -1,7 +1,8 @@
 "use client";
 
+import { Client } from "@/app/crm/usuarios/page";
 import { createClient } from "@/lib/supabase/client";
-import { Client } from "@/utils/types";
+import { Project } from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 export type Secundario = {
   type: "Secundario";
@@ -35,14 +36,45 @@ export function useProfiles() {
         .select(
           `
           *,
-          projects!left(status, presupuestos(*, profiles(nombre)))
+          projects:projects!left(
+            status,
+            presupuestos!left(
+              *,
+              presupuestos_employees!left(
+                profiles(id, nombre)
+              )
+            )
+          )
         `
         )
         .eq("role", "cliente")
         .eq("has_access_project", "0");
 
       if (error) throw error;
-      return data as unknown as Client[];
+
+      // Transformamos cada project para que tenga un solo presupuesto como objeto
+      const profilesTransformados = data.map((client) => ({
+        ...client,
+        projects: (client.projects ?? []).map(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (project: any) => {
+            const pre = project.presupuestos?.[0] ?? null;
+            return {
+              ...project,
+              presupuestos: undefined, // eliminamos el array original
+              presupuesto: pre
+                ? {
+                    ...pre,
+                    // aseguramos que presupuestos_employees siempre sea un array
+                    presupuestos_employees: pre.presupuestos_employees ?? [],
+                  }
+                : null,
+            };
+          }
+        ),
+      }));
+
+      return profilesTransformados as Client[];
     },
   });
 }
@@ -62,7 +94,12 @@ export function useProfileById(clientId: string) {
               *,
               videos(*),
               documents(*),
-              presupuestos(*, profiles(nombre))
+              presupuestos!left(
+                *,
+                presupuestos_employees!left(
+                  profiles(id, nombre)
+                )
+              )
             )
           ),
           budgets(*)
@@ -72,7 +109,31 @@ export function useProfileById(clientId: string) {
 
       if (error) throw error;
 
-      return data as unknown as Client[];
+      const dataTransformada: Client[] = data.map((client) => ({
+        ...client,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        project_users: client.project_users?.map((pu: any) => {
+          if (!pu.project) return { ...pu, project: null };
+
+          const pre = pu.project.presupuestos?.[0] ?? null;
+
+          return {
+            ...pu,
+            project: {
+              ...pu.project,
+              presupuestos: undefined, // eliminamos array original
+              presupuesto: pre
+                ? {
+                    ...pre,
+                    presupuestos_employees: pre.presupuestos_employees ?? [],
+                  }
+                : null,
+            },
+          };
+        }),
+      }));
+
+      return dataTransformada;
     },
   });
 }

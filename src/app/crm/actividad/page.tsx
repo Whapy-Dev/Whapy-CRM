@@ -14,9 +14,10 @@ const secciones = [
   "Proyectos",
   "Documentos",
   "Reuniones",
-  "Leads",
+  "Accesos",
+  "PNL",
 ];
-const allowedRoles = ["CEO", "COO"];
+const allowedRoles = ["CEO", "COO", "QA"];
 export default function ActividadPage() {
   const { roleAdmin } = useAuth();
   const router = useRouter();

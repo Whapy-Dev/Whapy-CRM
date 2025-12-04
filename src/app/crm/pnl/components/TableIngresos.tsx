@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { ModalAgregarEgreso } from "./AgregarEgresoModal";
 import { ModalAgregarIngreso } from "./AgregarIngresoModal";
 
 type Ingresos = {
   id: string;
-  projects?: {
-    title: string;
-  };
+  nombre: string;
+  presupuesto_id: string;
   Ingreso?: number;
   Descripcion?: string;
+  categoria: string;
+  subcategoria: string;
   created_at: string;
+  recurrente: string;
+  divisa: string;
 };
 
 type Props = {
@@ -22,6 +24,7 @@ type Props = {
 
 export function TableIngresos({ ingresos, isLoading, refetchIngresos }: Props) {
   const [viewIngresoModal, setViewIngresoModal] = useState(false);
+
   return (
     <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
       <div className="flex justify-between p-4 border-b bg-gray-50">
@@ -39,10 +42,13 @@ export function TableIngresos({ ingresos, isLoading, refetchIngresos }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-100 border-b text-gray-700">
-              <th className="text-left p-3">Proyecto</th>
+              <th className="text-left p-3">Categoria</th>
+              <th className="text-left p-3">Subcategoria</th>
+              <th className="text-left p-3">Nombre</th>
               <th className="text-left p-3">Descripción</th>
               <th className="text-right p-3">Monto</th>
               <th className="text-left p-3">Fecha</th>
+              <th className="text-left p-3">Recurrente</th>
             </tr>
           </thead>
 
@@ -71,14 +77,17 @@ export function TableIngresos({ ingresos, isLoading, refetchIngresos }: Props) {
                     i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
                   }`}
                 >
-                  <td className="p-3">{item.projects?.title || "-"}</td>
+                  <td className="p-3">{item.categoria || "-"}</td>
+                  <td className="p-3">{item.subcategoria || "-"}</td>
+                  <td className="p-3">{item.nombre || "-"}</td>
                   <td className="p-3">{item.Descripcion || "-"}</td>
                   <td className="text-right font-semibold text-green-600 p-3">
-                    ${Number(item.Ingreso || 0).toLocaleString()}
+                    {item.divisa} ${Number(item.Ingreso || 0).toLocaleString()}
                   </td>
                   <td className="p-3">
                     {new Date(item.created_at).toLocaleDateString()}
                   </td>
+                  <td className="p-3">{item.recurrente || "-"}</td>
                 </tr>
               ))}
           </tbody>

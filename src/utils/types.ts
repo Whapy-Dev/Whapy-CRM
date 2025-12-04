@@ -55,7 +55,20 @@ export type Project = {
   progress: number;
   documents?: Document[] | null;
   videos?: Video[] | null;
-  consumo?: string | null;
+  consumo?: string;
+  presupuesto?: {
+    id: string;
+    monto: number;
+    estado: string;
+    divisa: string;
+    created_at: string;
+    presupuestos_employees?: {
+      profiles: {
+        id: string;
+        nombre: string;
+      };
+    }[];
+  } | null;
 };
 
 export type Pasos = {

@@ -11,7 +11,7 @@ export function useEgresos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("Egresos")
-        .select("*,profiles(nombre)")
+        .select("*,profiles!left(nombre)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;

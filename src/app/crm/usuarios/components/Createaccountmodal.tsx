@@ -19,7 +19,7 @@ export default function CreateAccountModal({
   const [errorForm, setErrorForm] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [emailInput, setEmailInput] = useState("");
-  const [paisInput, setPaisInput] = useState("");
+  const [paisInput, setPaisInput] = useState("Argentina");
   const [fechaInput, setFechaInput] = useState("");
   const [generoInput, setGeneroInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");

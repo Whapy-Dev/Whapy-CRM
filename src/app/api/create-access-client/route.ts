@@ -15,11 +15,11 @@ export async function POST(req: Request) {
       email,
       password,
       email_confirm: true,
-      user_metadata: { nombre },
     });
 
     if (error) {
       console.error("❌ Error en createUser:", error);
+      console.log(error);
       throw error;
     }
     if (!data?.user) {
@@ -27,28 +27,42 @@ export async function POST(req: Request) {
       throw new Error("No se devolvió el usuario desde Auth");
     }
 
-    // Insertar en profiles
-    const { error: insertError } = await supabaseAdmin.from("profiles").insert([
-      {
-        id: data.user.id,
-        email: email,
-        nombre: nombre,
-        role: "cliente",
-        has_project_access: "1",
-      },
-    ]);
+    const { data: existingProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("*")
+      .eq("id", data.user.id)
+      .single();
 
-    if (insertError) throw insertError;
+    if (!existingProfile) {
+      const { error: insertError } = await supabaseAdmin
+        .from("profiles")
+        .insert([
+          {
+            id: data.user.id,
+            email,
+            nombre,
+            role: "cliente",
+            has_access_project: "1",
+          },
+        ]);
+
+      if (insertError) throw insertError;
+    }
 
     return NextResponse.json({ user: data.user });
   } catch (err: unknown) {
+    console.error("❌ Error completo:", err);
+
     let errorMessage = "Error desconocido";
 
     if (err instanceof Error) {
       errorMessage = err.message;
+    } else if (typeof err === "object" && err !== null && "message" in err) {
+      // Supabase a veces devuelve objetos con message
+      // @ts-expect-error: TypeScript no reconoce este tipo temporalmente
+      errorMessage = err.message;
     }
 
-    console.error("❌ Error:", errorMessage);
     return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

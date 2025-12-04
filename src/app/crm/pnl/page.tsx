@@ -23,12 +23,17 @@ interface ProfileRelation {
 /** Fila de ingreso */
 interface Ingreso {
   id: string;
-  project_id: string;
+  project_id?: string;
   created_at: string;
   Descripcion?: string;
-  descripcion?: string;
   Ingreso?: number;
   projects?: ProjectRelation;
+  categoria: string;
+  subcategoria: string;
+  presupuesto_id: string;
+  nombre: string;
+  recurrente: string;
+  divisa: string;
 }
 
 /** Fila de egreso */
@@ -37,9 +42,12 @@ interface Egreso {
   project_id: string;
   created_at: string;
   Descripcion?: string;
-  descripcion?: string;
   Egreso?: number;
   profiles?: ProfileRelation;
+  categoria: string;
+  recurrente: string;
+  subcategoria: string;
+  divisa: string;
 }
 function getDateRange(filtro: "hoy" | "semana" | "mes") {
   const now = new Date();
@@ -67,21 +75,12 @@ function getDateRange(filtro: "hoy" | "semana" | "mes") {
   return { start, end };
 }
 
-const allowedRoles = ["CEO", "COO"];
+const allowedRoles = ["CEO", "COO", "QA"];
 export default function FinanzasPage() {
   const { roleAdmin } = useAuth();
   const router = useRouter();
-  const {
-    data: roles,
-    isLoading: loadingRoles,
-    isError: errorRoles,
-  } = useRoles();
-  const {
-    data: users,
-    refetch: refetchUsers,
-    isLoading: loadingUsers,
-    isError: errorUsers,
-  } = useUserRolProfiles();
+  const { isLoading: loadingRoles, isError: errorRoles } = useRoles();
+  const { isLoading: loadingUsers, isError: errorUsers } = useUserRolProfiles();
   const {
     data: ingresos = [],
     isLoading: loadingIngresos,
@@ -93,7 +92,6 @@ export default function FinanzasPage() {
     refetch: refetchEgresos,
   } = useEgresos();
 
-  /** ↑ IMPORTANT: forzado a `Ingreso[]` y `Egreso[]` */
   const ingresosTyped = ingresos as Ingreso[];
   const egresosTyped = egresos as Egreso[];
 
@@ -102,6 +100,7 @@ export default function FinanzasPage() {
   const [filtroFecha, setFiltroFecha] = useState<"hoy" | "semana" | "mes">(
     "mes"
   );
+  const [vista, setVista] = useState<"ingresos" | "egresos" | "todos">("todos");
 
   const [searchIngresos, setSearchIngresos] = useState<string>("");
 
@@ -159,7 +158,7 @@ export default function FinanzasPage() {
 
   // ======== FILTRADO REAL ========
   const ingresosFiltrados = ingresosTyped.filter((row) => {
-    const texto = (row.Descripcion || row.descripcion || "").toLowerCase();
+    const texto = (row.Descripcion || "").toLowerCase();
     const coincideTexto = texto.includes(searchIngresos.toLowerCase());
 
     const fecha = new Date(row.created_at);
@@ -169,7 +168,12 @@ export default function FinanzasPage() {
   });
 
   const egresosFiltrados = egresosTyped.filter((row) => {
-    const texto = (row.Descripcion || row.descripcion || "").toLowerCase();
+    const texto = (
+      row.Descripcion ||
+      row.categoria ||
+      row.subcategoria ||
+      ""
+    ).toLowerCase();
     const coincideTexto = texto.includes(searchEgresos.toLowerCase());
 
     const fecha = new Date(row.created_at);
@@ -255,6 +259,34 @@ export default function FinanzasPage() {
         </Card>
       </section>
 
+      <section className="flex gap-4 justify-center">
+        <button
+          onClick={() => setVista("egresos")}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+            vista === "egresos" ? "bg-blue-600 text-white" : "bg-gray-50"
+          }`}
+        >
+          Egresos
+        </button>
+
+        <button
+          onClick={() => setVista("todos")}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+            vista === "todos" ? "bg-blue-600 text-white" : "bg-gray-50"
+          }`}
+        >
+          Todos
+        </button>
+
+        <button
+          onClick={() => setVista("ingresos")}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+            vista === "ingresos" ? "bg-blue-600 text-white" : "bg-gray-50"
+          }`}
+        >
+          Ingresos
+        </button>
+      </section>
       {/* ======== FILTROS (tipados y profesionales, sin reutilizar componentes) ======== */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Egresos */}
@@ -298,16 +330,21 @@ export default function FinanzasPage() {
 
       {/* ======== TABLAS ======== */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TableEgresos
-          egresos={egresosFiltrados}
-          isLoading={loadingEgresos}
-          refetchEgresos={refetchEgresos}
-        />
-        <TableIngresos
-          ingresos={ingresosFiltrados}
-          isLoading={loadingIngresos}
-          refetchIngresos={refetchIngresos}
-        />
+        {(vista === "egresos" || vista === "todos") && (
+          <TableEgresos
+            egresos={egresosFiltrados}
+            isLoading={loadingEgresos}
+            refetchEgresos={refetchEgresos}
+          />
+        )}
+
+        {(vista === "ingresos" || vista === "todos") && (
+          <TableIngresos
+            ingresos={ingresosFiltrados}
+            isLoading={loadingIngresos}
+            refetchIngresos={refetchIngresos}
+          />
+        )}
       </section>
     </main>
   );

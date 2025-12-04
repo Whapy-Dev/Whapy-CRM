@@ -28,6 +28,48 @@ export default function DeleteProjectModal({
     setError("");
 
     try {
+      const { data, error: errorPresupuesto } = await supabase
+        .from("presupuestos")
+        .select("id")
+        .eq("project_id", project.id)
+        .single(); // 👈 esto hace que no sea array, sino objeto
+
+      if (errorPresupuesto) {
+        console.error("Error buscando presupuesto:", errorPresupuesto);
+        return;
+      }
+
+      const presupuestoId = data?.id;
+      if (!presupuestoId) return;
+
+      const { error: errorAnexo } = await supabase
+        .from("anexos")
+        .delete()
+        .eq("presupuesto_id", presupuestoId);
+
+      if (errorAnexo) throw errorAnexo;
+      const { error: errorCuotas } = await supabase
+        .from("pago_cuotas")
+        .delete()
+        .eq("presupuesto_id", presupuestoId)
+        .eq("estado", "Pendiente de pago");
+
+      if (errorCuotas) throw errorCuotas;
+
+      const { error: errorPresupuestos } = await supabase
+        .from("presupuestos")
+        .delete()
+        .eq("project_id", project.id);
+
+      if (errorPresupuestos) throw errorPresupuestos;
+
+      const { error: errorProjectsEmplooyes } = await supabase
+        .from("project_emplooyes")
+        .delete()
+        .eq("project_id", project.id);
+
+      if (errorProjectsEmplooyes) throw errorProjectsEmplooyes;
+
       // 1️⃣ Borrar relaciones del proyecto en project_users
       const { error: projectUsersError } = await supabase
         .from("project_users")
@@ -52,14 +94,6 @@ export default function DeleteProjectModal({
 
       if (docError) throw docError;
 
-      // 4️⃣ Eliminar proyecto
-      const { error: projectError } = await supabase
-        .from("projects")
-        .delete()
-        .eq("id", project.id);
-
-      if (projectError) throw projectError;
-
       // 5️⃣ Registrar en historial
       const { error: errorDb } = await supabase
         .from("historial_actividad")
@@ -68,11 +102,18 @@ export default function DeleteProjectModal({
             usuario_modificador_id: user?.id,
             accion: "Eliminó un proyecto",
             usuario_modificado: client?.nombre,
-            seccion: "Proyectos",
+            seccion: "Usuarios",
           },
         ]);
 
       if (errorDb) throw errorDb;
+      // 4️⃣ Eliminar proyecto
+      const { error: projectError } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", project.id);
+
+      if (projectError) throw projectError;
 
       refetchProfile();
       onClose();

@@ -9,11 +9,69 @@ type Props = {
   onClose: () => void;
   refetchEgresos: () => void;
 };
+const categoriasMap: Record<string, string[]> = {
+  "Sueldos y honorarios": [
+    "Programadores",
+    "Diseñadores",
+    "QA/Testers",
+    "Project Managers",
+    "Ventas / Closers",
+    "Administración / Soporte",
+    "Freelancers externos",
+  ],
+  "Infraestructura y herramientas": [
+    "Servidores y hosting",
+    "Dominios",
+    "GitHub / GitLab",
+    "Figma",
+    "Notion",
+    "Licencias de software",
+  ],
+  "Marketing y ventas": [
+    "Publicidad",
+    "CRM",
+    "Contenido y diseño",
+    "Comisiones de ventas",
+    "Producción audiovisual",
+  ],
+  "Operaciones y administración": [
+    "Contador",
+    "Honorarios legales",
+    "Gestión impositiva",
+    "Tasa municipal / impuestos varios",
+    "Costos de facturación y cobros",
+  ],
+  "Equipamiento y tecnología": [
+    "Laptops",
+    "Monitores",
+    "Accesorios",
+    "Reparaciones o reemplazos",
+    "Periféricos adicionales",
+  ],
+  "Oficina y servicios": [
+    "Alquiler",
+    "Internet",
+    "Luz",
+    "Agua",
+    "Mobiliario",
+    "Limpieza",
+  ],
+  Capacitación: ["Cursos", "Certificaciones", "Entrenamientos internos"],
+  "Viajes y reuniones": [
+    "Combustible",
+    "Pasajes",
+    "Hoteles",
+    "Comidas con clientes",
+    "Eventos / ferias",
+  ],
+};
 
 export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
   const { user } = useAuth();
   const { data: dataProfiles = [], isLoading } = useEmplooyes();
 
+  const [categoria, setCategoria] = useState("");
+  const [subCategoria, setSubCategoria] = useState("");
   const [monto, setMonto] = useState(0);
   const [descripcion, setDescripcion] = useState("");
   const [userId, setUserId] = useState("");
@@ -56,11 +114,13 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
 
   async function agregarEgreso() {
     const supabase = createClient();
-    if (!descripcion.trim() || monto <= 0) return;
+    if (!categoria || !subCategoria || monto <= 0) return;
 
     try {
       const { error } = await supabase.from("Egresos").insert({
         user_id: userId || null,
+        categoria: categoria,
+        subcategoria: subCategoria,
         Egreso: monto,
         Descripcion: descripcion,
         created_at: new Date(argentinaNow).toISOString(),
@@ -150,21 +210,70 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
           )}
         </div>
         {/* ✅ FIN SELECT CUSTOM */}
-
+        {/* ✅ SELECT CATEGORÍA */}
         <div className="space-y-3">
+          <label className="font-medium">Categoría</label>
+          <select
+            value={categoria}
+            onChange={(e) => {
+              setCategoria(e.target.value);
+              setSubCategoria(""); // reset subcategoría al cambiar categoría
+            }}
+            className="w-full border p-2 rounded-xl mt-1 cursor-pointer"
+          >
+            <option value="" disabled>
+              Seleccionar categoría
+            </option>
+            {Object.keys(categoriasMap).map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* ✅ SELECT SUBCATEGORÍA (DINÁMICO) */}
+        {categoria && (
+          <div>
+            <label className="font-medium">Subcategoría</label>
+            <select
+              value={subCategoria}
+              onChange={(e) => setSubCategoria(e.target.value)}
+              className="w-full border p-2 rounded-xl mt-1 cursor-pointer"
+            >
+              <option value="" disabled>
+                Seleccionar subcategoría
+              </option>
+              {categoriasMap[categoria].map((sub) => (
+                <option key={sub} value={sub}>
+                  {sub}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* ✅ INPUT DESCRIPCIÓN */}
+        <div>
+          <label className="font-medium text-gray-700">Descripción</label>
           <input
             type="text"
-            placeholder="Descripción"
+            placeholder="Ej: Pago del hosting mensual"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg p-2"
+            className="w-full border border-gray-300 rounded-lg p-2 mt-1"
           />
+        </div>
+
+        {/* ✅ INPUT MONTO */}
+        <div>
+          <label className="font-medium text-gray-700">Monto</label>
           <input
             type="number"
-            placeholder="Monto"
+            placeholder="Ej: 150000"
             value={monto}
             onChange={(e) => setMonto(Number(e.target.value))}
-            className="w-full border border-gray-300 rounded-lg p-2"
+            className="w-full border border-gray-300 rounded-lg p-2 mt-1"
           />
         </div>
 
@@ -180,7 +289,7 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
           <button
             type="button"
             onClick={agregarEgreso}
-            disabled={!descripcion.trim() || monto <= 0}
+            disabled={!categoria || !subCategoria || monto <= 0}
             className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:bg-gray-400 cursor-pointer"
           >
             Agregar

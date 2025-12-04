@@ -10,7 +10,11 @@ type Egresos = {
   };
   Egreso?: number;
   Descripcion?: string;
+  categoria: string;
+  subcategoria: string;
   created_at: string;
+  recurrente: string;
+  divisa: string;
 };
 
 type Props = {
@@ -38,6 +42,8 @@ export function TableEgresos({ egresos, isLoading, refetchEgresos }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-100 border-b text-gray-700">
+              <th className="text-left p-3">Categoria</th>
+              <th className="text-left p-3">Subcategoria</th>
               <th className="text-left p-3">Descripción</th>
               <th className="text-left p-3">Usuario</th>
               <th className="text-right p-3">Monto</th>
@@ -70,13 +76,18 @@ export function TableEgresos({ egresos, isLoading, refetchEgresos }: Props) {
                     i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
                   }`}
                 >
+                  <td className="p-3">{item.categoria || "-"}</td>
+                  <td className="p-3">{item.subcategoria || "-"}</td>
                   <td className="p-3">{item.Descripcion || "-"}</td>
                   <td className="p-3">{item.profiles?.nombre || "-"}</td>
                   <td className="text-right font-semibold text-red-600 p-3">
-                    ${Number(item.Egreso || 0).toLocaleString()}
+                    {item.divisa} ${Number(item.Egreso || 0).toLocaleString()}
                   </td>
                   <td className="p-3">
                     {new Date(item.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="p-3">
+                    {new Date(item.recurrente).toLocaleDateString()}
                   </td>
                 </tr>
               ))}

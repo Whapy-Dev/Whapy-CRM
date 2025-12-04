@@ -7,36 +7,18 @@ const supabase = createClient();
 
 export type Budget = {
   id: string;
-  title: string;
-  amount_total: number;
-  status: "presentado" | "aceptado" | "rechazado" | "en revision";
-  currency: string;
-  pdf_url: string;
+  divisa: string;
+  monto: number;
+  estado: "En revisión" | "Aceptado" | "Rechazado";
+  project_id: string;
   created_at: string;
-  duracion_estimada: string;
-  modalidad_pago: string;
-  profiles: {
-    nombre: string;
-    created_at: string;
-  } | null;
 };
 
-export function useBudgets() {
+export function usePresupuestos() {
   return useQuery({
-    queryKey: ["budgets"],
+    queryKey: ["presupuestos"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("budgets")
-        .select(
-          `
-          *,
-          profiles (
-            nombre,
-            created_at
-          )
-        `
-        )
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("presupuestos").select("*");
 
       if (error) throw error;
       return data;

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Document, Project } from "../page";
+import { Client, Document, Project } from "../page";
 import { createClient } from "@/lib/supabase/client";
 import { AlertCircle, X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 type ClientDocumentsModalProps = {
   show: boolean;
   project: Project | null;
+  client: Client;
   onClose: () => void;
   refetchProfile: () => void;
 };
@@ -17,9 +19,11 @@ const supabase = createClient();
 export default function ShowDocumentsClientModal({
   show,
   project,
+  client,
   onClose,
   refetchProfile,
 }: ClientDocumentsModalProps) {
+  const { user } = useAuth();
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
@@ -46,6 +50,16 @@ export default function ShowDocumentsClientModal({
         console.error("Error en Supabase:", error);
         setError("Error eliminando el documento.");
       } else {
+        const { error } = await supabase.from("historial_actividad").insert([
+          {
+            usuario_modificador_id: user?.id,
+            accion: "Eliminó un documento",
+            usuario_modificado: client?.nombre,
+            seccion: "Usuarios",
+          },
+        ]);
+
+        if (error) throw error;
         await refetchProfile();
         setSelectedDocument(null);
       }

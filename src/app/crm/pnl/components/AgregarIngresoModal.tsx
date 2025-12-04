@@ -11,6 +11,14 @@ type Props = {
 export const argentinaNow = new Date().toLocaleString("en-US", {
   timeZone: "America/Argentina/Buenos_Aires",
 });
+export type cuotas = {
+  id: number;
+  cuota: string;
+  detalle: string;
+  monto: number;
+  presupuesto_id: string;
+  vencimiento: string;
+};
 export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
   const { user } = useAuth();
   const { data: dataClientProject = [], isLoading } = useClientProject();
@@ -19,6 +27,9 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
   const [descripcion, setDescripcion] = useState("");
   const [project, setProject] = useState("");
   const [projectTitle, setProjectTitle] = useState("");
+  const [cuotasPendientes, setCuotasPendientes] = useState<cuotas[]>([]);
+  const [cuotaSeleccionada, setCuotaSeleccionada] = useState(0);
+
   const [busqueda, setBusqueda] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -53,6 +64,36 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
   const filtrados = dataClientProject.filter((p) =>
     p.title.toLowerCase().includes(busqueda.toLowerCase())
   );
+  async function cargarCuotas(projectId: string) {
+    const supabase = createClient();
+
+    // Obtener presupuesto del proyecto
+    const { data: presupuesto, error: errorPresupuesto } = await supabase
+      .from("presupuestos")
+      .select("id")
+      .eq("project_id", projectId)
+      .single();
+
+    if (errorPresupuesto || !presupuesto) {
+      setCuotasPendientes([]);
+      return;
+    }
+
+    // Obtener cuotas pendientes de ese presupuesto
+    const { data: cuotas, error: errorCuotas } = await supabase
+      .from("pago_cuotas")
+      .select("*")
+      .eq("presupuesto_id", presupuesto.id)
+      .eq("estado", "Pendiente de pago");
+
+    if (errorCuotas) {
+      console.error("Error al obtener cuotas:", errorCuotas);
+      setCuotasPendientes([]);
+      return;
+    }
+
+    setCuotasPendientes(cuotas || []);
+  }
 
   async function agregarEgreso() {
     const supabase = createClient();
@@ -65,12 +106,20 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
 
     try {
       const { error } = await supabase.from("Ingresos").insert({
-        project_id: project || null, // si está vacío, se guarda null ✅
+        nombre: `Proyecto: ${projectTitle}`,
         Ingreso: monto,
         Descripcion: descripcion,
         created_at: new Date(argentinaNow).toISOString(),
+        pago_cuota_id: cuotaSeleccionada,
       });
 
+      const { error: errorPagoCuota } = await supabase
+        .from("pago_cuotas")
+        .update({
+          estado: "Pagada",
+        })
+        .eq("id", cuotaSeleccionada);
+      if (errorPagoCuota) throw errorPagoCuota;
       const { error: errorHistory } = await supabase
         .from("historial_actividad")
         .insert([
@@ -100,7 +149,7 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-gray-200">
-        <h2 className="text-xl font-semibold mb-4">Agregar Egreso</h2>
+        <h2 className="text-xl font-semibold mb-4">Agregar Ingreso</h2>
 
         {/* ✅ SELECT OPCIONAL */}
         <div className="relative w-full mb-3">
@@ -139,6 +188,8 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
                       setProject(p.id);
                       setOpen(false);
                       setBusqueda("");
+
+                      cargarCuotas(p.id);
                     }}
                     className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded-lg"
                   >
@@ -155,6 +206,34 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
             </div>
           )}
         </div>
+        {project && cuotasPendientes.length > 0 && (
+          <div className="w-full mt-3">
+            <label className="text-sm text-gray-600">
+              Seleccionar cuota a pagar
+            </label>
+            <select
+              value={cuotaSeleccionada}
+              onChange={(e) => {
+                const cuotaId = Number(e.target.value);
+                setCuotaSeleccionada(cuotaId);
+
+                const cuota = cuotasPendientes.find((c) => c.id === cuotaId);
+                if (cuota) {
+                  setMonto(cuota.monto);
+                  setDescripcion(cuota.detalle);
+                }
+              }}
+              className="w-full border border-gray-300 rounded-lg p-2 bg-white mt-1"
+            >
+              <option value="">Elegir cuota...</option>
+              {cuotasPendientes.map((cuota) => (
+                <option key={cuota.id} value={cuota.id}>
+                  Cuota #{cuota.cuota} — {cuota.detalle} — ${cuota.monto}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* ✅ INPUTS OBLIGATORIOS */}
         <div className="space-y-3">
@@ -189,7 +268,7 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
           <button
             type="button"
             onClick={agregarEgreso}
-            disabled={!descripcion.trim() || monto <= 0} // 👈 ya no depende del select ✅
+            disabled={Boolean(project) && (!cuotaSeleccionada || monto <= 0)}
             className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:bg-gray-400 cursor-pointer"
           >
             Agregar

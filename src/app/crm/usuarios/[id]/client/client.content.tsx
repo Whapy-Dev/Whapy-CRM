@@ -13,7 +13,7 @@ import EditProjectModal from "../../components/Editprojectmodal";
 import AccessModal from "../../components/AccessModal";
 import { useAuth } from "@/hooks/useAuth";
 import AssignBudgetModal from "../../components/AssignBudgetModal";
-import AssignAnexoModal from "../../components/AssignAnexoModal";
+import EditBudgetModal from "../../components/EditBudgetModal";
 
 type ClientDetailsPageProps = {
   client: Client;
@@ -51,38 +51,18 @@ export default function ClientContentPage({
 
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showNewPresupuesto, setShowNewPresupuesto] = useState(false);
-  const [showAnexoModal, setShowAnexoModal] = useState(false);
+  const [showEditBudgetModal, setShowEditBudgetModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showAccessModal, setShowAccessModal] = useState(false);
   const onEditProject = (project: Project) => {
     setSelectedProject(project);
     setShowEditProject(true);
   };
+
   const projects: Project[] =
-    client.project_users?.map((pu) => pu.project) || [];
-  const projectsAdaptados = projects
-    .filter((p) => (p.presupuestos?.[0]?.monto ?? 0) > 0)
-    .map((p) => ({
-      id: p.id,
-      title: p.title,
-      presupuestos: [
-        {
-          monto: p.presupuestos?.[0]?.monto,
-          estado: p.presupuestos?.[0]?.estado,
-          divisa: p.presupuestos?.[0]?.divisa,
-          profiles: p.presupuestos?.[0]?.profiles
-            ? { nombre: p.presupuestos[0].profiles.nombre }
-            : null,
-        },
-      ] as [
-        {
-          monto: number;
-          estado: string;
-          divisa: string;
-          profiles?: { nombre?: string } | null;
-        }
-      ],
-    }));
+    client.project_users
+      ?.map((pu) => pu.project)
+      .filter((p): p is Project => p !== null) || [];
 
   return (
     <>
@@ -100,15 +80,16 @@ export default function ClientContentPage({
             >
               Eliminar cuenta
             </button>
-            {(roleAdmin === "CEO" || roleAdmin === "COO") && (
+            {(roleAdmin === "CEO" ||
+              roleAdmin === "COO" ||
+              roleAdmin === "QA") && (
               <>
                 <button
                   className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
-                  onClick={() => setShowAnexoModal(true)}
+                  onClick={() => setShowEditBudgetModal(true)}
                 >
-                  Anexo presupuesto
+                  Editar Presupuestos
                 </button>
-
                 <button
                   className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
                   onClick={() => setShowNewPresupuesto(true)}
@@ -172,7 +153,9 @@ export default function ClientContentPage({
               <p>
                 <strong>País:</strong> {client.pais || "—"}
               </p>
-              {(roleAdmin === "CEO" || roleAdmin === "COO") && (
+              {(roleAdmin === "CEO" ||
+                roleAdmin === "COO" ||
+                roleAdmin === "QA") && (
                 <button
                   type="button"
                   onClick={() => setShowAccessModal(true)}
@@ -299,12 +282,14 @@ export default function ClientContentPage({
         projects={projects}
         clientNombre={client.nombre}
         onClose={() => setShowNewPresupuesto(false)}
+        refetchProfile={refetchProfile}
       />
-      <AssignAnexoModal
-        show={showAnexoModal}
-        projects={projectsAdaptados}
+      <EditBudgetModal
+        show={showEditBudgetModal}
+        projects={projects.filter((p) => p.presupuesto !== null)}
         clientNombre={client.nombre}
-        onClose={() => setShowAnexoModal(false)}
+        onClose={() => setShowEditBudgetModal(false)}
+        refetchProfile={refetchProfile}
       />
       ;
     </>

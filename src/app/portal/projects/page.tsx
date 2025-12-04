@@ -7,7 +7,7 @@ import { useProjectsUser } from "@/hooks/user/projectsUser";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ProjectsPage() {
-  const { user,  loading  } = useAuth();
+  const { user, loading } = useAuth();
   const {
     data: projectsData = [],
     isLoading: isLoadingProjects,

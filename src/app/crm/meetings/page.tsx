@@ -6,7 +6,7 @@ import { useAllMeetings } from "@/hooks/admin/useAllMeetings";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
-const allowedRoles = ["CEO", "COO"];
+const allowedRoles = ["CEO", "COO", "QA"];
 export default function MeetingsPage() {
   const { roleAdmin } = useAuth();
   const router = useRouter();

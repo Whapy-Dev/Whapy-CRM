@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
 
-const allowedRoles = ["CEO", "COO", "Desarrollador", "Diseñador"];
+const allowedRoles = ["CEO", "COO", "Desarrollador", "Diseñador", "QA"];
 
 export default function ProjectsPage() {
   const { roleAdmin } = useAuth();
@@ -20,7 +20,7 @@ export default function ProjectsPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  console.log(projects);
+
   useEffect(() => {
     if (roleAdmin) {
       if (roleAdmin === "Sales manager") {

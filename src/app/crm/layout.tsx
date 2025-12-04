@@ -25,7 +25,7 @@ const getPermissions = (roleAdmin: string | null) => {
     return { accessAll: false, canUsers: false, onlyProjects: true };
   }
 
-  if (roleAdmin === "CEO" || roleAdmin === "COO") {
+  if (roleAdmin === "CEO" || roleAdmin === "COO" || roleAdmin === "QA") {
     return { accessAll: true, canUsers: true, onlyProjects: false };
   }
 
@@ -58,18 +58,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       icon: LayoutDashboard,
       permission: permissions.accessAll,
     },
-    {
-      name: "Leads (uncompleted)",
-      href: "/crm/leads",
-      icon: Users,
-      permission: permissions.accessAll,
-    },
-    {
-      name: "Presupuestos",
-      href: "/crm/budgets",
-      icon: FileText,
-      permission: permissions.accessAll,
-    },
+
     {
       name: "Reuniones",
       href: "/crm/meetings",

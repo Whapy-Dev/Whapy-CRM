@@ -87,7 +87,7 @@ export default function AssignProjectModal({
         const { error } = await supabase.from("historial_actividad").insert([
           {
             usuario_modificador_id: user?.id,
-            accion: "Creo un nuevo proyecto",
+            accion: "Creó un nuevo proyecto",
             usuario_modificado: client?.nombre,
             seccion: "Usuarios",
           },

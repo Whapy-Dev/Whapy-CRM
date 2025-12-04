@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useProfileById } from "@/hooks/admin/useProfiles";
 import ClientContentPage from "./client.content";
 

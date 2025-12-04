@@ -11,7 +11,7 @@ export function useClientProject() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title");
+        .select("id, title, profile(nombre)");
 
       if (error) throw error;
       return data;

@@ -6,7 +6,7 @@ import { UserTable } from "./components/AccesosTable";
 import { CreateAccessModal } from "./components/CreateAccessModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-const allowedRoles = ["CEO", "COO"];
+const allowedRoles = ["CEO", "COO", "QA"];
 export default function Page() {
   const { roleAdmin } = useAuth();
   const router = useRouter();

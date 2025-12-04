@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useProfiles } from "@/hooks/admin/useProfiles";
 
-import { Plus, Search } from "lucide-react";
+import { Calendar, DollarSign, FileText, Plus, Search } from "lucide-react";
 import ClientsTable from "./components/Clientstable";
 import CreateAccountModal from "./components/Createaccountmodal";
 import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { Budget, usePresupuestos } from "@/hooks/admin/useBudgets";
 
 export type Document = {
   id: string;
@@ -67,16 +68,19 @@ export type Project = {
   progress: number;
   documents?: Document[] | null;
   videos?: Video[] | null;
-  presupuestos?:
-    | {
-        monto: number;
-        estado: string;
-        divisa: string;
-        profiles?: {
-          nombre: string;
-        };
-      }[]
-    | null;
+  presupuesto?: {
+    id: string;
+    monto: number;
+    estado: string;
+    divisa: string;
+    created_at: string;
+    presupuestos_employees?: {
+      profiles: {
+        id: string;
+        nombre: string;
+      };
+    }[];
+  } | null;
 };
 
 export type Pasos = {
@@ -133,7 +137,14 @@ export type InsertMeetingData = {
   lead_id?: string;
   user_id?: string;
 };
-const allowedRoles = ["CEO", "COO", "Sales manager"];
+const formatCurrency = (monto: number, divisa: string) => {
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: divisa || "USD",
+    minimumFractionDigits: 0,
+  }).format(monto);
+};
+const allowedRoles = ["CEO", "COO", "Sales manager", "QA"];
 export default function ClientsPageUnsafe() {
   const { roleAdmin } = useAuth();
   const router = useRouter();
@@ -154,16 +165,17 @@ export default function ClientsPageUnsafe() {
     error: errorProfiles,
     refetch: refetchProfiles,
   } = useProfiles();
-
+  const { data: budgets = [], refetch } = usePresupuestos();
   // Estados de selección
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   // Estados de modales
   const [showModal, setShowModal] = useState(false);
-  const [showClientModal, setShowClientModal] = useState(false);
   // Estados de búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTipo, setSelectedTipo] = useState("");
   const [selectedEstado, setSelectedEstado] = useState("");
+  const [selectedBudgetEstado, setSelectedBudgetEstado] = useState("");
+  const [montoDesde, setMontoDesde] = useState(0);
+  const [montoHasta, setMontoHasta] = useState(0);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -212,11 +224,15 @@ export default function ClientsPageUnsafe() {
     return {
       ...client,
       estado,
+      budgets:
+        client.projects
+          ?.map((p) => p.presupuesto)
+          .filter((b) => b !== null && b !== undefined) || [],
     };
   });
 
-  // Filtrado de clientes
   const term = searchTerm.toLowerCase();
+
   const filteredAccounts = normalizedProfiles.filter((profile) => {
     const matchesSearch =
       (profile.nombre?.toLowerCase() || "").includes(term) ||
@@ -231,8 +247,46 @@ export default function ClientsPageUnsafe() {
       selectedEstado === "" ||
       profile.estado.toLowerCase() === selectedEstado.toLowerCase();
 
-    return matchesSearch && matchesTipo && matchesEstado;
+    const matchesBudgetEstado =
+      selectedBudgetEstado === "" ||
+      profile.budgets.some((b) => b.estado === selectedBudgetEstado);
+
+    const matchesMonto =
+      (montoDesde === 0 && montoHasta === 0) ||
+      profile.budgets.some((b) => {
+        const monto = b.monto || 0;
+        return (
+          (montoDesde === 0 || monto >= montoDesde) &&
+          (montoHasta === 0 || monto <= montoHasta)
+        );
+      });
+
+    return (
+      matchesSearch &&
+      matchesTipo &&
+      matchesEstado &&
+      matchesBudgetEstado &&
+      matchesMonto
+    );
   });
+
+  const allBudgets = normalizedProfiles.flatMap((a) => a.budgets);
+
+  const totalByStatus = (estado: string, divisa?: string) => {
+    return allBudgets
+      .filter((b) => b.estado === estado && (!divisa || b.divisa === divisa))
+      .reduce((sum, b) => sum + (b.monto || 0), 0);
+  };
+
+  const totalPresentado = allBudgets.reduce(
+    (sum, b) => sum + (b.monto || 0),
+    0
+  );
+  const totalAceptado = totalByStatus("Aceptado", "USD");
+  const totalRevision = totalByStatus("En revisión", "USD");
+  const totalRechazados = allBudgets.filter(
+    (b) => b.estado === "Rechazado"
+  ).length;
 
   return (
     <>
@@ -245,59 +299,175 @@ export default function ClientsPageUnsafe() {
             Gestiona tus clientes y crea cuentas para acceder al portal
           </p>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Presentado</p>
+                <p className="text-2xl font-bold text-blue-600 mt-1">
+                  {formatCurrency(totalPresentado, "USD")}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <FileText className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Aceptado</p>
+                <p className="text-2xl font-bold text-green-600 mt-1">
+                  {formatCurrency(totalAceptado, "USD")}
+                </p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-lg">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">En Revisión</p>
+                <p className="text-2xl font-bold text-yellow-600 mt-1">
+                  {formatCurrency(totalRevision, "USD")}
+                </p>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-lg">
+                <Calendar className="w-6 h-6 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Rechazados</p>
+                <p className="text-2xl font-bold text-red-600 mt-1">
+                  {totalRechazados}
+                </p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <FileText className="w-6 h-6 text-gray-600" />
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Acciones y búsqueda */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar usuarios..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-            />
+          {/* 🔍 BUSCADOR */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600 mb-1">
+              Buscar usuario:
+            </label>
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar usuarios..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              />
+            </div>
           </div>
-          <select
-            value={selectedTipo}
-            onChange={(e) => setSelectedTipo(e.target.value)}
-            className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Todas los usuarios</option>
-            <option value="Cliente">Cliente</option>
-            <option value="Lead">Lead</option>
-          </select>
 
-          <select
-            value={selectedEstado}
-            onChange={(e) => setSelectedEstado(e.target.value)}
-            className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Tipo de usuario</option>
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
-            <option value="Sin proyectos">Sin proyectos</option>
-          </select>
+          {/* 👤 FILTRO POR TIPO */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600 mb-1">
+              Filtrar por rol:
+            </label>
+            <select
+              value={selectedTipo}
+              onChange={(e) => setSelectedTipo(e.target.value)}
+              className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Todos los usuarios</option>
+              <option value="Cliente">Cliente</option>
+              <option value="Lead">Lead</option>
+            </select>
+          </div>
 
-          <button
-            onClick={() => {
-              setShowModal(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Crear Cuenta de usuario
-          </button>
+          {/* ✅ FILTRO POR ESTADO */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600 mb-1">
+              Filtrar por estado:
+            </label>
+            <select
+              value={selectedEstado}
+              onChange={(e) => setSelectedEstado(e.target.value)}
+              className="pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Cualquier estado</option>
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+              <option value="Sin proyectos">Sin proyectos</option>
+            </select>
+          </div>
+
+          {/* 💰 FILTRO POR ESTADO DE PRESUPUESTO */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600 mb-1">
+              Estado del presupuesto:
+            </label>
+            <select
+              value={selectedBudgetEstado}
+              onChange={(e) => setSelectedBudgetEstado(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="">Todos los presupuestos</option>
+              <option value="Aceptado">Aceptado</option>
+              <option value="En revisión">En revisión</option>
+              <option value="Rechazado">Rechazado</option>
+            </select>
+          </div>
+
+          {/* 📊 FILTRO POR MONTO */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600 mb-1">
+              Rango de monto:
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="Desde"
+                value={montoDesde}
+                onChange={(e) => setMontoDesde(Number(e.target.value))}
+                className="w-28 px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              <span className="text-gray-500">-</span>
+              <input
+                type="number"
+                placeholder="Hasta"
+                value={montoHasta}
+                onChange={(e) => setMontoHasta(Number(e.target.value))}
+                className="w-28 px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+
+          {/* ➕ BOTÓN CREAR CUENTA */}
+          <div className="flex flex-col sm:self-end">
+            <label className="text-sm font-medium text-transparent mb-1">
+              .
+            </label>{" "}
+            {/* Espacio para alinear */}
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Crear Cuenta de usuario
+            </button>
+          </div>
         </div>
 
         {/* Tabla de clientes */}
-        <ClientsTable
-          clients={filteredAccounts}
-          onClientClick={(client) => {
-            setSelectedClient(client);
-            setShowClientModal(true);
-          }}
-        />
+        <ClientsTable clients={filteredAccounts} />
 
         {/* Modal Crear Cuenta */}
         <CreateAccountModal
