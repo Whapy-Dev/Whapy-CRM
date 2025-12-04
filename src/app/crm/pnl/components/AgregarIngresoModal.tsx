@@ -199,7 +199,7 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
 
                 {filtrados.length === 0 && (
                   <div className="px-3 py-1 text-gray-500 text-sm">
-                    No se encontraron usuarios
+                    No se encontraron proyectos
                   </div>
                 )}
               </div>

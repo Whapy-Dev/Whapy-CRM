@@ -173,7 +173,7 @@ export default function AssignBudgetModal({
               Seleccionar Estado
             </option>
             <option value="Rechazado">Rechazado</option>
-            <option value="En revision">En revision</option>
+            <option value="En revisión">En revision</option>
           </select>
           <select
             value={presupuestoDivisa}

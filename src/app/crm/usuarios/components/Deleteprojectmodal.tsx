@@ -32,7 +32,7 @@ export default function DeleteProjectModal({
         .from("presupuestos")
         .select("id")
         .eq("project_id", project.id)
-        .single(); // 👈 esto hace que no sea array, sino objeto
+        .maybeSingle(); // 👈 esto hace que no sea array, sino objeto
 
       if (errorPresupuesto) {
         console.error("Error buscando presupuesto:", errorPresupuesto);
@@ -40,28 +40,34 @@ export default function DeleteProjectModal({
       }
 
       const presupuestoId = data?.id;
-      if (!presupuestoId) return;
 
-      const { error: errorAnexo } = await supabase
-        .from("anexos")
-        .delete()
-        .eq("presupuesto_id", presupuestoId);
+      if (!presupuestoId) {
+        console.log(
+          "No hay presupuesto asociado, se saltan borrados de anexos y cuotas"
+        );
+      } else {
+        // Borrar anexos
+        const { error: errorAnexo } = await supabase
+          .from("anexos")
+          .delete()
+          .eq("presupuesto_id", presupuestoId);
+        if (errorAnexo) throw errorAnexo;
 
-      if (errorAnexo) throw errorAnexo;
-      const { error: errorCuotas } = await supabase
-        .from("pago_cuotas")
-        .delete()
-        .eq("presupuesto_id", presupuestoId)
-        .eq("estado", "Pendiente de pago");
+        // Borrar cuotas pendientes
+        const { error: errorCuotas } = await supabase
+          .from("pago_cuotas")
+          .delete()
+          .eq("presupuesto_id", presupuestoId)
+          .eq("estado", "Pendiente de pago");
+        if (errorCuotas) throw errorCuotas;
 
-      if (errorCuotas) throw errorCuotas;
-
-      const { error: errorPresupuestos } = await supabase
-        .from("presupuestos")
-        .delete()
-        .eq("project_id", project.id);
-
-      if (errorPresupuestos) throw errorPresupuestos;
+        // Borrar presupuesto
+        const { error: errorPresupuestos } = await supabase
+          .from("presupuestos")
+          .delete()
+          .eq("id", presupuestoId);
+        if (errorPresupuestos) throw errorPresupuestos;
+      }
 
       const { error: errorProjectsEmplooyes } = await supabase
         .from("project_emplooyes")

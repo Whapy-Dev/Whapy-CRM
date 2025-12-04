@@ -12,7 +12,7 @@ export function useIngresos() {
       const { data, error } = await supabase
         .from("Ingresos")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       return data;
