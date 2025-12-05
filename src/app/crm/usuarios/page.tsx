@@ -176,6 +176,8 @@ export default function ClientsPageUnsafe() {
   const [selectedBudgetEstado, setSelectedBudgetEstado] = useState("");
   const [montoDesde, setMontoDesde] = useState(0);
   const [montoHasta, setMontoHasta] = useState(0);
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -261,12 +263,25 @@ export default function ClientsPageUnsafe() {
         );
       });
 
+    const matchesFechaPresupuesto =
+      (fechaDesde === "" && fechaHasta === "") ||
+      profile.budgets.some((b) => {
+        const fechaCreacion = new Date(b.created_at);
+        const desde = fechaDesde ? new Date(fechaDesde) : null;
+        const hasta = fechaHasta ? new Date(fechaHasta + "T23:59:59") : null;
+        return (
+          (!desde || fechaCreacion >= desde) &&
+          (!hasta || fechaCreacion <= hasta)
+        );
+      });
+
     return (
       matchesSearch &&
       matchesTipo &&
       matchesEstado &&
       matchesBudgetEstado &&
-      matchesMonto
+      matchesMonto &&
+      matchesFechaPresupuesto
     );
   });
 
@@ -466,7 +481,27 @@ export default function ClientsPageUnsafe() {
               />
             </div>
           </div>
-
+          {/* 📅 FILTRO POR FECHA DE PRESUPUESTO */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600 mb-1">
+              Fecha de presupuesto:
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={fechaDesde}
+                onChange={(e) => setFechaDesde(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <span className="text-gray-500">-</span>
+              <input
+                type="date"
+                value={fechaHasta}
+                onChange={(e) => setFechaHasta(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
           {/* ➕ BOTÓN CREAR CUENTA */}
           <div className="flex flex-col sm:self-end">
             <label className="text-sm font-medium text-transparent mb-1">

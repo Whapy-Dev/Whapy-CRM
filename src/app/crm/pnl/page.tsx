@@ -51,7 +51,8 @@ interface Egreso {
   subcategoria: string;
   divisa: string;
 }
-function getDateRange(filtro: "hoy" | "semana" | "mes") {
+
+function getDateRange(filtro: "hoy" | "semana" | "mes" | "custom") {
   const now = new Date();
   const start = new Date(now);
   const end = new Date(now);
@@ -61,13 +62,11 @@ function getDateRange(filtro: "hoy" | "semana" | "mes") {
   }
 
   if (filtro === "semana") {
-    // Retrocede 6 días para incluir los últimos 7 días
     start.setDate(now.getDate() - 6);
     start.setHours(0, 0, 0, 0);
   }
 
   if (filtro === "mes") {
-    // Retrocede 29 días para incluir los últimos 30 días
     start.setDate(now.getDate() - 29);
     start.setHours(0, 0, 0, 0);
   }
@@ -77,7 +76,18 @@ function getDateRange(filtro: "hoy" | "semana" | "mes") {
   return { start, end };
 }
 
+// Helper para filtrar por rango de fechas personalizado
+function filterByDateRange(fecha: Date, desde: string, hasta: string): boolean {
+  if (!desde && !hasta) return true;
+  const desdeDate = desde ? new Date(desde) : null;
+  const hastaDate = hasta ? new Date(hasta + "T23:59:59") : null;
+  return (
+    (!desdeDate || fecha >= desdeDate) && (!hastaDate || fecha <= hastaDate)
+  );
+}
+
 const allowedRoles = ["CEO", "COO", "QA"];
+
 export default function FinanzasPage() {
   const { roleAdmin } = useAuth();
   const router = useRouter();
@@ -97,18 +107,25 @@ export default function FinanzasPage() {
   const ingresosTyped = ingresos as Ingreso[];
   const egresosTyped = egresos as Egreso[];
 
-  // ======== FILTROS ========
-  // Inputs tipados directamente acá, sin reutilizar componentes
-  const [filtroFecha, setFiltroFecha] = useState<"hoy" | "semana" | "mes">(
-    "mes"
-  );
+  // ======== FILTROS GLOBALES (PNL) ========
+  const [filtroFecha, setFiltroFecha] = useState<
+    "hoy" | "semana" | "mes" | "custom"
+  >("mes");
+  const [fechaGlobalDesde, setFechaGlobalDesde] = useState("");
+  const [fechaGlobalHasta, setFechaGlobalHasta] = useState("");
+
+  // ======== FILTROS INDIVIDUALES ========
   const [vista, setVista] = useState<"ingresos" | "egresos" | "todos">("todos");
+  const [searchIngresos, setSearchIngresos] = useState("");
+  const [searchEgresos, setSearchEgresos] = useState("");
 
-  const [searchIngresos, setSearchIngresos] = useState<string>("");
+  // Filtros de fecha individuales
+  const [fechaIngresosDesde, setFechaIngresosDesde] = useState("");
+  const [fechaIngresosHasta, setFechaIngresosHasta] = useState("");
+  const [fechaEgresosDesde, setFechaEgresosDesde] = useState("");
+  const [fechaEgresosHasta, setFechaEgresosHasta] = useState("");
 
-  const [searchEgresos, setSearchEgresos] = useState<string>("");
-
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = todavía no sabemos
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (roleAdmin) {
@@ -140,32 +157,45 @@ export default function FinanzasPage() {
   if (!hasAccess) {
     return null;
   }
-  const { start, end } = getDateRange(filtroFecha);
-  // ======== TOTALES ========
+
+  // ======== LÓGICA DE FILTRADO GLOBAL (PNL) ========
+  const filterForPNL = (fecha: Date): boolean => {
+    if (filtroFecha === "custom") {
+      return filterByDateRange(fecha, fechaGlobalDesde, fechaGlobalHasta);
+    }
+    const { start, end } = getDateRange(filtroFecha);
+    return fecha >= start && fecha <= end;
+  };
+
+  // ======== TOTALES (PNL) ========
   const totalIngresos = ingresosTyped
-    .filter((row) => {
-      const fecha = new Date(row.created_at);
-      return fecha >= start && fecha <= end;
-    })
+    .filter((row) => filterForPNL(new Date(row.created_at)))
     .reduce((acc, row) => acc + (Number(row.Ingreso) || 0), 0);
 
   const totalEgresos = egresosTyped
-    .filter((row) => {
-      const fecha = new Date(row.created_at);
-      return fecha >= start && fecha <= end;
-    })
+    .filter((row) => filterForPNL(new Date(row.created_at)))
     .reduce((acc, row) => acc + (Number(row.Egreso) || 0), 0);
 
   const balanceFinal = totalIngresos - totalEgresos;
 
-  // ======== FILTRADO REAL ========
+  // ======== FILTRADO PARA TABLAS ========
   const ingresosFiltrados = ingresosTyped.filter((row) => {
     const texto = (row.Descripcion || "").toLowerCase();
     const coincideTexto = texto.includes(searchIngresos.toLowerCase());
-
     const fecha = new Date(row.created_at);
-    const coincideFiltroGlobal = fecha >= start && fecha <= end;
 
+    // En vista individual, usar filtros individuales; en "todos", usar filtro global
+    if (vista === "ingresos") {
+      const coincideFechaIndividual = filterByDateRange(
+        fecha,
+        fechaIngresosDesde,
+        fechaIngresosHasta
+      );
+      return coincideTexto && coincideFechaIndividual;
+    }
+
+    // Vista "todos": usar filtro global
+    const coincideFiltroGlobal = filterForPNL(fecha);
     return coincideTexto && coincideFiltroGlobal;
   });
 
@@ -177,45 +207,97 @@ export default function FinanzasPage() {
       ""
     ).toLowerCase();
     const coincideTexto = texto.includes(searchEgresos.toLowerCase());
-
     const fecha = new Date(row.created_at);
-    const coincideFiltroGlobal = fecha >= start && fecha <= end;
 
+    // En vista individual, usar filtros individuales; en "todos", usar filtro global
+    if (vista === "egresos") {
+      const coincideFechaIndividual = filterByDateRange(
+        fecha,
+        fechaEgresosDesde,
+        fechaEgresosHasta
+      );
+      return coincideTexto && coincideFechaIndividual;
+    }
+
+    // Vista "todos": usar filtro global
+    const coincideFiltroGlobal = filterForPNL(fecha);
     return coincideTexto && coincideFiltroGlobal;
   });
 
   return (
     <main className="min-h-screen bg-gray-100 p-8 space-y-8">
-      {/* ======== RESUMEN FINANCIERO ======== */}
-      <section className="flex gap-4 justify-center">
-        <button
-          onClick={() => setFiltroFecha("hoy")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
-            filtroFecha === "hoy" ? "bg-blue-600 text-white" : "bg-gray-50"
-          }`}
-        >
-          Hoy
-        </button>
+      {/* ======== FILTRO GLOBAL DE FECHA (PNL) ======== */}
+      <section className="bg-white p-4 rounded-2xl shadow-md border">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+          Filtro Global (PNL)
+        </h2>
+        <div className="flex flex-wrap gap-4 justify-center items-end">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFiltroFecha("hoy")}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+                filtroFecha === "hoy" ? "bg-blue-600 text-white" : "bg-gray-50"
+              }`}
+            >
+              Hoy
+            </button>
+            <button
+              onClick={() => setFiltroFecha("semana")}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+                filtroFecha === "semana"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-50"
+              }`}
+            >
+              Semana
+            </button>
+            <button
+              onClick={() => setFiltroFecha("mes")}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+                filtroFecha === "mes" ? "bg-blue-600 text-white" : "bg-gray-50"
+              }`}
+            >
+              Mes
+            </button>
+            <button
+              onClick={() => setFiltroFecha("custom")}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+                filtroFecha === "custom"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-50"
+              }`}
+            >
+              Personalizado
+            </button>
+          </div>
 
-        <button
-          onClick={() => setFiltroFecha("semana")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
-            filtroFecha === "semana" ? "bg-blue-600 text-white" : "bg-gray-50"
-          }`}
-        >
-          Semana
-        </button>
-
-        <button
-          onClick={() => setFiltroFecha("mes")}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
-            filtroFecha === "mes" ? "bg-blue-600 text-white" : "bg-gray-50"
-          }`}
-        >
-          Mes
-        </button>
+          {filtroFecha === "custom" && (
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Desde</label>
+                <input
+                  type="date"
+                  value={fechaGlobalDesde}
+                  onChange={(e) => setFechaGlobalDesde(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <span className="text-gray-400 mt-5">-</span>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Hasta</label>
+                <input
+                  type="date"
+                  value={fechaGlobalHasta}
+                  onChange={(e) => setFechaGlobalHasta(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </section>
 
+      {/* ======== RESUMEN FINANCIERO (PNL) ======== */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="rounded-2xl shadow-md border bg-white">
           <CardContent className="p-6">
@@ -261,6 +343,7 @@ export default function FinanzasPage() {
         </Card>
       </section>
 
+      {/* ======== SELECTOR DE VISTA ======== */}
       <section className="flex gap-4 justify-center">
         <button
           onClick={() => setVista("egresos")}
@@ -270,7 +353,6 @@ export default function FinanzasPage() {
         >
           Egresos
         </button>
-
         <button
           onClick={() => setVista("todos")}
           className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
@@ -279,7 +361,6 @@ export default function FinanzasPage() {
         >
           Todos
         </button>
-
         <button
           onClick={() => setVista("ingresos")}
           className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
@@ -289,45 +370,98 @@ export default function FinanzasPage() {
           Ingresos
         </button>
       </section>
-      {/* ======== FILTROS (tipados y profesionales, sin reutilizar componentes) ======== */}
+
+      {/* ======== FILTROS INDIVIDUALES ======== */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Egresos */}
-        <div className="bg-white p-6 rounded-2xl shadow-md border space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Filtrar Egresos
-          </h2>
+        {/* Filtro Egresos - Solo visible cuando vista es "egresos" o "todos" */}
+        {(vista === "egresos" || vista === "todos") && (
+          <div className="bg-white p-6 rounded-2xl shadow-md border space-y-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Filtrar Egresos
+            </h2>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">
-              Buscar por descripción
-            </label>
-            <input
-              className="border rounded-xl p-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 outline-none"
-              placeholder="Ej: pago, servicio, etc..."
-              value={searchEgresos}
-              onChange={(e) => setSearchEgresos(e.target.value)}
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-600">
+                Buscar por descripción
+              </label>
+              <input
+                className="border rounded-xl p-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 outline-none"
+                placeholder="Ej: pago, servicio, etc..."
+                value={searchEgresos}
+                onChange={(e) => setSearchEgresos(e.target.value)}
+              />
+            </div>
+
+            {/* Filtro de fecha individual - Solo en vista "egresos" */}
+            {vista === "egresos" && (
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-gray-600">
+                  Rango de fechas
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={fechaEgresosDesde}
+                    onChange={(e) => setFechaEgresosDesde(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <span className="text-gray-400">-</span>
+                  <input
+                    type="date"
+                    value={fechaEgresosHasta}
+                    onChange={(e) => setFechaEgresosHasta(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Ingresos */}
-        <div className="bg-white p-6 rounded-2xl shadow-md border space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Filtrar Ingresos
-          </h2>
+        {/* Filtro Ingresos - Solo visible cuando vista es "ingresos" o "todos" */}
+        {(vista === "ingresos" || vista === "todos") && (
+          <div className="bg-white p-6 rounded-2xl shadow-md border space-y-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Filtrar Ingresos
+            </h2>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">
-              Buscar por descripción
-            </label>
-            <input
-              className="border rounded-xl p-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 outline-none"
-              placeholder="Ej: transferencia, contrato, etc..."
-              value={searchIngresos}
-              onChange={(e) => setSearchIngresos(e.target.value)}
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-600">
+                Buscar por descripción
+              </label>
+              <input
+                className="border rounded-xl p-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 outline-none"
+                placeholder="Ej: transferencia, contrato, etc..."
+                value={searchIngresos}
+                onChange={(e) => setSearchIngresos(e.target.value)}
+              />
+            </div>
+
+            {/* Filtro de fecha individual - Solo en vista "ingresos" */}
+            {vista === "ingresos" && (
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-gray-600">
+                  Rango de fechas
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={fechaIngresosDesde}
+                    onChange={(e) => setFechaIngresosDesde(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <span className="text-gray-400">-</span>
+                  <input
+                    type="date"
+                    value={fechaIngresosHasta}
+                    onChange={(e) => setFechaIngresosHasta(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </section>
 
       {/* ======== TABLAS ======== */}
