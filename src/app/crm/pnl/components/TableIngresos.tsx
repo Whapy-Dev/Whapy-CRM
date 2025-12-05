@@ -49,6 +49,7 @@ export function TableIngresos({ ingresos, isLoading, refetchIngresos }: Props) {
               <th className="text-right p-3">Monto</th>
               <th className="text-left p-3">Fecha</th>
               <th className="text-left p-3">Recurrente</th>
+              <th className="text-left p-3">Acciones</th>
             </tr>
           </thead>
 

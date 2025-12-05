@@ -282,6 +282,9 @@ export default function ClientsPageUnsafe() {
     (sum, b) => sum + (b.monto || 0),
     0
   );
+  const totalSinPresentar = allBudgets.filter(
+    (b) => b.estado === "Sin presentar"
+  ).length;
   const totalAceptado = totalByStatus("Aceptado", "USD");
   const totalRevision = totalByStatus("En revisión", "USD");
   const totalRechazados = allBudgets.filter(
@@ -299,7 +302,20 @@ export default function ClientsPageUnsafe() {
             Gestiona tus clientes y crea cuentas para acceder al portal
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Sin Presentar</p>
+                <p className="text-2xl font-bold text-gray-600 mt-1">
+                  {totalSinPresentar}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <FileText className="w-6 h-6 text-gray-600" />
+              </div>
+            </div>
+          </div>
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -420,6 +436,7 @@ export default function ClientsPageUnsafe() {
               className="px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">Todos los presupuestos</option>
+              <option value="Sin presentar">Sin presentar</option>
               <option value="Aceptado">Aceptado</option>
               <option value="En revisión">En revisión</option>
               <option value="Rechazado">Rechazado</option>

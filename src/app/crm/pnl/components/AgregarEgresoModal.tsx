@@ -142,6 +142,7 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
       setMonto(0);
       setDescripcion("");
       setUserId("");
+      setUserNombre("");
       setBusqueda("");
       await refetchEgresos();
       onClose();
@@ -162,9 +163,8 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
             onClick={() => setOpen(!open)}
             className="w-full border border-gray-300 rounded-lg p-2 text-left bg-white flex justify-between items-center"
           >
-            <span>
-              {dataProfiles.find((p) => p.id === user)?.nombre ||
-                "Seleccionar usuario"}
+            <span className={userNombre ? "text-gray-900" : "text-gray-500"}>
+              {userNombre || "Seleccionar usuario"}
             </span>
             <span className="text-gray-400 text-sm">▼</span>
           </button>
@@ -194,7 +194,11 @@ export function ModalAgregarEgreso({ onClose, refetchEgresos }: Props) {
                       setOpen(false);
                       setBusqueda("");
                     }}
-                    className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded-lg"
+                    className={`w-full text-left px-3 py-1 hover:bg-gray-100 rounded-lg ${
+                      userId === p.id
+                        ? "bg-blue-50 text-blue-600 font-medium"
+                        : ""
+                    }`}
                   >
                     {p.nombre}
                   </button>

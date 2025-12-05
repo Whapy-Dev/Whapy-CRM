@@ -38,6 +38,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
     "Presupuesto",
     "A realizar por",
     "Estado Presupuesto",
+    "Fecha de presupuesto",
     "Nombre",
     "Email",
     "Teléfono",
@@ -94,7 +95,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                     pre?.monto?.toLocaleString("es-AR") ?? 0
                   }`
               );
-
+              console.log(presupuestos);
               return (
                 <tr
                   key={client.id}
@@ -140,6 +141,26 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                           <div key={i}>{estado}</div>
                         ))
                       : "—"}
+                  </td>
+                  <td className="px-2 py-4 text-sm text-gray-700 text-center text-nowrap">
+                    {presupuestos?.[0]?.created_at ? (
+                      <>
+                        <div>
+                          {new Date(
+                            presupuestos[0].created_at
+                          ).toLocaleDateString("es-AR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {timeAgo(presupuestos[0].created_at)}
+                        </div>
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </td>
 
                   {/* resto de columnas sin cambios */}

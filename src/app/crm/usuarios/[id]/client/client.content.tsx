@@ -14,6 +14,7 @@ import AccessModal from "../../components/AccessModal";
 import { useAuth } from "@/hooks/useAuth";
 import AssignBudgetModal from "../../components/AssignBudgetModal";
 import EditBudgetModal from "../../components/EditBudgetModal";
+import BudgetModal from "../../components/EditBudgetModal";
 
 type ClientDetailsPageProps = {
   client: Client;
@@ -50,8 +51,7 @@ export default function ClientContentPage({
   const [showEditProject, setShowEditProject] = useState(false);
 
   const [showDocumentModal, setShowDocumentModal] = useState(false);
-  const [showNewPresupuesto, setShowNewPresupuesto] = useState(false);
-  const [showEditBudgetModal, setShowEditBudgetModal] = useState(false);
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showAccessModal, setShowAccessModal] = useState(false);
   const onEditProject = (project: Project) => {
@@ -86,15 +86,9 @@ export default function ClientContentPage({
               <>
                 <button
                   className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
-                  onClick={() => setShowEditBudgetModal(true)}
+                  onClick={() => setShowBudgetModal(true)}
                 >
                   Editar Presupuestos
-                </button>
-                <button
-                  className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium cursor-pointer"
-                  onClick={() => setShowNewPresupuesto(true)}
-                >
-                  Asignar presupuesto
                 </button>
               </>
             )}
@@ -277,18 +271,11 @@ export default function ClientContentPage({
         onClose={() => setShowAccessModal(false)}
         refetchProfile={refetchProfile}
       />
-      <AssignBudgetModal
-        show={showNewPresupuesto}
+      <BudgetModal
+        show={showBudgetModal}
         projects={projects}
         clientNombre={client.nombre}
-        onClose={() => setShowNewPresupuesto(false)}
-        refetchProfile={refetchProfile}
-      />
-      <EditBudgetModal
-        show={showEditBudgetModal}
-        projects={projects.filter((p) => p.presupuesto !== null)}
-        clientNombre={client.nombre}
-        onClose={() => setShowEditBudgetModal(false)}
+        onClose={() => setShowBudgetModal(false)}
         refetchProfile={refetchProfile}
       />
       ;

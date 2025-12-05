@@ -9,6 +9,8 @@ import { TableIngresos } from "./components/TableIngresos";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
+import { PieChartIngresos } from "./components/PieChartIngresos";
+import { PieChartEgresos } from "./components/PieChartEgresos";
 
 /** Relación con tabla Projects */
 interface ProjectRelation {
@@ -329,21 +331,45 @@ export default function FinanzasPage() {
       </section>
 
       {/* ======== TABLAS ======== */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {(vista === "egresos" || vista === "todos") && (
-          <TableEgresos
-            egresos={egresosFiltrados}
-            isLoading={loadingEgresos}
-            refetchEgresos={refetchEgresos}
-          />
+      <section className="space-y-6">
+        {/* Solo Egresos: tabla + gráfico */}
+        {vista === "egresos" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TableEgresos
+              egresos={egresosFiltrados}
+              isLoading={loadingEgresos}
+              refetchEgresos={refetchEgresos}
+            />
+            <PieChartEgresos egresos={egresosFiltrados} />
+          </div>
         )}
 
-        {(vista === "ingresos" || vista === "todos") && (
-          <TableIngresos
-            ingresos={ingresosFiltrados}
-            isLoading={loadingIngresos}
-            refetchIngresos={refetchIngresos}
-          />
+        {/* Solo Ingresos: tabla + gráfico */}
+        {vista === "ingresos" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TableIngresos
+              ingresos={ingresosFiltrados}
+              isLoading={loadingIngresos}
+              refetchIngresos={refetchIngresos}
+            />
+            <PieChartIngresos ingresos={ingresosFiltrados} />
+          </div>
+        )}
+
+        {/* Todos: solo tablas lado a lado */}
+        {vista === "todos" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TableEgresos
+              egresos={egresosFiltrados}
+              isLoading={loadingEgresos}
+              refetchEgresos={refetchEgresos}
+            />
+            <TableIngresos
+              ingresos={ingresosFiltrados}
+              isLoading={loadingIngresos}
+              refetchIngresos={refetchIngresos}
+            />
+          </div>
         )}
       </section>
     </main>

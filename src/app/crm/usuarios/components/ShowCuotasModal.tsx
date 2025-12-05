@@ -21,6 +21,7 @@ type ShowCuotasModalProps = {
   onClose: () => void;
   refetchProfile: () => void;
 };
+
 type Presupuesto = {
   id: string;
   divisa: string;
@@ -31,6 +32,7 @@ type Presupuesto = {
   project_id: string;
   created_at: string;
 } | null;
+
 export default function ShowCuotasModal({
   show,
   client,
@@ -43,26 +45,37 @@ export default function ShowCuotasModal({
   const [cuotas, setCuotas] = useState<Cuota[]>([]);
   const [presupuesto, setPresupuesto] = useState<Presupuesto>(null);
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     if (!show || !project?.id) return;
 
     const fetchData = async () => {
       setLoading(true);
+      setDataLoaded(false);
 
       // Obtener presupuesto
       const { data: presupuestoData, error: presupuestoError } = await supabase
         .from("presupuestos")
         .select("*")
         .eq("project_id", project.id)
-        .single();
+        .maybeSingle();
 
-      if (presupuestoError || !presupuestoData) {
+      if (presupuestoError) {
         console.error(presupuestoError);
         setLoading(false);
+        setDataLoaded(true);
         return;
       }
+
       setPresupuesto(presupuestoData);
+
+      // Si no hay presupuesto, terminar aquí
+      if (!presupuestoData) {
+        setLoading(false);
+        setDataLoaded(true);
+        return;
+      }
 
       // Obtener cuotas
       const { data: cuotasData, error: cuotasError } = await supabase
@@ -74,15 +87,26 @@ export default function ShowCuotasModal({
       if (cuotasError) {
         console.error(cuotasError);
         setLoading(false);
+        setDataLoaded(true);
         return;
       }
 
       setCuotas(cuotasData || []);
       setLoading(false);
+      setDataLoaded(true);
     };
 
     fetchData();
   }, [show, project]);
+
+  // Reset states cuando se cierra el modal
+  useEffect(() => {
+    if (!show) {
+      setPresupuesto(null);
+      setCuotas([]);
+      setDataLoaded(false);
+    }
+  }, [show]);
 
   const marcarComoPagada = async (cuota: Cuota) => {
     // Actualizar estado de la cuota
@@ -109,6 +133,7 @@ export default function ShowCuotasModal({
       console.error(errorIngreso);
       return;
     }
+
     const { error: errorHistory } = await supabase
       .from("historial_actividad")
       .insert([
@@ -149,70 +174,89 @@ export default function ShowCuotasModal({
           </button>
         </div>
 
-        {/* PRESUPUESTO */}
-        {presupuesto && (
-          <div className="bg-gray-100 rounded-xl p-4">
-            <p>
-              <b>Total:</b> ${presupuesto.monto}
-            </p>
-            <p>
-              <b>Cuotas:</b> {cuotas.length}
-            </p>
-            <div className="w-full h-2 bg-gray-300 rounded-full mt-2">
-              <div
-                className="h-2 bg-green-500 rounded-full transition-all"
-                style={{ width: `${progreso}%` }}
-              />
-            </div>
-            <p className="text-xs mt-1">
-              {pagadasCount} de {cuotas.length} pagadas
+        {/* LOADING */}
+        {loading && (
+          <p className="text-center text-sm opacity-60">Cargando datos...</p>
+        )}
+
+        {/* SIN PRESUPUESTO */}
+        {!loading && dataLoaded && !presupuesto && (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-lg">
+              Este proyecto no tiene presupuesto
             </p>
           </div>
         )}
 
-        {/* CUOTAS */}
-        {loading ? (
-          <p className="text-center text-sm opacity-60">Cargando cuotas...</p>
-        ) : (
-          <div className="max-h-96 overflow-y-auto space-y-3">
-            {cuotas.map((cuota) => (
-              <div
-                key={cuota.id}
-                className="flex justify-between items-center bg-gray-50 rounded-xl p-4 shadow hover:shadow-md transition"
-              >
-                <div>
-                  <p>
-                    <b>Monto:</b> ${cuota.monto}
-                  </p>
-                  <p>
-                    <b>Vencimiento:</b>{" "}
-                    {new Date(cuota.vencimiento).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <b>Estado:</b> {cuota.estado}
-                  </p>
-                  {cuota.detalle && (
-                    <p>
-                      <b>Detalle:</b> {cuota.detalle}
-                    </p>
-                  )}
-                </div>
-                <button
-                  className={`px-4 py-2 rounded-xl font-medium transition ${
-                    cuota.estado === "Pagada"
-                      ? "bg-gray-300 text-gray-600 cursor-default"
-                      : "bg-green-500 hover:bg-green-600 text-white cursor-pointer"
-                  }`}
-                  onClick={() => marcarComoPagada(cuota)}
-                  disabled={cuota.estado === "Pagada"}
-                >
-                  {cuota.estado === "Pagada"
-                    ? "✅ Pagada"
-                    : "Marcar como pagada"}
-                </button>
+        {/* CON PRESUPUESTO */}
+        {!loading && presupuesto && (
+          <>
+            {/* PRESUPUESTO */}
+            <div className="bg-gray-100 rounded-xl p-4">
+              <p>
+                <b>Total:</b> ${presupuesto.monto}
+              </p>
+              <p>
+                <b>Cuotas:</b> {cuotas.length}
+              </p>
+              <div className="w-full h-2 bg-gray-300 rounded-full mt-2">
+                <div
+                  className="h-2 bg-green-500 rounded-full transition-all"
+                  style={{ width: `${progreso}%` }}
+                />
               </div>
-            ))}
-          </div>
+              <p className="text-xs mt-1">
+                {pagadasCount} de {cuotas.length} pagadas
+              </p>
+            </div>
+
+            {/* CUOTAS */}
+            {cuotas.length === 0 ? (
+              <p className="text-center text-sm text-gray-500">
+                No hay cuotas registradas para este presupuesto
+              </p>
+            ) : (
+              <div className="max-h-96 overflow-y-auto space-y-3">
+                {cuotas.map((cuota) => (
+                  <div
+                    key={cuota.id}
+                    className="flex justify-between items-center bg-gray-50 rounded-xl p-4 shadow hover:shadow-md transition"
+                  >
+                    <div>
+                      <p>
+                        <b>Monto:</b> ${cuota.monto}
+                      </p>
+                      <p>
+                        <b>Vencimiento:</b>{" "}
+                        {new Date(cuota.vencimiento).toLocaleDateString()}
+                      </p>
+                      <p>
+                        <b>Estado:</b> {cuota.estado}
+                      </p>
+                      {cuota.detalle && (
+                        <p>
+                          <b>Detalle:</b> {cuota.detalle}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      className={`px-4 py-2 rounded-xl font-medium transition ${
+                        cuota.estado === "Pagada"
+                          ? "bg-gray-300 text-gray-600 cursor-default"
+                          : "bg-green-500 hover:bg-green-600 text-white cursor-pointer"
+                      }`}
+                      onClick={() => marcarComoPagada(cuota)}
+                      disabled={cuota.estado === "Pagada"}
+                    >
+                      {cuota.estado === "Pagada"
+                        ? "✅ Pagada"
+                        : "Marcar como pagada"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* FOOTER */}

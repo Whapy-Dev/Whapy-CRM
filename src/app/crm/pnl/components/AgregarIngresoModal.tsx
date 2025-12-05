@@ -12,7 +12,7 @@ export const argentinaNow = new Date().toLocaleString("en-US", {
   timeZone: "America/Argentina/Buenos_Aires",
 });
 export type cuotas = {
-  id: number;
+  id: string;
   cuota: string;
   detalle: string;
   monto: number;
@@ -28,7 +28,7 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
   const [project, setProject] = useState("");
   const [projectTitle, setProjectTitle] = useState("");
   const [cuotasPendientes, setCuotasPendientes] = useState<cuotas[]>([]);
-  const [cuotaSeleccionada, setCuotaSeleccionada] = useState(0);
+  const [cuotaSeleccionada, setCuotaSeleccionada] = useState("");
 
   const [busqueda, setBusqueda] = useState("");
   const [open, setOpen] = useState(false);
@@ -110,7 +110,7 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
         Ingreso: monto,
         Descripcion: descripcion,
         created_at: new Date(argentinaNow).toISOString(),
-        pago_cuota_id: cuotaSeleccionada,
+        pago_cuotas_id: cuotaSeleccionada,
       });
 
       const { error: errorPagoCuota } = await supabase
@@ -214,7 +214,7 @@ export function ModalAgregarIngreso({ onClose, refetchIngresos }: Props) {
             <select
               value={cuotaSeleccionada}
               onChange={(e) => {
-                const cuotaId = Number(e.target.value);
+                const cuotaId = e.target.value;
                 setCuotaSeleccionada(cuotaId);
 
                 const cuota = cuotasPendientes.find((c) => c.id === cuotaId);

@@ -48,6 +48,7 @@ export function TableEgresos({ egresos, isLoading, refetchEgresos }: Props) {
               <th className="text-left p-3">Usuario</th>
               <th className="text-right p-3">Monto</th>
               <th className="text-left p-3">Fecha</th>
+              <th className="text-left p-3">Acciones</th>
             </tr>
           </thead>
 
@@ -85,9 +86,6 @@ export function TableEgresos({ egresos, isLoading, refetchEgresos }: Props) {
                   </td>
                   <td className="p-3">
                     {new Date(item.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="p-3">
-                    {new Date(item.recurrente).toLocaleDateString()}
                   </td>
                 </tr>
               ))}
