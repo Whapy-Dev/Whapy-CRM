@@ -34,7 +34,6 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
   }
 
   const headers = [
-    "Acciones",
     "Presupuesto",
     "A realizar por",
     "Estado Presupuesto",
@@ -104,18 +103,6 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                   }}
                   className="hover:bg-gray-50 cursor-pointer"
                 >
-                  <td className="text-center">
-                    <button
-                      className="text-gray-400 hover:text-gray-600 p-2 inline-block rotate-90"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // acá va tu lógica del menú de acciones en el futuro
-                      }}
-                    >
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-                  </td>
-
                   {/* 📌 Presupuestos uno abajo del otro */}
                   <td className="px-2 py-4 text-sm text-gray-900 text-center font-medium text-nowrap">
                     {presupuestoListado.length > 0

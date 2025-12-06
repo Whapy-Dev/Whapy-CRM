@@ -12,10 +12,7 @@ import AssignDocumentModal from "../../components/Assigndocumentmodal";
 import EditProjectModal from "../../components/Editprojectmodal";
 import AccessModal from "../../components/AccessModal";
 import { useAuth } from "@/hooks/useAuth";
-import AssignBudgetModal from "../../components/AssignBudgetModal";
-import EditBudgetModal from "../../components/EditBudgetModal";
-import BudgetModal from "../../components/EditBudgetModal";
-
+import BudgetModal from "../../components/components/EditBudgetModal";
 type ClientDetailsPageProps = {
   client: Client;
   refetchProfile: () => void;

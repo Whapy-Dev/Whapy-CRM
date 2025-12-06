@@ -8,7 +8,7 @@ const supabase = createClient();
 export type Documents = {
   id: string;
   project_id: string;
-  lead_id: string;
+  lead_id?: string | null; // este sí puede ser opcional o null
   user_id: string;
   title: string;
   document_url: string;

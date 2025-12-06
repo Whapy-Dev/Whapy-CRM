@@ -8,6 +8,7 @@ export default function ActividadTable({ logs }: any) {
             <th className="p-3 text-left">Fecha</th>
             <th className="p-3 text-left">Usuario Modificador</th>
             <th className="p-3 text-left">Acción</th>
+            <th className="p-3 text-left">Detalles</th>
             <th className="p-3 text-left">Usuario Modificado</th>
             <th className="p-3 text-left">Sección</th>
           </tr>
@@ -33,6 +34,7 @@ export default function ActividadTable({ logs }: any) {
                     {log.usuario_modificador_id?.nombre ?? ""}
                   </td>
                   <td className="p-3">{log.accion}</td>
+                  <td className="p-3">{log.detalles}</td>
                   <td className="p-3">{log.usuario_modificado}</td>
                   <td className="p-3">{log.seccion}</td>
                 </tr>

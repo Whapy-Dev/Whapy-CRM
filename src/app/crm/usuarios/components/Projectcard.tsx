@@ -5,8 +5,6 @@ import ShowVideoClientModal from "./VideoClientModal";
 import ShowDocumentsClientModal from "./Showdocuments";
 import AssignVideoModal from "./Assignvideoprojectmodal";
 import DeleteProjectModal from "./Deleteprojectmodal";
-import ShowCuotasModal from "./ShowCuotasModal";
-import { useAuth } from "@/hooks/useAuth";
 
 type ProjectCardProps = {
   project: Project;
@@ -23,13 +21,11 @@ export default function ProjectCard({
   onAssignDocument,
   refetchProfile,
 }: ProjectCardProps) {
-  const { roleAdmin } = useAuth();
   const [showVideoClient, setShowVideoClient] = useState(false);
   const [showAssignVideo, setShowAssignVideo] = useState(false);
   const [showDocumentsClientModal, setShowDocumentsClientModal] =
     useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showCuotasModal, setShowCuotasModal] = useState(false);
   let statusColor = "bg-gray-100 text-gray-800";
   if (project.status === "En progreso")
     statusColor = "bg-yellow-100 text-yellow-800";
@@ -67,17 +63,6 @@ export default function ProjectCard({
           {project.status}
         </p>
         <div className="flex items-center justify-between gap-2">
-          {(roleAdmin === "CEO" ||
-            roleAdmin === "COO" ||
-            roleAdmin === "QA") && (
-            <button
-              onClick={() => setShowCuotasModal(true)}
-              type="button"
-              className="px-4 py-2 bg-gray-300 rounded-lg font-medium hover:bg-gray-400 cursor-pointer"
-            >
-              Ver Cuotas
-            </button>
-          )}
           <button
             onClick={() => setShowDeleteModal(true)}
             type="button"
@@ -209,13 +194,6 @@ export default function ProjectCard({
         client={client}
         show={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        refetchProfile={refetchProfile}
-      />
-      <ShowCuotasModal
-        show={showCuotasModal}
-        client={client}
-        project={project}
-        onClose={() => setShowCuotasModal(false)}
         refetchProfile={refetchProfile}
       />
     </div>

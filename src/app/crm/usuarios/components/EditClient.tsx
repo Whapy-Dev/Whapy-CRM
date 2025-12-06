@@ -83,21 +83,31 @@ export default function ShowEditClientModal({
     e.preventDefault();
 
     if (!client?.id) return;
+    const wasLead = client.type === "Lead";
+    const isNowClient = formData.type === "Cliente";
+    const converted = wasLead && isNowClient;
+
+    const updateData: Record<string, unknown> = {
+      nombre: formData.nombre,
+      telefono: formData.telefono,
+      empresa: formData.empresa,
+      ciudad: formData.ciudad,
+      codigoPostal: formData.codigoPostal,
+      type: formData.type,
+      genero: formData.genero,
+      fechaNacimiento: formData.fechaNacimiento,
+      pais: formData.pais,
+      detalles: formData.detalles,
+    };
+
+    // Si se convirtió, añadir la fecha de conversión
+    if (converted) {
+      updateData.converted_at = new Date().toISOString();
+    }
 
     const { error } = await supabase
       .from("profiles")
-      .update({
-        nombre: formData.nombre,
-        telefono: formData.telefono,
-        empresa: formData.empresa,
-        ciudad: formData.ciudad,
-        codigoPostal: formData.codigoPostal,
-        type: formData.type,
-        genero: formData.genero,
-        fechaNacimiento: formData.fechaNacimiento,
-        pais: formData.pais,
-        detalles: formData.detalles,
-      })
+      .update(updateData)
       .eq("id", client.id);
 
     if (error) {
@@ -109,31 +119,32 @@ export default function ShowEditClientModal({
       .insert([
         {
           usuario_modificador_id: user?.id,
-          accion: "Editó los datos de un cliente",
+          accion: converted
+            ? "Convirtió lead a cliente"
+            : "Editó los datos de un cliente",
           usuario_modificado: client?.nombre,
           seccion: "Usuarios",
         },
       ]);
 
     if (errorDb) throw errorDb;
-    if (!error) {
-      await refetchProfile();
 
-      setFormData({
-        nombre: "",
-        email: "",
-        telefono: "",
-        empresa: "",
-        ciudad: "",
-        codigoPostal: "",
-        type: "",
-        genero: "",
-        fechaNacimiento: "",
-        pais: "",
-        detalles: "",
-      });
-      onClose();
-    }
+    await refetchProfile();
+
+    setFormData({
+      nombre: "",
+      email: "",
+      telefono: "",
+      empresa: "",
+      ciudad: "",
+      codigoPostal: "",
+      type: "",
+      genero: "",
+      fechaNacimiento: "",
+      pais: "",
+      detalles: "",
+    });
+    onClose();
   };
 
   return (

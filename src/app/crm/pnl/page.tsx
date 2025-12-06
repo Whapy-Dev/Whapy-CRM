@@ -36,6 +36,9 @@ interface Ingreso {
   nombre: string;
   recurrente: string;
   divisa: string;
+  es_recurrente: boolean;
+  fecha_recurrente: string;
+  intervalo: string;
 }
 
 /** Fila de egreso */
@@ -50,6 +53,9 @@ interface Egreso {
   recurrente: string;
   subcategoria: string;
   divisa: string;
+  es_recurrente: boolean;
+  fecha_recurrente: string;
+  intervalo: string;
 }
 
 function getDateRange(filtro: "hoy" | "semana" | "mes" | "custom") {
@@ -59,19 +65,32 @@ function getDateRange(filtro: "hoy" | "semana" | "mes" | "custom") {
 
   if (filtro === "hoy") {
     start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
   }
 
   if (filtro === "semana") {
-    start.setDate(now.getDate() - 6);
+    // Obtener el día de la semana (0 = domingo, 1 = lunes, etc.)
+    const dayOfWeek = now.getDay();
+    // Calcular el lunes de esta semana (si es domingo, retroceder 6 días)
+    const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    start.setDate(now.getDate() - diffToMonday);
     start.setHours(0, 0, 0, 0);
+
+    // El domingo es 6 días después del lunes
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
   }
 
   if (filtro === "mes") {
-    start.setDate(now.getDate() - 29);
+    // Primer día del mes actual
+    start.setDate(1);
     start.setHours(0, 0, 0, 0);
-  }
 
-  end.setHours(23, 59, 59, 999);
+    // Último día del mes actual
+    end.setMonth(now.getMonth() + 1, 0); // Día 0 del próximo mes = último día del mes actual
+    end.setHours(23, 59, 59, 999);
+  }
 
   return { start, end };
 }
@@ -109,7 +128,7 @@ export default function FinanzasPage() {
 
   // ======== FILTROS GLOBALES (PNL) ========
   const [filtroFecha, setFiltroFecha] = useState<
-    "hoy" | "semana" | "mes" | "custom"
+    "hoy" | "semana" | "mes" | "custom" | "siempre"
   >("mes");
   const [fechaGlobalDesde, setFechaGlobalDesde] = useState("");
   const [fechaGlobalHasta, setFechaGlobalHasta] = useState("");
@@ -159,7 +178,9 @@ export default function FinanzasPage() {
   }
 
   // ======== LÓGICA DE FILTRADO GLOBAL (PNL) ========
+  // Modificar la función filterForPNL
   const filterForPNL = (fecha: Date): boolean => {
+    if (filtroFecha === "siempre") return true;
     if (filtroFecha === "custom") {
       return filterByDateRange(fecha, fechaGlobalDesde, fechaGlobalHasta);
     }
@@ -167,7 +188,7 @@ export default function FinanzasPage() {
     return fecha >= start && fecha <= end;
   };
 
-  // ======== TOTALES (PNL) ========
+  // ======== TOTALES (PNL) - igual ========
   const totalIngresos = ingresosTyped
     .filter((row) => filterForPNL(new Date(row.created_at)))
     .reduce((acc, row) => acc + (Number(row.Ingreso) || 0), 0);
@@ -178,24 +199,24 @@ export default function FinanzasPage() {
 
   const balanceFinal = totalIngresos - totalEgresos;
 
-  // ======== FILTRADO PARA TABLAS ========
+  // ======== FILTRADO PARA TABLAS (ACTUALIZADO) ========
   const ingresosFiltrados = ingresosTyped.filter((row) => {
     const texto = (row.Descripcion || "").toLowerCase();
     const coincideTexto = texto.includes(searchIngresos.toLowerCase());
     const fecha = new Date(row.created_at);
 
-    // En vista individual, usar filtros individuales; en "todos", usar filtro global
+    // Siempre aplicar filtro global
+    const coincideFiltroGlobal = filterForPNL(fecha);
+
+    // Si estamos en vista "ingresos", aplicar también filtros individuales de fecha
     if (vista === "ingresos") {
-      const coincideFechaIndividual = filterByDateRange(
-        fecha,
-        fechaIngresosDesde,
-        fechaIngresosHasta
-      );
-      return coincideTexto && coincideFechaIndividual;
+      const coincideFechaIndividual =
+        !fechaIngresosDesde && !fechaIngresosHasta
+          ? true
+          : filterByDateRange(fecha, fechaIngresosDesde, fechaIngresosHasta);
+      return coincideTexto && coincideFiltroGlobal && coincideFechaIndividual;
     }
 
-    // Vista "todos": usar filtro global
-    const coincideFiltroGlobal = filterForPNL(fecha);
     return coincideTexto && coincideFiltroGlobal;
   });
 
@@ -209,18 +230,18 @@ export default function FinanzasPage() {
     const coincideTexto = texto.includes(searchEgresos.toLowerCase());
     const fecha = new Date(row.created_at);
 
-    // En vista individual, usar filtros individuales; en "todos", usar filtro global
+    // Siempre aplicar filtro global
+    const coincideFiltroGlobal = filterForPNL(fecha);
+
+    // Si estamos en vista "egresos", aplicar también filtros individuales de fecha
     if (vista === "egresos") {
-      const coincideFechaIndividual = filterByDateRange(
-        fecha,
-        fechaEgresosDesde,
-        fechaEgresosHasta
-      );
-      return coincideTexto && coincideFechaIndividual;
+      const coincideFechaIndividual =
+        !fechaEgresosDesde && !fechaEgresosHasta
+          ? true
+          : filterByDateRange(fecha, fechaEgresosDesde, fechaEgresosHasta);
+      return coincideTexto && coincideFiltroGlobal && coincideFechaIndividual;
     }
 
-    // Vista "todos": usar filtro global
-    const coincideFiltroGlobal = filterForPNL(fecha);
     return coincideTexto && coincideFiltroGlobal;
   });
 
@@ -233,6 +254,16 @@ export default function FinanzasPage() {
         </h2>
         <div className="flex flex-wrap gap-4 justify-center items-end">
           <div className="flex gap-2">
+            <button
+              onClick={() => setFiltroFecha("siempre")}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold border ${
+                filtroFecha === "siempre"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-50"
+              }`}
+            >
+              Desde siempre
+            </button>
             <button
               onClick={() => setFiltroFecha("hoy")}
               className={`px-4 py-2 rounded-xl text-sm font-semibold border ${

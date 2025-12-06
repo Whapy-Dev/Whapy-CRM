@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { FileText, Download, Eye, Calendar, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-
 export type Documents = {
   id: string;
   project_id: string;
-  lead_id: string;
+  lead_id?: string | null; // este sí puede ser opcional o null
   user_id: string;
   title: string;
   document_url: string;

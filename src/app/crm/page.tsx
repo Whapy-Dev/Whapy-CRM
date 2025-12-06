@@ -6,20 +6,15 @@ import {
 } from "@/hooks/admin/useAllMeetings";
 import { useBudgetsActive, usePresupuestos } from "@/hooks/admin/useBudgets";
 import { useLeadsRecent, useLeadsUltimateMonth } from "@/hooks/admin/useLeads";
+import { useLeadConversionMetrics } from "@/hooks/admin/useLeadConversion";
 import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  Users,
-  FileText,
-  Calendar,
-  TrendingUp,
-  Clock,
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react";
+import { Users, UserCheck, Calendar, TrendingUp, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
 const allowedRoles = ["CEO", "COO", "QA"];
+
 export default function CRMDashboard() {
   const { roleAdmin } = useAuth();
   const router = useRouter();
@@ -34,14 +29,15 @@ export default function CRMDashboard() {
     isLoading: loadingUsers,
     isError: errorUsers,
   } = useUserRolProfiles();
-  const { data: leadsUltimateMonth = [] } = useLeadsUltimateMonth();
   const { data: leadsRecent = [] } = useLeadsRecent();
   const { data: AllMeetingsUltimateWeek = [] } = useAllMeetingsUltimateWeek();
   const { data: budgetsActive = [] } = useBudgetsActive();
   const { data: AllMeetingFromToday = [] } = useAllMeetingsFromToday();
   const { data: budgets = [] } = usePresupuestos();
+  const { data: conversionMetrics, isLoading: loadingMetrics } =
+    useLeadConversionMetrics();
 
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = todavía no sabemos
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (roleAdmin) {
@@ -63,7 +59,7 @@ export default function CRMDashboard() {
     }
   }, [roleAdmin, router]);
 
-  if (hasAccess === null || loadingRoles || loadingUsers) {
+  if (hasAccess === null || loadingRoles || loadingUsers || loadingMetrics) {
     return <p className="p-6 text-blue-600">Validando datos...</p>;
   }
   if (errorRoles || errorUsers) {
@@ -102,17 +98,6 @@ export default function CRMDashboard() {
     },
   ];
 
-  const stats = {
-    totalLeads: leadsUltimateMonth.length,
-    leadsChange: 12,
-    activeBudgets: budgetsActive.length,
-    budgetsChange: -3,
-    upcomingMeetings: AllMeetingsUltimateWeek.length,
-    meetingsChange: 2,
-    conversionRate: 34,
-    rateChange: 5,
-  };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-AR", {
       style: "currency",
@@ -125,125 +110,71 @@ export default function CRMDashboard() {
     <div className="p-8 space-y-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
-          Vista general de tu actividad comercial
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Dashboard
+        </h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
+          Conversión de Lead a Cliente
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Leads */}
+      {/* Stats Grid - Métricas de Conversión */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Leads del Mes */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-blue-100 rounded-lg">
-              <Users className="w-6 h-6 text-blue-600" />
+              <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
-            <span
-              className={`flex items-center gap-1 text-sm font-medium ${
-                stats.leadsChange >= 0 ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {stats.leadsChange >= 0 ? (
-                <ArrowUp className="w-4 h-4" />
-              ) : (
-                <ArrowDown className="w-4 h-4" />
-              )}
-              {Math.abs(stats.leadsChange)}%
-            </span>
           </div>
-          <h3 className="text-sm font-medium text-gray-600 mb-1">
-            Total Leads
+          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Leads del Mes
           </h3>
-          <p className="text-3xl font-bold text-gray-900">{stats.totalLeads}</p>
-          <p className="text-sm text-gray-500 mt-2">Este mes</p>
+          <p className="text-3xl font-bold text-gray-900">
+            {conversionMetrics?.leadsThisMonth ?? 0}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            Leads activos este mes
+          </p>
         </div>
 
-        {/* Active Budgets */}
+        {/* Leads Convertidos */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-green-100 rounded-lg">
-              <FileText className="w-6 h-6 text-green-600" />
+              <UserCheck className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
-            <span
-              className={`flex items-center gap-1 text-sm font-medium ${
-                stats.budgetsChange >= 0 ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {stats.budgetsChange >= 0 ? (
-                <ArrowUp className="w-4 h-4" />
-              ) : (
-                <ArrowDown className="w-4 h-4" />
-              )}
-              {Math.abs(stats.budgetsChange)}%
-            </span>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">
-            Presupuestos Activos
+            Leads → Clientes
           </h3>
           <p className="text-3xl font-bold text-gray-900">
-            {stats.activeBudgets}
+            {conversionMetrics?.conversionsThisMonth ?? 0}
           </p>
-          <p className="text-sm text-gray-500 mt-2">En proceso</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            Conversiones este mes
+          </p>
         </div>
 
-        {/* Upcoming Meetings */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <Calendar className="w-6 h-6 text-purple-600" />
-            </div>
-            <span
-              className={`flex items-center gap-1 text-sm font-medium ${
-                stats.meetingsChange >= 0 ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {stats.meetingsChange >= 0 ? (
-                <ArrowUp className="w-4 h-4" />
-              ) : (
-                <ArrowDown className="w-4 h-4" />
-              )}
-              {Math.abs(stats.meetingsChange)}
-            </span>
-          </div>
-          <h3 className="text-sm font-medium text-gray-600 mb-1">
-            Reuniones Próximas
-          </h3>
-          <p className="text-3xl font-bold text-gray-900">
-            {stats.upcomingMeetings}
-          </p>
-          <p className="text-sm text-gray-500 mt-2">Esta semana</p>
-        </div>
-
-        {/* Conversion Rate */}
+        {/* Tasa de Conversión */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-yellow-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-yellow-600" />
+              <TrendingUp className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
             </div>
-            <span
-              className={`flex items-center gap-1 text-sm font-medium ${
-                stats.rateChange >= 0 ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {stats.rateChange >= 0 ? (
-                <ArrowUp className="w-4 h-4" />
-              ) : (
-                <ArrowDown className="w-4 h-4" />
-              )}
-              {Math.abs(stats.rateChange)}%
-            </span>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">
             Tasa de Conversión
           </h3>
           <p className="text-3xl font-bold text-gray-900">
-            {stats.conversionRate}%
+            {conversionMetrics?.conversionRate ?? 0}%
+            <span className="text-lg font-normal text-gray-500 ml-2">
+              ({conversionMetrics?.conversionsThisMonth ?? 0})
+            </span>
           </p>
-          <p className="text-sm text-gray-500 mt-2">Último trimestre</p>
+          <p className="text-sm text-gray-500 mt-2">Este mes</p>
         </div>
       </div>
-
       {/* Pipeline de Presupuestos */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
