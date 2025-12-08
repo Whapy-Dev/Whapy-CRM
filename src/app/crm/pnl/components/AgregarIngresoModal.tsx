@@ -71,7 +71,9 @@ export function ModalAgregarIngreso({
   const [project, setProject] = useState("");
   const [projectTitle, setProjectTitle] = useState("");
   const [presupuestoId, setPresupuestoId] = useState("");
-
+  const [fechaIngreso, setFechaIngreso] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   // Estados para fases y cuotas
   const [fases, setFases] = useState<Fase[]>([]);
   const [faseSeleccionada, setFaseSeleccionada] = useState("");
@@ -109,6 +111,12 @@ export function ModalAgregarIngreso({
     if (ingresoToEdit) {
       setMonto(ingresoToEdit.Ingreso || 0);
       setDescripcion(ingresoToEdit.Descripcion || "");
+      setFechaIngreso(
+        ingresoToEdit.created_at
+          ? new Date(ingresoToEdit.created_at).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0]
+      );
+
       if (ingresoToEdit.nombre?.startsWith("Proyecto: ")) {
         setProjectTitle(ingresoToEdit.nombre.replace("Proyecto: ", ""));
         setCategoria("Proyectos");
@@ -320,6 +328,7 @@ export function ModalAgregarIngreso({
             fecha_recurrente: esRecurrente ? fechaRecurrente : null,
             intervalo: esRecurrente ? intervalo : null,
             factura_url: finalFacturaUrl,
+            created_at: new Date(fechaIngreso).toISOString(),
           })
           .eq("id", ingresoToEdit.id);
 
@@ -350,7 +359,7 @@ export function ModalAgregarIngreso({
           categoria: categoria,
           Ingreso: monto,
           Descripcion: descripcion,
-          created_at: new Date(argentinaNow).toISOString(),
+          created_at: new Date(fechaIngreso).toISOString(),
           pago_cuotas_id: cuotaSeleccionada || null,
           presupuesto_id: presupuestoId || null,
           es_recurrente: esRecurrente,
@@ -753,7 +762,17 @@ export function ModalAgregarIngreso({
               className="hidden"
             />
           </div>
-
+          <div>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Fecha del ingreso
+            </label>
+            <input
+              type="date"
+              value={fechaIngreso}
+              onChange={(e) => setFechaIngreso(e.target.value)}
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-2.5 mt-1"
+            />
+          </div>
           {/* CHECKBOX RECURRENTE */}
           <div className="flex items-center gap-2 pt-2">
             <input

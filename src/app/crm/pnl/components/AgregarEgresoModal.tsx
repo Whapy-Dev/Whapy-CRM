@@ -97,7 +97,9 @@ export function ModalAgregarEgreso({
   const { data: dataProfiles = [], isLoading } = useEmplooyes();
 
   const isEditing = Boolean(egresoToEdit);
-
+  const [fechaIngreso, setFechaIngreso] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [categoria, setCategoria] = useState("");
   const [subCategoria, setSubCategoria] = useState("");
   const [monto, setMonto] = useState(0);
@@ -128,6 +130,11 @@ export function ModalAgregarEgreso({
       setSubCategoria(egresoToEdit.subcategoria || "");
       setMonto(egresoToEdit.Egreso || 0);
       setDescripcion(egresoToEdit.Descripcion || "");
+      setFechaIngreso(
+        egresoToEdit.created_at
+          ? new Date(egresoToEdit.created_at).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0]
+      );
       if (egresoToEdit.user_id) {
         setUserId(egresoToEdit.user_id);
       }
@@ -260,6 +267,7 @@ export function ModalAgregarEgreso({
             fecha_recurrente: esRecurrente ? fechaRecurrente : null,
             intervalo: esRecurrente ? intervalo : null,
             factura_url: finalFacturaUrl,
+            created_at: new Date(fechaIngreso + "T12:00:00").toISOString(),
           })
           .eq("id", egresoToEdit.id);
 
@@ -285,7 +293,7 @@ export function ModalAgregarEgreso({
           subcategoria: subCategoria,
           Egreso: monto,
           Descripcion: descripcion,
-          created_at: new Date(argentinaNow).toISOString(),
+          created_at: new Date(fechaIngreso + "T12:00:00").toISOString(),
           es_recurrente: esRecurrente,
           fecha_recurrente: esRecurrente ? fechaRecurrente : null,
           intervalo: esRecurrente ? intervalo : null,
@@ -571,7 +579,17 @@ export function ModalAgregarEgreso({
               className="hidden"
             />
           </div>
-
+          <div>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Fecha del ingreso
+            </label>
+            <input
+              type="date"
+              value={fechaIngreso}
+              onChange={(e) => setFechaIngreso(e.target.value)}
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-2.5 mt-1"
+            />
+          </div>
           {/* CHECKBOX RECURRENTE */}
           <div className="flex items-center gap-2 pt-2">
             <input
