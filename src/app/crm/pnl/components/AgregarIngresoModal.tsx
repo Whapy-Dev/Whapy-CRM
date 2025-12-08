@@ -328,7 +328,7 @@ export function ModalAgregarIngreso({
             fecha_recurrente: esRecurrente ? fechaRecurrente : null,
             intervalo: esRecurrente ? intervalo : null,
             factura_url: finalFacturaUrl,
-            created_at: new Date(fechaIngreso).toISOString(),
+            created_at: new Date(fechaIngreso + "T12:00:00").toISOString(),
           })
           .eq("id", ingresoToEdit.id);
 
@@ -359,7 +359,7 @@ export function ModalAgregarIngreso({
           categoria: categoria,
           Ingreso: monto,
           Descripcion: descripcion,
-          created_at: new Date(fechaIngreso).toISOString(),
+          created_at: new Date(fechaIngreso + "T12:00:00").toISOString(),
           pago_cuotas_id: cuotaSeleccionada || null,
           presupuesto_id: presupuestoId || null,
           es_recurrente: esRecurrente,
