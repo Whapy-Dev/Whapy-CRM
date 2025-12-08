@@ -11,8 +11,9 @@ import CreateBudgetForm from "./components/CreateBudgetForm";
 import EditarTab from "./tabs/EditarTab";
 import AnexosTab from "./tabs/AnexosTab";
 import FasesTab from "./tabs/FasesTab";
+import PnlTab from "./tabs/PnlTab";
 
-type TabType = "editar" | "anexos" | "fases";
+type TabType = "editar" | "anexos" | "fases" | "pnl";
 
 export default function BudgetModal({
   show,
@@ -57,6 +58,7 @@ export default function BudgetModal({
     { id: "editar", label: "Editar presupuesto" },
     { id: "anexos", label: "Anexos" },
     { id: "fases", label: "Fases y Cuotas" },
+    { id: "pnl", label: "PNL" },
   ];
 
   return (
@@ -66,7 +68,7 @@ export default function BudgetModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-xl w-11/12 max-h-[85vh] overflow-y-auto p-6 cursor-auto"
+        className="bg-white rounded-2xl shadow-xl w-11/12 max-h-[95vh] overflow-y-auto p-6 cursor-auto"
       >
         {/* Header */}
         <div className="flex items-center gap-2 mb-5">
@@ -156,6 +158,14 @@ export default function BudgetModal({
                         loading={loading}
                         setLoading={setLoading}
                         refetchFases={refetchFases}
+                      />
+                    )}
+
+                    {activeTab === "pnl" && (
+                      <PnlTab
+                        selectedProject={selectedProject}
+                        loading={loading}
+                        setLoading={setLoading}
                       />
                     )}
                   </>

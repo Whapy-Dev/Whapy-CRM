@@ -74,6 +74,7 @@ export type Project = {
     estado: string;
     divisa: string;
     created_at: string;
+    cash_collected: number;
     presupuestos_employees?: {
       profiles: {
         id: string;

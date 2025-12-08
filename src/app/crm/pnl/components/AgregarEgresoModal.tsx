@@ -9,7 +9,11 @@ import { useAuth } from "@/hooks/useAuth";
 type Egresos = {
   id: string;
   user_id?: string;
+  project_id?: string;
   profiles?: {
+    nombre: string;
+  };
+  projects?: {
     nombre: string;
   };
   Egreso?: number;
@@ -23,6 +27,11 @@ type Egresos = {
   fecha_recurrente?: string;
   intervalo?: string;
   factura_url?: string;
+};
+
+type Project = {
+  id: string;
+  title: string;
 };
 
 type Props = {
@@ -109,6 +118,14 @@ export function ModalAgregarEgreso({
   const [busqueda, setBusqueda] = useState("");
   const [open, setOpen] = useState(false);
 
+  // Estados para proyecto
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectId, setProjectId] = useState("");
+  const [projectNombre, setProjectNombre] = useState("");
+  const [busquedaProject, setBusquedaProject] = useState("");
+  const [openProject, setOpenProject] = useState(false);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+
   // Estados para recurrencia
   const [esRecurrente, setEsRecurrente] = useState(false);
   const [fechaRecurrente, setFechaRecurrente] = useState("");
@@ -121,7 +138,27 @@ export function ModalAgregarEgreso({
 
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const projectRef = useRef<HTMLDivElement>(null);
+  const projectBtnRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cargar proyectos
+  useEffect(() => {
+    async function fetchProjects() {
+      setLoadingProjects(true);
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, title")
+        .order("title", { ascending: true });
+
+      if (!error && data) {
+        setProjects(data);
+      }
+      setLoadingProjects(false);
+    }
+    fetchProjects();
+  }, []);
 
   // Pre-cargar datos cuando se está editando
   useEffect(() => {
@@ -141,6 +178,12 @@ export function ModalAgregarEgreso({
       if (egresoToEdit.profiles?.nombre) {
         setUserNombre(egresoToEdit.profiles.nombre);
       }
+      if (egresoToEdit.project_id) {
+        setProjectId(egresoToEdit.project_id);
+      }
+      if (egresoToEdit.projects?.nombre) {
+        setProjectNombre(egresoToEdit.projects.nombre);
+      }
       setEsRecurrente(egresoToEdit.es_recurrente || false);
       setFechaRecurrente(egresoToEdit.fecha_recurrente || "");
       setIntervalo(egresoToEdit.intervalo || "1 month");
@@ -148,7 +191,7 @@ export function ModalAgregarEgreso({
     }
   }, [egresoToEdit]);
 
-  // Cerrar dropdown al hacer click afuera
+  // Cerrar dropdown usuario al hacer click afuera
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (
@@ -164,6 +207,31 @@ export function ModalAgregarEgreso({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Cerrar dropdown proyecto al hacer click afuera
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (
+        projectRef.current &&
+        !projectRef.current.contains(e.target as Node) &&
+        projectBtnRef.current &&
+        !projectBtnRef.current.contains(e.target as Node)
+      ) {
+        setOpenProject(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Limpiar proyecto cuando cambia la categoría
+  useEffect(() => {
+    if (categoria !== "Sueldos y honorarios") {
+      setProjectId("");
+      setProjectNombre("");
+      setBusquedaProject("");
+    }
+  }, [categoria]);
+
   if (isLoading)
     return (
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
@@ -175,6 +243,10 @@ export function ModalAgregarEgreso({
 
   const filtrados = dataProfiles.filter((p) =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const filtradosProjects = projects.filter((p) =>
+    p.title.toLowerCase().includes(busquedaProject.toLowerCase())
   );
 
   // Función para subir factura
@@ -259,6 +331,8 @@ export function ModalAgregarEgreso({
           .from("Egresos")
           .update({
             user_id: userId || null,
+            project_id:
+              categoria === "Sueldos y honorarios" ? projectId || null : null,
             categoria: categoria,
             subcategoria: subCategoria,
             Egreso: monto,
@@ -289,6 +363,8 @@ export function ModalAgregarEgreso({
         // MODO AGREGAR
         const { error } = await supabase.from("Egresos").insert({
           user_id: userId || null,
+          project_id:
+            categoria === "Sueldos y honorarios" ? projectId || null : null,
           categoria: categoria,
           subcategoria: subCategoria,
           Egreso: monto,
@@ -321,6 +397,9 @@ export function ModalAgregarEgreso({
       setUserId("");
       setUserNombre("");
       setBusqueda("");
+      setProjectId("");
+      setProjectNombre("");
+      setBusquedaProject("");
       setEsRecurrente(false);
       setFechaRecurrente("");
       setIntervalo("1 month");
@@ -440,6 +519,89 @@ export function ModalAgregarEgreso({
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {/* SELECT PROYECTO - Solo para Sueldos y honorarios */}
+          {categoria === "Sueldos y honorarios" && (
+            <div className="relative w-full">
+              <label className="font-medium">Proyecto (opcional)</label>
+              <button
+                ref={projectBtnRef}
+                onClick={() => setOpenProject(!openProject)}
+                className="w-full border border-gray-300 rounded-lg p-2 text-left bg-white flex justify-between items-center mt-1"
+              >
+                <span
+                  className={projectNombre ? "text-gray-900" : "text-gray-500"}
+                >
+                  {projectNombre || "Seleccionar proyecto"}
+                </span>
+                <span className="text-gray-400 text-sm">▼</span>
+              </button>
+
+              {openProject && (
+                <div
+                  ref={projectRef}
+                  className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg p-2"
+                >
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Buscar proyecto..."
+                    value={busquedaProject}
+                    onChange={(e) => setBusquedaProject(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2 mb-2"
+                  />
+
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {/* Opción para quitar selección */}
+                    <button
+                      onClick={() => {
+                        setProjectNombre("");
+                        setProjectId("");
+                        setOpenProject(false);
+                        setBusquedaProject("");
+                      }}
+                      className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded-lg text-gray-500 italic"
+                    >
+                      Sin proyecto
+                    </button>
+
+                    {loadingProjects ? (
+                      <div className="px-3 py-1 text-gray-500 text-sm">
+                        Cargando proyectos...
+                      </div>
+                    ) : (
+                      <>
+                        {filtradosProjects.map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => {
+                              setProjectNombre(p.title);
+                              setProjectId(p.id);
+                              setOpenProject(false);
+                              setBusquedaProject("");
+                            }}
+                            className={`w-full text-left px-3 py-1 hover:bg-gray-100 rounded-lg ${
+                              projectId === p.id
+                                ? "bg-blue-50 text-blue-600 font-medium"
+                                : ""
+                            }`}
+                          >
+                            {p.title}
+                          </button>
+                        ))}
+
+                        {filtradosProjects.length === 0 && (
+                          <div className="px-3 py-1 text-gray-500 text-sm">
+                            No se encontraron proyectos
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
