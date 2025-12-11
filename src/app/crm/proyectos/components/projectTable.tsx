@@ -2,11 +2,13 @@
 import { ProjectWithProfiles } from "@/hooks/admin/useProjects";
 import { MoreVertical } from "lucide-react";
 import React from "react";
+import { useRouter } from "next/navigation";
 interface Props {
   projects: ProjectWithProfiles[];
 }
 
 export default function ProjectsTable({ projects }: Props) {
+  const router = useRouter();
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <table className="min-w-full divide-y divide-slate-200">
@@ -35,6 +37,9 @@ export default function ProjectsTable({ projects }: Props) {
           {projects.map((project) => (
             <tr
               key={project.id}
+              onClick={() => {
+                router.push(`/crm/proyectos/${project.id}/project`);
+              }}
               className="hover:bg-slate-50 transition-colors cursor-pointer group"
             >
               {/* Col 1: Proyecto */}
@@ -86,7 +91,22 @@ export default function ProjectsTable({ projects }: Props) {
               {/* Col 4: Deadline */}
               <td className="px-6 py-4">
                 <div className="text-sm text-slate-900">
-                  {project.created_at}
+                  {project.created_at ? (
+                    <>
+                      <div>
+                        {new Date(project.created_at).toLocaleDateString(
+                          "es-AR",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    "—"
+                  )}
                 </div>
               </td>
 

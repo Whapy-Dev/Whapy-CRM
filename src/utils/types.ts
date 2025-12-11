@@ -51,7 +51,7 @@ export type Project = {
   title: string;
   descripcion: string;
   created_at: string;
-  status: "En progreso" | "Terminado" | "Cancelado" | "Pausado";
+  status: "En progreso" | "Terminado" | "Cancelado" | "Pausado" | string;
   progress: number;
   documents?: Document[] | null;
   videos?: Video[] | null;
@@ -70,6 +70,36 @@ export type Project = {
       };
     }[];
   } | null;
+  client?: {
+    id: string;
+    nombre: string;
+    email: string;
+    empresa: string;
+  } | null;
+  project_emplooyes?:
+    | {
+        profiles: {
+          id: string;
+          nombre: string;
+          telefono: string;
+          roles: { rol: string } | null;
+        };
+      }[]
+    | null;
+  project_phases?:
+    | {
+        id: string;
+        nombre: string;
+        estado: string;
+        orden: number;
+        phase_tasks: {
+          id: string;
+          titulo: string;
+          estado: string;
+          assigned: { id: string; nombre: string } | null;
+        }[];
+      }[]
+    | null;
 };
 
 export type Pasos = {

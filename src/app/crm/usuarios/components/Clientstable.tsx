@@ -1,6 +1,4 @@
-import { MoreVertical } from "lucide-react";
 import { Client } from "../page";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type ClientsTableProps = {
@@ -94,7 +92,6 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                     pre?.monto?.toLocaleString("es-AR") ?? 0
                   }`
               );
-              console.log(presupuestos);
               return (
                 <tr
                   key={client.id}

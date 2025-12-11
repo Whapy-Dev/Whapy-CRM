@@ -2,7 +2,6 @@
 
 import { Client } from "@/app/crm/usuarios/page";
 import { createClient } from "@/lib/supabase/client";
-import { Project } from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 export type Secundario = {
   type: "Secundario";
@@ -13,17 +12,6 @@ export type Secundario = {
   };
   project_id: string;
   project_title: string;
-};
-
-type ProjectUserRow = {
-  type: string;
-  profile: {
-    id: string;
-    nombre: string;
-    email: string | null;
-  };
-  project_id: string;
-  project: { title: string }[];
 };
 const supabase = createClient();
 

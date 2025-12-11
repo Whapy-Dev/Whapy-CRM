@@ -9,7 +9,6 @@ import CreateAccountModal from "./components/Createaccountmodal";
 import { useRoles, useUserRolProfiles } from "@/hooks/admin/useRoles";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { Budget, usePresupuestos } from "@/hooks/admin/useBudgets";
 
 export type Document = {
   id: string;
@@ -149,24 +148,14 @@ const allowedRoles = ["CEO", "COO", "Sales manager", "QA"];
 export default function ClientsPageUnsafe() {
   const { roleAdmin } = useAuth();
   const router = useRouter();
-  const {
-    data: roles,
-    isLoading: loadingRoles,
-    isError: errorRoles,
-  } = useRoles();
-  const {
-    data: users,
-    refetch: refetchUsers,
-    isLoading: loadingUsers,
-    isError: errorUsers,
-  } = useUserRolProfiles();
+  const { isLoading: loadingRoles, isError: errorRoles } = useRoles();
+  const { isLoading: loadingUsers, isError: errorUsers } = useUserRolProfiles();
   const {
     data: dataProfiles = [],
     isLoading: isLoadingProfiles,
     error: errorProfiles,
     refetch: refetchProfiles,
   } = useProfiles();
-  const { data: budgets = [], refetch } = usePresupuestos();
   // Estados de selección
   // Estados de modales
   const [showModal, setShowModal] = useState(false);

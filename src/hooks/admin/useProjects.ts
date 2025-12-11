@@ -5,8 +5,10 @@ export type ProjectWithProfiles = {
   id: string;
   title: string;
   progress: number;
-  status: string;
+  status: "En progreso" | "Terminado" | "Cancelado" | "Pausado" | string;
   created_at: string;
+  descripcion: string;
+  user_id: string;
   profiles: ProfileInProject[];
 };
 
@@ -14,6 +16,8 @@ export type ProfileInProject = {
   id: string;
   nombre: string;
   role_id: string | null;
+  descripcion: string;
+  user_id: string;
 };
 
 const supabase = createClient();
@@ -64,6 +68,40 @@ export function useProjects() {
       );
 
       return Object.values(grouped);
+    },
+  });
+}
+
+export function useProjectById(projectId: string) {
+  return useQuery<ProjectWithProfiles[]>({
+    queryKey: ["projectEmlooyes", projectId],
+    queryFn: async (): Promise<ProjectWithProfiles[]> => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select(
+          `
+    *,
+    client:profiles!user_id(id, nombre, email, empresa),
+    project_emplooyes(
+      profiles(id, nombre, telefono, roles(rol))
+    ),
+    project_phases(
+      *,
+      phase_tasks(
+        *,
+        assigned:profiles!assigned_to(id, nombre)
+      )
+    )
+  `
+        )
+        .eq("id", projectId)
+        .order("orden", { referencedTable: "project_phases", ascending: true })
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return [];
+
+      return data;
     },
   });
 }
