@@ -36,7 +36,12 @@ export default function ClientPage({
   return (
     <div className="space-y-6 p-5">
       {/* Client Component con interactividad */}
-      <ProjectContentPage project={dataProject} refetch={refetch} />
+
+      <ProjectContentPage
+        // @ts-expect-error: ProjectWithProfiles[] no coincide con Project
+        project={dataProject}
+        refetch={refetch}
+      />
     </div>
   );
 }

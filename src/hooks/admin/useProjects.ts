@@ -48,6 +48,8 @@ export function useProjects() {
               progress: project.progress,
               status: project.status,
               created_at: row.created_at,
+              descripcion: project.descripcion ?? "",
+              user_id: project.user_id ?? "",
               profiles: [],
             };
           }

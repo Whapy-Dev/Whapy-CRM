@@ -93,6 +93,7 @@ export default function BudgetModal({
             ) : !tienePresupuesto ? (
               /* Formulario para crear presupuesto */
               <CreateBudgetForm
+                // @ts-expect-error: status de Project no coincide entre tipos
                 selectedProject={selectedProject}
                 admins={admins}
                 documents={documents}

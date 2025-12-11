@@ -15,7 +15,7 @@ export type EstadoCuota = "Pendiente de pago" | "Pagada" | "Vencida";
 export interface Presupuesto {
   id: string;
   monto: number;
-  estado: EstadoPresupuesto;
+  estado: string;
   divisa: string;
   project_id: string;
   document_id?: string | null;

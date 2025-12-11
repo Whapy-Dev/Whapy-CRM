@@ -1,3 +1,5 @@
+import { EstadoPresupuesto } from "@/app/crm/usuarios/components/components/types";
+
 export type Document = {
   id: string;
   user_id: string;
