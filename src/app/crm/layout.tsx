@@ -10,6 +10,7 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   Settings,
   Users,
 } from "lucide-react";
@@ -93,6 +94,12 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       name: "PNL",
       href: "/crm/pnl",
       icon: LayoutDashboard,
+      permission: permissions.accessAll,
+    },
+    {
+      name: "CRM",
+      href: "/crm/crm",
+      icon: MessageCircle,
       permission: permissions.accessAll,
     },
   ].map((item) => ({

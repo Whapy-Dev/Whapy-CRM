@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Project } from "@/utils/types";
 import Link from "next/link";
 import {
@@ -20,6 +20,9 @@ import {
   LucideIcon,
   X,
   Loader2,
+  MoreVertical,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useEmplooyes } from "@/hooks/admin/useEmployees";
@@ -67,12 +70,16 @@ const getInitials = (name: string) =>
 
 const formatDate = (dateStr: string | null) => {
   if (!dateStr) return "-";
-  // Agregar T12:00:00 para evitar problemas de timezone
   const dateWithTime = dateStr.includes("T") ? dateStr : `${dateStr}T12:00:00`;
   return new Date(dateWithTime).toLocaleDateString("es-AR", {
     day: "2-digit",
     month: "short",
   });
+};
+
+const formatDateForInput = (dateStr: string | null) => {
+  if (!dateStr) return "";
+  return dateStr.split("T")[0];
 };
 
 const getStatusBadgeClasses = (estado: string) => {
@@ -171,6 +178,79 @@ function ProgressBar({
   );
 }
 
+// ============ DROPDOWN MENU ============
+function DropdownMenu({
+  children,
+  trigger,
+}: {
+  children: React.ReactNode;
+  trigger: React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+      >
+        {trigger}
+      </div>
+      {isOpen && (
+        <div
+          className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50 min-w-[140px] animate-fade-in"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div onClick={() => setIsOpen(false)}>{children}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DropdownItem({
+  icon: Icon,
+  label,
+  onClick,
+  variant = "default",
+}: {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  variant?: "default" | "danger";
+}) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
+        variant === "danger"
+          ? "text-red-600 hover:bg-red-50"
+          : "text-slate-700 hover:bg-slate-50"
+      }`}
+    >
+      <Icon className="w-4 h-4" />
+      {label}
+    </button>
+  );
+}
+
 // ============ MODAL ============
 function Modal({
   isOpen,
@@ -204,11 +284,66 @@ function Modal({
   );
 }
 
-// ============ ADD PHASE FORM ============
-function AddPhaseForm({
+// ============ CONFIRM DELETE MODAL ============
+function ConfirmDeleteModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  isLoading,
+  title,
+  message,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isLoading: boolean;
+  title: string;
+  message: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 animate-fade-in">
+        <div className="p-6">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <Trash2 className="w-6 h-6 text-red-600" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 text-center mb-2">
+            {title}
+          </h2>
+          <p className="text-sm text-slate-500 text-center mb-6">{message}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+              disabled={isLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={isLoading}
+              className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isLoading ? "Eliminando..." : "Eliminar"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ ADD/EDIT PHASE FORM ============
+function PhaseForm({
   onSubmit,
   onCancel,
   isLoading,
+  initialData,
+  mode,
 }: {
   onSubmit: (data: {
     nombre: string;
@@ -218,11 +353,24 @@ function AddPhaseForm({
   }) => void;
   onCancel: () => void;
   isLoading: boolean;
+  initialData?: {
+    nombre: string;
+    descripcion: string | null;
+    fecha_inicio: string | null;
+    fecha_fin: string | null;
+  };
+  mode: "add" | "edit";
 }) {
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [nombre, setNombre] = useState(initialData?.nombre || "");
+  const [descripcion, setDescripcion] = useState(
+    initialData?.descripcion || ""
+  );
+  const [fechaInicio, setFechaInicio] = useState(
+    formatDateForInput(initialData?.fecha_inicio || null)
+  );
+  const [fechaFin, setFechaFin] = useState(
+    formatDateForInput(initialData?.fecha_fin || null)
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,32 +453,55 @@ function AddPhaseForm({
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isLoading ? "Creando..." : "Crear Fase"}
+          {isLoading
+            ? mode === "add"
+              ? "Creando..."
+              : "Guardando..."
+            : mode === "add"
+            ? "Crear Fase"
+            : "Guardar Cambios"}
         </button>
       </div>
     </form>
   );
 }
 
-// ============ ADD TASK FORM ============
-function AddTaskForm({
+// ============ ADD/EDIT TASK FORM ============
+function TaskForm({
   onSubmit,
   onCancel,
   isLoading,
   phaseName,
+  initialData,
+  mode,
 }: {
   onSubmit: (data: {
     titulo: string;
     descripcion: string;
     fecha_limite: string;
+    estado?: TaskStatus;
   }) => void;
   onCancel: () => void;
   isLoading: boolean;
   phaseName: string;
+  initialData?: {
+    titulo: string;
+    descripcion: string | null;
+    fecha_limite: string | null;
+    estado: TaskStatus;
+  };
+  mode: "add" | "edit";
 }) {
-  const [titulo, setTitulo] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [fechaLimite, setFechaLimite] = useState("");
+  const [titulo, setTitulo] = useState(initialData?.titulo || "");
+  const [descripcion, setDescripcion] = useState(
+    initialData?.descripcion || ""
+  );
+  const [fechaLimite, setFechaLimite] = useState(
+    formatDateForInput(initialData?.fecha_limite || null)
+  );
+  const [estado, setEstado] = useState<TaskStatus>(
+    initialData?.estado || "pendiente"
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -339,13 +510,14 @@ function AddTaskForm({
       titulo: titulo.trim(),
       descripcion: descripcion.trim(),
       fecha_limite: fechaLimite,
+      ...(mode === "edit" && { estado }),
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <p className="text-sm text-slate-500">
-        Agregando tarea a:{" "}
+        {mode === "add" ? "Agregando tarea a:" : "Editando tarea de:"}{" "}
         <span className="font-medium text-slate-700">{phaseName}</span>
       </p>
 
@@ -377,16 +549,36 @@ function AddTaskForm({
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          Fecha límite
-        </label>
-        <input
-          type="date"
-          value={fechaLimite}
-          onChange={(e) => setFechaLimite(e.target.value)}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-        />
+      <div className={mode === "edit" ? "grid grid-cols-2 gap-4" : ""}>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Fecha límite
+          </label>
+          <input
+            type="date"
+            value={fechaLimite}
+            onChange={(e) => setFechaLimite(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
+
+        {mode === "edit" && (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Estado
+            </label>
+            <select
+              value={estado}
+              onChange={(e) => setEstado(e.target.value as TaskStatus)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="pendiente">Pendiente</option>
+              <option value="en_progreso">En Progreso</option>
+              <option value="completada">Completada</option>
+              <option value="bloqueada">Bloqueada</option>
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
@@ -404,7 +596,13 @@ function AddTaskForm({
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isLoading ? "Creando..." : "Crear Tarea"}
+          {isLoading
+            ? mode === "add"
+              ? "Creando..."
+              : "Guardando..."
+            : mode === "add"
+            ? "Crear Tarea"
+            : "Guardar Cambios"}
         </button>
       </div>
     </form>
@@ -426,7 +624,6 @@ function AddTeamMemberForm({
   const { data: employees, isLoading: loadingEmployees } = useEmplooyes();
   const [selectedUserId, setSelectedUserId] = useState("");
 
-  // Filtrar empleados que ya están en el equipo
   const availableEmployees = employees?.filter(
     (emp) => !currentMembers.includes(emp.id)
   );
@@ -458,8 +655,8 @@ function AddTeamMemberForm({
             {availableEmployees.map((emp) => (
               <option key={emp.id} value={emp.id}>
                 {emp.nombre}
-                {/* @ts-expect-error Property 'rol' does not exist on type '{ rol: any; }[]' */}{" "}
-                ({emp.roles.rol})
+                {/* @ts-expect-error Property 'rol' does not exist */} (
+                {emp.roles.rol})
               </option>
             ))}
           </select>
@@ -624,9 +821,17 @@ function TaskStatusIcon({ status }: { status: TaskStatus }) {
   return <div className="h-5 w-5 rounded-full border-2 border-slate-300" />;
 }
 
-function TaskItem({ task }: { task: PhaseTask }) {
+function TaskItem({
+  task,
+  onEdit,
+  onDelete,
+}: {
+  task: PhaseTask;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   return (
-    <div className="p-4 hover:bg-slate-50 transition-colors flex items-start gap-3">
+    <div className="p-4 hover:bg-slate-50 transition-colors flex items-start gap-3 group">
       <div className="mt-0.5">
         <TaskStatusIcon status={task.estado} />
       </div>
@@ -653,7 +858,24 @@ function TaskItem({ task }: { task: PhaseTask }) {
               </span>
             )}
           </div>
-          {task.assigned && <Avatar name={task.assigned.nombre} />}
+          <div className="flex items-center gap-2">
+            {task.assigned && <Avatar name={task.assigned.nombre} />}
+            <DropdownMenu
+              trigger={
+                <button className="p-1 hover:bg-slate-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                  <MoreVertical className="w-4 h-4 text-slate-500" />
+                </button>
+              }
+            >
+              <DropdownItem icon={Pencil} label="Editar" onClick={onEdit} />
+              <DropdownItem
+                icon={Trash2}
+                label="Eliminar"
+                onClick={onDelete}
+                variant="danger"
+              />
+            </DropdownMenu>
+          </div>
         </div>
         {task.descripcion && (
           <p className="text-xs text-slate-500 mt-1">{task.descripcion}</p>
@@ -673,11 +895,19 @@ function PhaseCard({
   isExpanded,
   onToggle,
   onAddTask,
+  onEditPhase,
+  onDeletePhase,
+  onEditTask,
+  onDeleteTask,
 }: {
   phase: ProjectPhase;
   isExpanded: boolean;
   onToggle: () => void;
   onAddTask: (phaseId: string, phaseName: string) => void;
+  onEditPhase: (phase: ProjectPhase) => void;
+  onDeletePhase: (phaseId: string, phaseName: string) => void;
+  onEditTask: (task: PhaseTask, phaseName: string) => void;
+  onDeleteTask: (taskId: string, taskTitle: string) => void;
 }) {
   const isActive = phase.estado === "en_progreso";
   const isCompleted = phase.estado === "completada";
@@ -734,6 +964,25 @@ function PhaseCard({
         </div>
         <div className="flex items-center gap-2">
           <StatusBadge status={phase.estado} size="md" />
+          <DropdownMenu
+            trigger={
+              <button className="p-1 hover:bg-slate-200 rounded transition-colors">
+                <MoreVertical className="w-4 h-4 text-slate-500" />
+              </button>
+            }
+          >
+            <DropdownItem
+              icon={Pencil}
+              label="Editar fase"
+              onClick={() => onEditPhase(phase)}
+            />
+            <DropdownItem
+              icon={Trash2}
+              label="Eliminar fase"
+              onClick={() => onDeletePhase(phase.id, phase.nombre)}
+              variant="danger"
+            />
+          </DropdownMenu>
           {isExpanded ? (
             <ChevronDown className="w-4 h-4 text-slate-400" />
           ) : (
@@ -749,8 +998,18 @@ function PhaseCard({
             {phase.phase_tasks
               .sort((a, b) => a.orden - b.orden)
               .map((task) => (
-                <TaskItem key={task.id} task={task} />
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onEdit={() => onEditTask(task, phase.nombre)}
+                  onDelete={() => onDeleteTask(task.id, task.titulo)}
+                />
               ))}
+            {phase.phase_tasks.length === 0 && (
+              <div className="p-8 text-center text-slate-400 text-sm">
+                No hay tareas en esta fase
+              </div>
+            )}
           </div>
           <div className="bg-slate-50 p-3 border-t border-slate-200 text-center">
             <button
@@ -780,7 +1039,6 @@ function ProjectSidebar({
 }) {
   return (
     <div className="space-y-6">
-      {/* Detalles */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <h3 className="font-bold text-slate-800 mb-4 text-sm uppercase">
           Detalles
@@ -809,7 +1067,6 @@ function ProjectSidebar({
         </div>
       </div>
 
-      {/* Equipo */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-slate-800 text-sm uppercase">Equipo</h3>
@@ -849,7 +1106,11 @@ function ChecklistView({
   phases,
   profiles,
   onAddPhase,
+  onEditPhase,
+  onDeletePhase,
   onAddTask,
+  onEditTask,
+  onDeleteTask,
   onAddTeamMember,
 }: {
   project: Project;
@@ -861,23 +1122,77 @@ function ChecklistView({
     fecha_inicio: string;
     fecha_fin: string;
   }) => Promise<void>;
+  onEditPhase: (
+    phaseId: string,
+    data: {
+      nombre: string;
+      descripcion: string;
+      fecha_inicio: string;
+      fecha_fin: string;
+    }
+  ) => Promise<void>;
+  onDeletePhase: (phaseId: string) => Promise<void>;
   onAddTask: (
     phaseId: string,
     data: { titulo: string; descripcion: string; fecha_limite: string }
   ) => Promise<void>;
+  onEditTask: (
+    taskId: string,
+    data: {
+      titulo: string;
+      descripcion: string;
+      fecha_limite: string;
+      estado?: TaskStatus;
+    }
+  ) => Promise<void>;
+  onDeleteTask: (taskId: string) => Promise<void>;
   onAddTeamMember: () => void;
 }) {
-  const [expandedPhases, setExpandedPhases] = useState<string[]>(
-    phases.filter((p) => p.estado === "en_progreso").map((p) => p.id)
-  );
+  const [expandedPhases, setExpandedPhases] = useState<string[]>([]);
+
+  useEffect(() => {
+    const inProgressPhaseIds = phases
+      .filter((p) => p.estado === "en_progreso")
+      .map((p) => p.id);
+
+    if (inProgressPhaseIds.length === 0) {
+      const firstPending = phases
+        .sort((a, b) => a.orden - b.orden)
+        .find((p) => p.estado === "pendiente");
+      if (firstPending) {
+        inProgressPhaseIds.push(firstPending.id);
+      }
+    }
+
+    setExpandedPhases((prev) => {
+      const newExpanded = new Set([...prev, ...inProgressPhaseIds]);
+      return Array.from(newExpanded);
+    });
+  }, [phases]);
 
   // Modal states
   const [showAddPhaseModal, setShowAddPhaseModal] = useState(false);
+  const [showEditPhaseModal, setShowEditPhaseModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [showEditTaskModal, setShowEditTaskModal] = useState(false);
+  const [showDeletePhaseModal, setShowDeletePhaseModal] = useState(false);
+  const [showDeleteTaskModal, setShowDeleteTaskModal] = useState(false);
+
   const [selectedPhase, setSelectedPhase] = useState<{
     id: string;
     name: string;
   } | null>(null);
+  const [editingPhase, setEditingPhase] = useState<ProjectPhase | null>(null);
+  const [editingTask, setEditingTask] = useState<{
+    task: PhaseTask;
+    phaseName: string;
+  } | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{
+    id: string;
+    name: string;
+    type: "phase" | "task";
+  } | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const togglePhase = (phaseId: string) => {
@@ -888,9 +1203,20 @@ function ChecklistView({
     );
   };
 
+  // Phase handlers
   const handleOpenAddTask = (phaseId: string, phaseName: string) => {
     setSelectedPhase({ id: phaseId, name: phaseName });
     setShowAddTaskModal(true);
+  };
+
+  const handleOpenEditPhase = (phase: ProjectPhase) => {
+    setEditingPhase(phase);
+    setShowEditPhaseModal(true);
+  };
+
+  const handleOpenDeletePhase = (phaseId: string, phaseName: string) => {
+    setDeletingItem({ id: phaseId, name: phaseName, type: "phase" });
+    setShowDeletePhaseModal(true);
   };
 
   const handleAddPhase = async (data: {
@@ -908,6 +1234,50 @@ function ChecklistView({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEditPhase = async (data: {
+    nombre: string;
+    descripcion: string;
+    fecha_inicio: string;
+    fecha_fin: string;
+  }) => {
+    if (!editingPhase) return;
+    setIsLoading(true);
+    try {
+      await onEditPhase(editingPhase.id, data);
+      setShowEditPhaseModal(false);
+      setEditingPhase(null);
+    } catch (error) {
+      console.error("Error al editar fase:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeletePhase = async () => {
+    if (!deletingItem) return;
+    setIsLoading(true);
+    try {
+      await onDeletePhase(deletingItem.id);
+      setShowDeletePhaseModal(false);
+      setDeletingItem(null);
+    } catch (error) {
+      console.error("Error al eliminar fase:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Task handlers
+  const handleOpenEditTask = (task: PhaseTask, phaseName: string) => {
+    setEditingTask({ task, phaseName });
+    setShowEditTaskModal(true);
+  };
+
+  const handleOpenDeleteTask = (taskId: string, taskTitle: string) => {
+    setDeletingItem({ id: taskId, name: taskTitle, type: "task" });
+    setShowDeleteTaskModal(true);
   };
 
   const handleAddTask = async (data: {
@@ -928,21 +1298,55 @@ function ChecklistView({
     }
   };
 
+  const handleEditTask = async (data: {
+    titulo: string;
+    descripcion: string;
+    fecha_limite: string;
+    estado?: TaskStatus;
+  }) => {
+    if (!editingTask) return;
+    setIsLoading(true);
+    try {
+      await onEditTask(editingTask.task.id, data);
+      setShowEditTaskModal(false);
+      setEditingTask(null);
+    } catch (error) {
+      console.error("Error al editar tarea:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    if (!deletingItem) return;
+    setIsLoading(true);
+    try {
+      await onDeleteTask(deletingItem.id);
+      setShowDeleteTaskModal(false);
+      setDeletingItem(null);
+    } catch (error) {
+      console.error("Error al eliminar tarea:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const activePhase = phases.find((p) => p.estado === "en_progreso");
-  const activePhaseProgress = activePhase
-    ? Math.round(
-        (activePhase.phase_tasks.filter((t) => t.estado === "completada")
-          .length /
-          activePhase.phase_tasks.length) *
-          100
-      )
-    : 0;
+  const activePhaseProgress =
+    activePhase && activePhase.phase_tasks.length > 0
+      ? Math.round(
+          (activePhase.phase_tasks.filter((t) => t.estado === "completada")
+            .length /
+            activePhase.phase_tasks.length) *
+            100
+        )
+      : 0;
 
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
         <div className="lg:col-span-2 space-y-4">
-          {activePhase && (
+          {activePhase && activePhase.phase_tasks.length > 0 && (
             <ProgressBar
               progress={activePhaseProgress}
               label={`Progreso: ${activePhase.nombre}`}
@@ -962,6 +1366,10 @@ function ChecklistView({
                 isExpanded={expandedPhases.includes(phase.id)}
                 onToggle={() => togglePhase(phase.id)}
                 onAddTask={handleOpenAddTask}
+                onEditPhase={handleOpenEditPhase}
+                onDeletePhase={handleOpenDeletePhase}
+                onEditTask={handleOpenEditTask}
+                onDeleteTask={handleOpenDeleteTask}
               />
             ))}
 
@@ -986,11 +1394,35 @@ function ChecklistView({
         onClose={() => setShowAddPhaseModal(false)}
         title="Nueva Fase"
       >
-        <AddPhaseForm
+        <PhaseForm
           onSubmit={handleAddPhase}
           onCancel={() => setShowAddPhaseModal(false)}
           isLoading={isLoading}
+          mode="add"
         />
+      </Modal>
+
+      {/* Modal para editar fase */}
+      <Modal
+        isOpen={showEditPhaseModal}
+        onClose={() => {
+          setShowEditPhaseModal(false);
+          setEditingPhase(null);
+        }}
+        title="Editar Fase"
+      >
+        {editingPhase && (
+          <PhaseForm
+            onSubmit={handleEditPhase}
+            onCancel={() => {
+              setShowEditPhaseModal(false);
+              setEditingPhase(null);
+            }}
+            isLoading={isLoading}
+            initialData={editingPhase}
+            mode="edit"
+          />
+        )}
       </Modal>
 
       {/* Modal para agregar tarea */}
@@ -1002,7 +1434,7 @@ function ChecklistView({
         }}
         title="Nueva Tarea"
       >
-        <AddTaskForm
+        <TaskForm
           onSubmit={handleAddTask}
           onCancel={() => {
             setShowAddTaskModal(false);
@@ -1010,8 +1442,59 @@ function ChecklistView({
           }}
           isLoading={isLoading}
           phaseName={selectedPhase?.name || ""}
+          mode="add"
         />
       </Modal>
+
+      {/* Modal para editar tarea */}
+      <Modal
+        isOpen={showEditTaskModal}
+        onClose={() => {
+          setShowEditTaskModal(false);
+          setEditingTask(null);
+        }}
+        title="Editar Tarea"
+      >
+        {editingTask && (
+          <TaskForm
+            onSubmit={handleEditTask}
+            onCancel={() => {
+              setShowEditTaskModal(false);
+              setEditingTask(null);
+            }}
+            isLoading={isLoading}
+            phaseName={editingTask.phaseName}
+            initialData={editingTask.task}
+            mode="edit"
+          />
+        )}
+      </Modal>
+
+      {/* Modal para confirmar eliminación de fase */}
+      <ConfirmDeleteModal
+        isOpen={showDeletePhaseModal}
+        onClose={() => {
+          setShowDeletePhaseModal(false);
+          setDeletingItem(null);
+        }}
+        onConfirm={handleDeletePhase}
+        isLoading={isLoading}
+        title="Eliminar Fase"
+        message={`¿Estás seguro de eliminar la fase "${deletingItem?.name}"? Se eliminarán también todas las tareas asociadas. Esta acción no se puede deshacer.`}
+      />
+
+      {/* Modal para confirmar eliminación de tarea */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteTaskModal}
+        onClose={() => {
+          setShowDeleteTaskModal(false);
+          setDeletingItem(null);
+        }}
+        onConfirm={handleDeleteTask}
+        isLoading={isLoading}
+        title="Eliminar Tarea"
+        message={`¿Estás seguro de eliminar la tarea "${deletingItem?.name}"? Esta acción no se puede deshacer.`}
+      />
     </>
   );
 }
@@ -1365,7 +1848,6 @@ export default function ProjectContentPage({
   const [showAddTeamModal, setShowAddTeamModal] = useState(false);
   const [isAddingTeamMember, setIsAddingTeamMember] = useState(false);
 
-  console.log(project);
   const allTasks = project.project_phases?.flatMap((p) => p.phase_tasks) || [];
   const completedTasks = allTasks.filter(
     (t) => t.estado === "completada"
@@ -1382,10 +1864,9 @@ export default function ProjectContentPage({
       rol: e.profiles.roles?.rol || null,
     })) || [];
 
-  // IDs de miembros actuales del equipo
   const currentMemberIds = profiles.map((p) => p.id);
 
-  // Handler para agregar fase
+  // ========== PHASE HANDLERS ==========
   const handleAddPhase = async (data: {
     nombre: string;
     descripcion: string;
@@ -1405,7 +1886,41 @@ export default function ProjectContentPage({
     refetch();
   };
 
-  // Handler para agregar tarea
+  const handleEditPhase = async (
+    phaseId: string,
+    data: {
+      nombre: string;
+      descripcion: string;
+      fecha_inicio: string;
+      fecha_fin: string;
+    }
+  ) => {
+    const { error } = await supabase
+      .from("project_phases")
+      .update({
+        nombre: data.nombre,
+        descripcion: data.descripcion || null,
+        fecha_inicio: data.fecha_inicio || null,
+        fecha_fin: data.fecha_fin || null,
+      })
+      .eq("id", phaseId);
+    if (error) throw error;
+    refetch();
+  };
+
+  const handleDeletePhase = async (phaseId: string) => {
+    // Primero eliminar las tareas de la fase
+    await supabase.from("phase_tasks").delete().eq("phase_id", phaseId);
+    // Luego eliminar la fase
+    const { error } = await supabase
+      .from("project_phases")
+      .delete()
+      .eq("id", phaseId);
+    if (error) throw error;
+    refetch();
+  };
+
+  // ========== TASK HANDLERS ==========
   const handleAddTask = async (
     phaseId: string,
     data: { titulo: string; descripcion: string; fecha_limite: string }
@@ -1423,6 +1938,37 @@ export default function ProjectContentPage({
     refetch();
   };
 
+  const handleEditTask = async (
+    taskId: string,
+    data: {
+      titulo: string;
+      descripcion: string;
+      fecha_limite: string;
+      estado?: TaskStatus;
+    }
+  ) => {
+    const { error } = await supabase
+      .from("phase_tasks")
+      .update({
+        titulo: data.titulo,
+        descripcion: data.descripcion || null,
+        fecha_limite: data.fecha_limite || null,
+        ...(data.estado && { estado: data.estado }),
+      })
+      .eq("id", taskId);
+    if (error) throw error;
+    refetch();
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const { error } = await supabase
+      .from("phase_tasks")
+      .delete()
+      .eq("id", taskId);
+    if (error) throw error;
+    refetch();
+  };
+
   // Handler para actualizar estado de tarea (Kanban drag & drop)
   const handleUpdateTaskStatus = async (
     taskId: string,
@@ -1434,6 +1980,57 @@ export default function ProjectContentPage({
       .eq("id", taskId);
 
     if (error) throw error;
+
+    const phase = project.project_phases?.find((p) =>
+      p.phase_tasks.some((t) => t.id === taskId)
+    );
+
+    if (phase) {
+      const updatedTasks = phase.phase_tasks.map((t) =>
+        t.id === taskId ? { ...t, estado: newStatus } : t
+      );
+
+      const allCompleted =
+        updatedTasks.length > 0 &&
+        updatedTasks.every((t) => t.estado === "completada");
+
+      const hasInProgress = updatedTasks.some(
+        (t) => t.estado === "en_progreso"
+      );
+
+      let newPhaseStatus: PhaseStatus = phase.estado as PhaseStatus;
+
+      if (allCompleted) {
+        newPhaseStatus = "completada";
+      } else if (hasInProgress) {
+        newPhaseStatus = "en_progreso";
+      } else {
+        newPhaseStatus = "pendiente";
+      }
+
+      if (newPhaseStatus !== phase.estado) {
+        await supabase
+          .from("project_phases")
+          .update({ estado: newPhaseStatus })
+          .eq("id", phase.id);
+
+        if (newPhaseStatus === "completada") {
+          const sortedPhases = [...(project.project_phases || [])].sort(
+            (a, b) => a.orden - b.orden
+          );
+          const currentIndex = sortedPhases.findIndex((p) => p.id === phase.id);
+          const nextPhase = sortedPhases[currentIndex + 1];
+
+          if (nextPhase && nextPhase.estado === "pendiente") {
+            await supabase
+              .from("project_phases")
+              .update({ estado: "en_progreso" })
+              .eq("id", nextPhase.id);
+          }
+        }
+      }
+    }
+
     refetch();
   };
 
@@ -1468,17 +2065,21 @@ export default function ProjectContentPage({
       {activeTab === "checklist" && (
         <ChecklistView
           project={project}
-          // @ts-expect-error: fases no coinciden con ProjectPhase pero lo aceptamos temporalmente
+          // @ts-expect-error: fases no coinciden con ProjectPhase
           phases={project.project_phases || []}
           profiles={profiles}
           onAddPhase={handleAddPhase}
+          onEditPhase={handleEditPhase}
+          onDeletePhase={handleDeletePhase}
           onAddTask={handleAddTask}
+          onEditTask={handleEditTask}
+          onDeleteTask={handleDeleteTask}
           onAddTeamMember={() => setShowAddTeamModal(true)}
         />
       )}
       {activeTab === "kanban" && (
         <KanbanView
-          // @ts-expect-error: fases no coinciden con ProjectPhase pero lo aceptamos temporalmente
+          // @ts-expect-error: fases no coinciden con ProjectPhase
           phases={project.project_phases || []}
           onUpdateTaskStatus={handleUpdateTaskStatus}
         />
