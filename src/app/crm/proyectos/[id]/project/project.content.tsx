@@ -22,6 +22,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useEmplooyes } from "@/hooks/admin/useEmployees";
 
 // ============ TYPES ============
 type TabType = "checklist" | "kanban" | "files" | "commits";
@@ -410,6 +411,87 @@ function AddTaskForm({
   );
 }
 
+// ============ ADD TEAM MEMBER FORM ============
+function AddTeamMemberForm({
+  onSubmit,
+  onCancel,
+  isLoading,
+  currentMembers,
+}: {
+  onSubmit: (userId: string) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+  currentMembers: string[];
+}) {
+  const { data: employees, isLoading: loadingEmployees } = useEmplooyes();
+  const [selectedUserId, setSelectedUserId] = useState("");
+
+  // Filtrar empleados que ya están en el equipo
+  const availableEmployees = employees?.filter(
+    (emp) => !currentMembers.includes(emp.id)
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserId) return;
+    onSubmit(selectedUserId);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Seleccionar miembro *
+        </label>
+        {loadingEmployees ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+          </div>
+        ) : availableEmployees && availableEmployees.length > 0 ? (
+          <select
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            required
+          >
+            <option value="">Seleccionar empleado...</option>
+            {availableEmployees.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.nombre}
+                {/* @ts-expect-error Property 'rol' does not exist on type '{ rol: any; }[]' */}{" "}
+                ({emp.roles.rol})
+              </option>
+            ))}
+          </select>
+        ) : (
+          <p className="text-sm text-slate-500 py-2">
+            No hay empleados disponibles para agregar.
+          </p>
+        )}
+      </div>
+
+      <div className="flex justify-end gap-3 pt-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+          disabled={isLoading}
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={isLoading || !selectedUserId}
+          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+        >
+          {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isLoading ? "Agregando..." : "Agregar al Equipo"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 // ============ HEADER ============
 function ProjectHeader({
   project,
@@ -492,7 +574,7 @@ function TabNavigation({
   onTabChange: (tab: TabType) => void;
 }) {
   return (
-    <div className="border-b border-slate-200 overflow-x-auto">
+    <div className="border-b border-slate-200">
       <nav className="-mb-px flex space-x-4 sm:space-x-8">
         {TABS.map((tab) => {
           const Icon = tab.icon;
@@ -690,9 +772,11 @@ function PhaseCard({
 function ProjectSidebar({
   project,
   profiles,
+  onAddTeamMember,
 }: {
   project: Project;
   profiles: TeamMember[];
+  onAddTeamMember: () => void;
 }) {
   return (
     <div className="space-y-6">
@@ -729,8 +813,11 @@ function ProjectSidebar({
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-slate-800 text-sm uppercase">Equipo</h3>
-          <button className="text-indigo-600 text-xs font-medium hover:underline">
-            Gestionar
+          <button
+            onClick={onAddTeamMember}
+            className="text-indigo-600 text-xs font-medium hover:underline cursor-pointer"
+          >
+            Añadir equipo
           </button>
         </div>
         <div className="space-y-3">
@@ -763,6 +850,7 @@ function ChecklistView({
   profiles,
   onAddPhase,
   onAddTask,
+  onAddTeamMember,
 }: {
   project: Project;
   phases: ProjectPhase[];
@@ -777,6 +865,7 @@ function ChecklistView({
     phaseId: string,
     data: { titulo: string; descripcion: string; fecha_limite: string }
   ) => Promise<void>;
+  onAddTeamMember: () => void;
 }) {
   const [expandedPhases, setExpandedPhases] = useState<string[]>(
     phases.filter((p) => p.estado === "en_progreso").map((p) => p.id)
@@ -884,7 +973,11 @@ function ChecklistView({
           </button>
         </div>
 
-        <ProjectSidebar project={project} profiles={profiles} />
+        <ProjectSidebar
+          project={project}
+          profiles={profiles}
+          onAddTeamMember={onAddTeamMember}
+        />
       </div>
 
       {/* Modal para agregar fase */}
@@ -1269,6 +1362,9 @@ export default function ProjectContentPage({
 }) {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<TabType>("checklist");
+  const [showAddTeamModal, setShowAddTeamModal] = useState(false);
+  const [isAddingTeamMember, setIsAddingTeamMember] = useState(false);
+
   console.log(project);
   const allTasks = project.project_phases?.flatMap((p) => p.phase_tasks) || [];
   const completedTasks = allTasks.filter(
@@ -1285,6 +1381,9 @@ export default function ProjectContentPage({
       nombre: e.profiles.nombre,
       rol: e.profiles.roles?.rol || null,
     })) || [];
+
+  // IDs de miembros actuales del equipo
+  const currentMemberIds = profiles.map((p) => p.id);
 
   // Handler para agregar fase
   const handleAddPhase = async (data: {
@@ -1338,6 +1437,24 @@ export default function ProjectContentPage({
     refetch();
   };
 
+  // Handler para agregar miembro al equipo
+  const handleAddTeamMember = async (userId: string) => {
+    setIsAddingTeamMember(true);
+    try {
+      const { error } = await supabase.from("project_emplooyes").insert({
+        project_id: project.id,
+        user_id: userId,
+      });
+      if (error) throw error;
+      setShowAddTeamModal(false);
+      refetch();
+    } catch (error) {
+      console.error("Error al agregar miembro al equipo:", error);
+    } finally {
+      setIsAddingTeamMember(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <ProjectHeader
@@ -1356,6 +1473,7 @@ export default function ProjectContentPage({
           profiles={profiles}
           onAddPhase={handleAddPhase}
           onAddTask={handleAddTask}
+          onAddTeamMember={() => setShowAddTeamModal(true)}
         />
       )}
       {activeTab === "kanban" && (
@@ -1367,6 +1485,20 @@ export default function ProjectContentPage({
       )}
       {activeTab === "files" && <FilesView />}
       {activeTab === "commits" && <CommitsView />}
+
+      {/* Modal para agregar miembro al equipo */}
+      <Modal
+        isOpen={showAddTeamModal}
+        onClose={() => setShowAddTeamModal(false)}
+        title="Añadir al Equipo"
+      >
+        <AddTeamMemberForm
+          onSubmit={handleAddTeamMember}
+          onCancel={() => setShowAddTeamModal(false)}
+          isLoading={isAddingTeamMember}
+          currentMembers={currentMemberIds}
+        />
+      </Modal>
     </div>
   );
 }

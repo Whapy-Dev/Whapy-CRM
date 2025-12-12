@@ -19,6 +19,27 @@ export type ProfileInProject = {
   descripcion: string;
   user_id: string;
 };
+export type ProjectSelect = {
+  id: string;
+  title: string;
+};
+
+export type EmployeeWithRole = {
+  id: string;
+  nombre: string;
+  roles: { rol: string } | null;
+};
+
+type ProjectEmployeeData = {
+  projects: ProjectSelect[];
+  employees: EmployeeWithRole[];
+};
+
+type EmployeeRaw = {
+  id: string;
+  nombre: string;
+  roles: { rol: string }[] | null;
+};
 
 const supabase = createClient();
 
@@ -40,7 +61,6 @@ export function useProjects() {
           const project = row.projects;
           const profile = row.profiles;
 
-          // Si el proyecto no existe, lo inicializamos
           if (!acc[project.id]) {
             acc[project.id] = {
               id: project.id,
@@ -104,6 +124,41 @@ export function useProjectById(projectId: string) {
       if (!data) return [];
 
       return data;
+    },
+  });
+}
+
+export function useProjectEmployeeData() {
+  return useQuery({
+    queryKey: ["projectEmployeeData"],
+    queryFn: async (): Promise<ProjectEmployeeData> => {
+      const [projectsRes, employeesRes] = await Promise.all([
+        supabase
+          .from("projects")
+          .select("id, title")
+          .order("title", { ascending: true }),
+        supabase
+          .from("profiles")
+          .select("id, nombre, roles(rol)")
+          .eq("role", "admin"),
+      ]);
+
+      if (projectsRes.error) throw projectsRes.error;
+      if (employeesRes.error) throw employeesRes.error;
+
+      // Transformar roles de array a objeto (toma el primero)
+      const employees: EmployeeWithRole[] = (
+        employeesRes.data as EmployeeRaw[]
+      ).map((emp) => ({
+        id: emp.id,
+        nombre: emp.nombre,
+        roles: emp.roles?.[0] ?? null,
+      }));
+
+      return {
+        projects: projectsRes.data as ProjectSelect[],
+        employees,
+      };
     },
   });
 }

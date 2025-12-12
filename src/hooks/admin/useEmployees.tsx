@@ -11,7 +11,7 @@ export function useEmplooyes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, nombre")
+        .select("id, nombre, roles(rol)")
         .eq("role", "admin");
 
       if (error) throw error;
